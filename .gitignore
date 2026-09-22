@@ -1,4 +1,23 @@
 # Miscellaneous
+.env
+.env.*
+!.env.example
+*.apk
+*.aab
+*.hprof
+*.trace
+*.tmp
+*.bak
+*.keystore
+*.jks
+*.pem
+*.key
+local.properties
+.gradle/
+android-sdk/
+flutter-sdk/
+postgres-data/
+pgdata/
 *.class
 *.log
 *.pyc

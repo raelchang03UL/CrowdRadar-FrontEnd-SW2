@@ -1,11 +1,12 @@
-# CrowdRadar Frontend - Sprint 1
+# CrowdRadar Frontend
 
 Aplicación móvil Flutter para las historias del Sprint 1: registro de ciudadano, inicio de sesión, visualización del perfil y actualización del perfil.
 
 ## Requisitos
 
-- Flutter con una versión de Dart compatible con `^3.11.5`.
+- Flutter 3.41.9 estable (Dart 3.11.5), coincidente con `.metadata` y compatible con `pubspec.lock`.
 - Android Studio o Android SDK y un emulador Android configurado.
+- Java 21 y Android SDK Platform 36 / Build-Tools 36 para la compilación comprobada.
 - Backend CrowdRadar en ejecución.
 
 Comprueba el entorno antes de ejecutar:
@@ -19,8 +20,10 @@ flutter devices
 
 ```powershell
 flutter pub get
+flutter analyze
 flutter test
-flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000
+flutter build apk --debug
+flutter run -d emulator-5554 --dart-define=API_BASE_URL=http://10.0.2.2:3000
 ```
 
 `10.0.2.2` permite que el emulador Android acceda al `localhost` de la PC. Para un dispositivo físico, reemplaza la URL por la IP de la PC en la misma red, por ejemplo:
@@ -29,7 +32,7 @@ flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000
 flutter run --dart-define=API_BASE_URL=http://192.168.1.20:3000
 ```
 
-El valor predeterminado sigue siendo `http://10.0.2.2:3000` cuando no se envía `API_BASE_URL`.
+El valor predeterminado sigue siendo `http://10.0.2.2:3000` cuando no se envía `API_BASE_URL`. Desde Android, `localhost` apunta al propio dispositivo, no a la PC.
 
 ## Flujo del Sprint 1
 
@@ -52,7 +55,7 @@ Archivos principales:
 
 ## Pruebas
 
-El proyecto incluye `test/widget_test.dart`, que comprueba que la app muestra la pantalla de inicio de sesión. En la revisión local del 20/09/2026 no se ejecutó porque Flutter y Dart no estaban instalados en la PC. La presencia del código no se considera evidencia de compilación.
+El proyecto incluye `test/widget_test.dart`, que comprueba que la app muestra el inicio de sesión. El 22/09/2026 pasaron `flutter analyze`, `flutter test` (1 prueba) y `flutter build apk --debug`. El APK se instaló en un emulador Android 16 y se comprobó el flujo con `crowdradar_dev`. El estado y las capturas están en [docs/ESTADO_ACTUAL.md del backend](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/blob/develop/docs/ESTADO_ACTUAL.md).
 
 ## Alcance
 
