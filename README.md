@@ -43,6 +43,10 @@ El valor predeterminado sigue siendo `http://10.0.2.2:3000` cuando no se envía 
 5. La sección `/profile` consulta `GET /api/users/profile`.
 6. `/profile/edit` envía los cambios con `PUT /api/users/profile`.
 
+## HU 2.4 — cierre de sesión local
+
+Desde Perfil, **Cerrar sesión** borra el token y el usuario en memoria. El router redirige a `/login` y bloquea `/map`, `/validar`, `/favoritos`, `/profile` y `/profile/edit` sin sesión, incluso después del cierre. Login y registro son públicos. No se añade persistencia ni revocación del JWT en el backend.
+
 Archivos principales:
 
 - `lib/pages/login/login_page.dart`
@@ -57,6 +61,10 @@ Archivos principales:
 
 El proyecto incluye `test/widget_test.dart`, que comprueba que la app muestra el inicio de sesión. El 22/09/2026 pasaron `flutter analyze`, `flutter test` (1 prueba) y `flutter build apk --debug`. El APK se instaló en un emulador Android 16 y se comprobó el flujo con `crowdradar_dev`. El estado y las capturas están en [docs/ESTADO_ACTUAL.md del backend](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/blob/develop/docs/ESTADO_ACTUAL.md).
 
+La validación local del 05/10/2026 añade `test/session_service_test.dart` y `test/auth_navigation_test.dart`: 20 pruebas aprobadas en total y análisis sin problemas. Los resultados y el recorrido Android de la HU 2.4 están en [docs/ESTADO_ACTUAL.md](docs/ESTADO_ACTUAL.md).
+
+La revisión del 06/10/2026 conserva ese trabajo y añade `test/session_async_test.dart`: 25 pruebas aprobadas. Se corrigieron respuestas pendientes tras el cierre y se repitió el recorrido Android; no se actualizaron dependencias.
+
 ## Alcance
 
-Esta entrega conserva el diseño móvil y se limita al Sprint 1. Las pantallas de mapa, validación y favoritos no se amplían como parte de esta revisión.
+La base entregada corresponde al Sprint 1. La revisión actual añade únicamente la HU 2.4 en el frontend, conservando el diseño móvil. Las pantallas de mapa, validación y favoritos no se amplían.

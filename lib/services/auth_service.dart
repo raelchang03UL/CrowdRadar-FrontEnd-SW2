@@ -10,7 +10,11 @@ import '../models/user_model.dart';
 import 'session_service.dart';
 
 class AuthService {
-  Future<GenericResponse<UserModel>> login(String email, String password) async {
+  Future<GenericResponse<UserModel>> login(
+    String email,
+    String password,
+  ) async {
+    final sessionGeneration = SessionService.generation;
     final res = await http.post(
       ApiConfig.uri(ApiConfig.login),
       headers: ApiConfig.jsonHeaders,
@@ -22,10 +26,26 @@ class AuthService {
     if (res.statusCode >= 200 && res.statusCode < 300) {
       final data = body['data'] as Map<String, dynamic>? ?? {};
       final token = data['token'] as String?;
-      final user = UserModel.fromJson(data['user'] as Map<String, dynamic>? ?? {});
+      final user = UserModel.fromJson(
+        data['user'] as Map<String, dynamic>? ?? {},
+      );
 
-      SessionService.token = token;
-      SessionService.currentUser = user;
+      if (token == null || token.trim().isEmpty) {
+        return const GenericResponse<UserModel>(
+          success: false,
+          message: 'No se recibió un token de sesión válido',
+        );
+      }
+      if (!SessionService.start(
+        token: token,
+        user: user,
+        expectedGeneration: sessionGeneration,
+      )) {
+        return const GenericResponse<UserModel>(
+          success: false,
+          message: 'La sesión cambió durante la solicitud',
+        );
+      }
 
       return GenericResponse<UserModel>(
         success: true,
@@ -64,7 +84,9 @@ class AuthService {
     final Map<String, dynamic> body = _decode(res.bodyBytes);
 
     if (res.statusCode >= 200 && res.statusCode < 300) {
-      final user = UserModel.fromJson(body['data'] as Map<String, dynamic>? ?? {});
+      final user = UserModel.fromJson(
+        body['data'] as Map<String, dynamic>? ?? {},
+      );
       return GenericResponse<UserModel>(
         success: true,
         data: user,

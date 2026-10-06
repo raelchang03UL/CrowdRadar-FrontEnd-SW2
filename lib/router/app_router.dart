@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 
 import '../models/user_model.dart';
+import '../services/session_service.dart';
 
 import '../pages/login/login_page.dart';
 import '../pages/register/register_page.dart';
@@ -10,33 +11,32 @@ import '../pages/favoritos/favoritos_page.dart';
 import '../pages/profile/profile_page.dart';
 import '../pages/profile/edit_profile_page.dart';
 
-final appRouter = GoRouter(
-  initialLocation: '/login',
+final appRouter = createAppRouter();
+
+GoRouter createAppRouter({String initialLocation = '/login'}) => GoRouter(
+  initialLocation: initialLocation,
+  refreshListenable: SessionService.changes,
+  redirect: (context, state) {
+    final isPublic =
+        state.uri.path == '/login' || state.uri.path == '/register';
+    if (!SessionService.isAuthenticated && !isPublic) {
+      return '/login';
+    }
+    return null;
+  },
   routes: [
-    GoRoute(
-      path: '/login',
-      builder: (context, state) => const LoginPage(),
-    ),
+    GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
     GoRoute(
       path: '/register',
       builder: (context, state) => const RegisterPage(),
     ),
-    GoRoute(
-      path: '/map',
-      builder: (context, state) => const MapPage(),
-    ),
-    GoRoute(
-      path: '/validar',
-      builder: (context, state) => const ValidarPage(),
-    ),
+    GoRoute(path: '/map', builder: (context, state) => const MapPage()),
+    GoRoute(path: '/validar', builder: (context, state) => const ValidarPage()),
     GoRoute(
       path: '/favoritos',
       builder: (context, state) => const FavoritosPage(),
     ),
-    GoRoute(
-      path: '/profile',
-      builder: (context, state) => const ProfilePage(),
-    ),
+    GoRoute(path: '/profile', builder: (context, state) => const ProfilePage()),
     GoRoute(
       path: '/profile/edit',
       builder: (context, state) {
