@@ -253,7 +253,6 @@ class _ProfileViewState extends State<_ProfileView> {
                     borderRadius: BorderRadius.circular(12),
                     onTap: () {
                       context.read<AuthCubit>().logout();
-                      context.go('/login');
                     },
                     child: Container(
                       decoration: BoxDecoration(

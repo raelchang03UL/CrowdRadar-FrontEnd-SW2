@@ -11,6 +11,7 @@ import 'session_service.dart';
 
 class UserService {
   Future<GenericResponse<UserModel>> getProfile() async {
+    final sessionGeneration = SessionService.generation;
     final token = SessionService.token;
     if (token == null) {
       return const GenericResponse<UserModel>(
@@ -24,10 +25,19 @@ class UserService {
       headers: ApiConfig.authHeaders(token),
     );
 
+    if (sessionGeneration != SessionService.generation) {
+      return const GenericResponse<UserModel>(
+        success: false,
+        message: 'La sesión cambió durante la solicitud',
+      );
+    }
+
     final Map<String, dynamic> body = _decode(res.bodyBytes);
 
     if (res.statusCode >= 200 && res.statusCode < 300) {
-      final user = UserModel.fromJson(body['data'] as Map<String, dynamic>? ?? {});
+      final user = UserModel.fromJson(
+        body['data'] as Map<String, dynamic>? ?? {},
+      );
       return GenericResponse<UserModel>(
         success: true,
         data: user,
@@ -41,7 +51,10 @@ class UserService {
     );
   }
 
-  Future<GenericResponse<UserModel>> updateProfile(Map<String, dynamic> cambios) async {
+  Future<GenericResponse<UserModel>> updateProfile(
+    Map<String, dynamic> cambios,
+  ) async {
+    final sessionGeneration = SessionService.generation;
     final token = SessionService.token;
     if (token == null) {
       return const GenericResponse<UserModel>(
@@ -56,12 +69,25 @@ class UserService {
       body: jsonEncode(cambios),
     );
 
+    if (sessionGeneration != SessionService.generation) {
+      return const GenericResponse<UserModel>(
+        success: false,
+        message: 'La sesión cambió durante la solicitud',
+      );
+    }
+
     final Map<String, dynamic> body = _decode(res.bodyBytes);
 
     if (res.statusCode >= 200 && res.statusCode < 300) {
-      final user = UserModel.fromJson(body['data'] as Map<String, dynamic>? ?? {});
+      final user = UserModel.fromJson(
+        body['data'] as Map<String, dynamic>? ?? {},
+      );
 
-      SessionService.currentUser = user;
+      SessionService.updateUser(
+        user,
+        sessionToken: token,
+        sessionGeneration: sessionGeneration,
+      );
 
       return GenericResponse<UserModel>(
         success: true,

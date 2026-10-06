@@ -13,12 +13,14 @@ class ProfileCubit extends Cubit<ProfileState> {
     emit(ProfileLoading());
     try {
       final res = await _userService.getProfile();
+      if (isClosed) return;
       if (res.success && res.data != null) {
         emit(ProfileLoaded(user: res.data!));
       } else {
         emit(ProfileError(message: res.message));
       }
     } catch (e) {
+      if (isClosed) return;
       emit(ProfileError(message: e.toString()));
     }
   }
@@ -27,12 +29,14 @@ class ProfileCubit extends Cubit<ProfileState> {
     emit(ProfileLoading());
     try {
       final res = await _userService.updateProfile(cambios);
+      if (isClosed) return;
       if (res.success && res.data != null) {
         emit(ProfileLoaded(user: res.data!));
       } else {
         emit(ProfileError(message: res.message));
       }
     } catch (e) {
+      if (isClosed) return;
       emit(ProfileError(message: e.toString()));
     }
   }
