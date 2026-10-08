@@ -2,9 +2,11 @@
 
 Aplicación Flutter Android y Web para registro, inicio de sesión, perfil y mapa de lugares. El soporte Web ejecuta la misma aplicación y servicios; no hay un frontend HTML paralelo.
 
-**Rama de revisión HU 2.1–2.2:** `feature/hu-2-1-2-recuperacion`, desde HU 2.3 frontend `1e62c754682f3abe2b166b178d44b7e6e7d1fad0`; backend compañero misma rama desde `97e607ed22b48561bed30a4e821099f76360210d`. HU 2.3 parte del pulido `0361ae1`, y ambos dependen de HU 3.1 pendiente de merge. Clonar `develop` no incorpora estos incrementos; publicación no equivale a integración.
+**Origen funcional de esta instantánea:** HU 2.1–2.2 publicada en `feature/hu-2-1-2-recuperacion`, desde HU 2.3 frontend `1e62c754682f3abe2b166b178d44b7e6e7d1fad0`; backend compañero misma rama desde `97e607ed22b48561bed30a4e821099f76360210d`. HU 2.3 parte del pulido `0361ae1`, y ambos dependen de HU 3.1 pendiente de merge. Clonar `develop` no incorpora estos incrementos; publicación no equivale a integración.
 
-Para colaborar con el equipo y usar IA sobre el código, empieza por [CONTRIBUTING.md](CONTRIBUTING.md) y [AGENTS.md](AGENTS.md). Consulta [arquitectura](docs/ARQUITECTURA.md) y [guía visual](docs/GUIA_VISUAL.md); CONTRIBUTING enlaza coordinación y contrato canónico backend. `develop` reúne los aportes integrados de los siete; una rama publicada con PR abierto sigue pendiente de incorporación a esa base.
+Para colaborar con el equipo y usar IA sobre el código, empieza por [AGENTS.md](AGENTS.md) y [CONTRIBUTING.md](CONTRIBUTING.md). Después, lee `docs/INICIO_EQUIPO.md` en el clon backend hermano: explica el arranque sin historial de chats e incluye un prompt sin tarea asignada. Consulta [arquitectura](docs/ARQUITECTURA.md) y [guía visual](docs/GUIA_VISUAL.md); CONTRIBUTING enlaza coordinación y contrato canónico backend. `develop` reúne los aportes integrados de los siete; una rama publicada con PR abierto sigue pendiente de incorporación a esa base.
+
+**Descarga actual del equipo:** usar `integration/base-equipo` en ambos repositorios para leer, ejecutar y revisar los avances con las guías nuevas. Es una instantánea pendiente de integración, no la base aprobada para iniciar funcionalidades. La guía de inicio backend contiene ambos comandos de clonación; tras aprobar/integrar el par, las tareas nuevas parten de `develop` actualizado.
 
 ## Requisitos
 
