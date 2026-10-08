@@ -5,15 +5,22 @@ import 'login_state.dart';
 import '../services/auth_service.dart';
 import '../services/session_service.dart';
 
-class AuthCubit extends Cubit<AuthState> {
-  final AuthService _authService = AuthService();
-  int _loginAttempt = 0;
+enum AuthOperation { login, register }
 
-  AuthCubit() : super(AuthInitial());
+class AuthCubit extends Cubit<AuthState> {
+  final AuthService _authService;
+  int _loginAttempt = 0;
+  AuthOperation? lastOperation;
+
+  AuthCubit({AuthService? authService})
+    : _authService = authService ?? AuthService(),
+      super(AuthInitial());
 
   bool get isLoading => state is AuthLoading;
 
   Future<void> login(String email, String password) async {
+    if (isClosed || isLoading) return;
+    lastOperation = AuthOperation.login;
     final attempt = ++_loginAttempt;
     emit(AuthLoading());
     try {
@@ -24,9 +31,9 @@ class AuthCubit extends Cubit<AuthState> {
       } else {
         emit(AuthError(error: res.message));
       }
-    } catch (e) {
+    } catch (_) {
       if (isClosed || attempt != _loginAttempt) return;
-      emit(AuthError(error: e.toString()));
+      emit(AuthError(error: AuthService.connectionError));
     }
   }
 
@@ -38,6 +45,9 @@ class AuthCubit extends Cubit<AuthState> {
     required String telefono,
     required String distrito,
   }) async {
+    if (isClosed || isLoading) return;
+    lastOperation = AuthOperation.register;
+    final attempt = ++_loginAttempt;
     emit(AuthLoading());
     try {
       final res = await _authService.register(
@@ -48,13 +58,15 @@ class AuthCubit extends Cubit<AuthState> {
         telefono: telefono,
         distrito: distrito,
       );
+      if (isClosed || attempt != _loginAttempt) return;
       if (res.success) {
         emit(AuthRegistered());
       } else {
         emit(AuthError(error: res.message));
       }
-    } catch (e) {
-      emit(AuthError(error: e.toString()));
+    } catch (_) {
+      if (isClosed || attempt != _loginAttempt) return;
+      emit(AuthError(error: AuthService.connectionError));
     }
   }
 
