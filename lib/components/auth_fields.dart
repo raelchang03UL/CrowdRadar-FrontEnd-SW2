@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
 
 class AuthValidation {
   static String? name(String? value) =>
@@ -103,7 +104,7 @@ class AuthFeedback extends StatelessWidget {
           : Text(
               error!,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Color(0xFF9F1D20)),
+              style: const TextStyle(color: AppColors.danger),
             ),
     ),
   );

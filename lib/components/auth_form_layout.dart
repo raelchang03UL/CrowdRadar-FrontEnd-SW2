@@ -9,6 +9,7 @@ class AuthFormLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, constraints) => SingleChildScrollView(
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       padding: const EdgeInsets.all(24),
       child: ConstrainedBox(
         constraints: BoxConstraints(
@@ -18,7 +19,12 @@ class AuthFormLayout extends StatelessWidget {
           child: ConstrainedBox(
             key: const ValueKey('auth-form-width'),
             constraints: const BoxConstraints(maxWidth: 480),
-            child: child,
+            child: Card(
+              child: Padding(
+                padding: EdgeInsets.all(constraints.maxWidth < 600 ? 16 : 32),
+                child: child,
+              ),
+            ),
           ),
         ),
       ),

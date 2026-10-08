@@ -92,28 +92,33 @@ class _MapStatus extends StatelessWidget {
       padding: const EdgeInsets.all(32),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 480),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (loading)
-              const CircularProgressIndicator()
-            else
-              Icon(icon, size: 44, color: AppColors.primary),
-            const SizedBox(height: 20),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium,
+        child: Card(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (loading)
+                  const CircularProgressIndicator()
+                else
+                  Icon(icon, size: 44, color: AppColors.primary),
+                const SizedBox(height: 20),
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                if (retry != null) ...[
+                  const SizedBox(height: 20),
+                  OutlinedButton.icon(
+                    onPressed: retry,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Reintentar'),
+                  ),
+                ],
+              ],
             ),
-            if (retry != null) ...[
-              const SizedBox(height: 20),
-              OutlinedButton.icon(
-                onPressed: retry,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Reintentar'),
-              ),
-            ],
-          ],
+          ),
         ),
       ),
     ),
@@ -141,8 +146,11 @@ class _PlacesMapState extends State<_PlacesMap> {
       children: [
         Container(
           width: double.infinity,
-          color: AppColors.surface,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          decoration: const BoxDecoration(
+            color: AppColors.surface,
+            border: Border(bottom: BorderSide(color: AppColors.borderNav)),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -250,9 +258,9 @@ class _PlacesMapState extends State<_PlacesMap> {
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 480),
                       child: Material(
-                        elevation: 4,
+                        elevation: 2,
                         color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(12),
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(16, 12, 4, 12),
                           child: Row(
