@@ -1,4 +1,187 @@
-# Frontend — HU 2.4, cierre de sesión
+# Estado actual
+
+## Hito C — HU 2.1–2.2, avance verificable, 08/10/2026
+
+Rama `feature/hu-2-1-2-recuperacion`, padre B frontend `1e62c754682f3abe2b166b178d44b7e6e7d1fad0`; backend compañero parte de `97e607ed22b48561bed30a4e821099f76360210d`. A/B/C dependen de HU 3.1 todavía sin integrar (PR #9/#26 abiertos en borrador). Publicar estas ramas no cambia develop/main ni completa un Sprint; no se abrieron nuevos PR ni se modificó backlog.
+
+Login → recuperación pública con mensaje uniforme → enlace GoRouter → validación HTTP antes de mostrar campos → nueva contraseña/confirmación → login normal. Enlace inválido/expirado/usado no muestra formulario. Servicio sanea respuestas/timeout; cubits bloquean dobles envíos y descartan respuestas de otra operación/sesión. Éxito limpia la sesión vigente y reemplaza la ruta sensible; no abre sesión automáticamente. Meta Web `no-referrer`, token no mostrado en widgets ni persistido en almacenamiento. La invalidación real de JWT y el consumo atómico pertenecen al backend/migración003.
+
+**Entrega real pendiente:** el equipo confirmó que no hay proveedor elegido. El servidor normal devuelve indisponibilidad uniforme, sin generar enlaces ni simular envío. Correo/aviso capturados en pruebas no demuestran entrega real; HU 2.1/Sprint2 no están terminados. Tampoco se verificó apertura de enlaces en la app nativa Android.
+
+- `flutter analyze --no-pub`: sin problemas.
+- `flutter test --no-pub`: 226 aprobadas, 0 fallidas, 2 omitidas (integraciones locales opt-in). 79 casos nuevos C: contratos/errores/timeout, validación antes de formulario, enlace inválido, doble envío, respuestas antiguas, navegación pública/guardas y layouts360/390/1440, texto2×/teclado. Fallos iniciales de estilo/compilación y un fixture de navegación se corrigieron antes de la ejecución final; no se ocultaron excepciones.
+- Opt-in C: 1/1 aprobada con widgets VM + HTTP real + PostgreSQL18 `crowdradar_auth_test`. Solicitud y correo en RAM → enlace real del servicio → respuesta200 de validación antes de campos → reset → JWT anterior401 → contraseña vieja rechazada/nueva válida/perfil → aviso RAM → enlace usado400 sin formulario. No es navegador/Android ni email real. El helper privado inicia/cierra puerto3031, no expone buzón por HTTP ni imprime enlaces/credenciales. Deja cuenta QA aleatoria identificable en la DB aislada.
+- Opt-in B reejecutado sobre C: 1/1 aprobado contra backend3000 y `crowdradar_dev`.
+- `flutter build web --no-pub --dart-define=API_BASE_URL=http://localhost:3000`: correcto,63,8s. `flutter build apk --debug --no-pub --dart-define=API_BASE_URL=http://10.0.2.2:3000`: correcto,33,9s. Contingencia temporal corta de Gradle documentada; aviso SDKXML4/herramienta3 no bloqueante. Builds/APK ignorados, no publicados.
+- `git diff --check` correcto; pubspec, lockfile, Gradle y dependencias sin modificaciones. No se instaló ni actualizó ningún paquete.
+
+Para repetir C, con ambos clones hermanos en esta rama de revisión, `.env` backend local configurado y PostgreSQL18 activo:
+
+```powershell
+# Primero en CrowdRadar-Backend; crea/reutiliza solo la base auth_test protegida.
+npm run test:db:auth
+npm run test:db:recovery
+# Después en CrowdRadar-FrontEnd (no simultáneo con los runners DB).
+$env:CROWDRADAR_RECOVERY_INTEGRATION = '1'
+flutter test --no-pub test/local_recovery_api_test.dart --dart-define=API_BASE_URL=http://127.0.0.1:3031
+Remove-Item Env:CROWDRADAR_RECOVERY_INTEGRATION
+```
+
+El helper requiere permiso de migración en `crowdradar_auth_test`; no cambia la `.env`, no usa dev/entrega/Supabase y no necesita que el servidor3000 envíe correo. Sus presupuestos de abuso se separan por ejecución sin borrar contadores; el runner backend comprueba los límites reales. Backend500/503 y doble/respuesta antigua se comprueban con dobles controlados, no todos como fallos inyectados en PostgreSQL.
+
+No se repitió recorrido Chrome normal, IAB ni Android para A/B/C; se respetó la detención de seguridad previa sin eludirla con otra herramienta. Capturas disponibles: widgets antes/después de A abajo, no capturas actuales de correo ni prueba manual de B/C. Recepción real, enlaces nativos, revisión/integración y reproducción en otra PC siguen pendientes.
+
+## Hito B — HU 2.3, 08/10/2026
+
+Rama `feature/hu-2-3-cambio-password`, padre A `0361ae13017def4d9c135a78b3b95ab1f07bf635`. Backend compañero misma rama desde HU 3.1 `c2aa7c0`; requiere migración 002 explícita. Bases aún sin integrar: no se abrió PR nuevo ni se modificaron PR HU 3.1, develop/main o backlog.
+
+Perfil → Cambiar contraseña: tres campos ocultos con visibilidad opcional, confirmación, 8 caracteres Unicode/72 bytes UTF-8, rechazo de reutilización, teclado y formulario estable durante carga/error. Servicio sanea códigos/timeout; cubit bloquea doble envío y conserva guardas de generación. Éxito/401 de sesión vigente limpia datos y vuelve a login con aviso fijo; respuesta antigua nunca cierra una sesión nueva. El backend invalida efectivamente todos los JWT anteriores mediante versión persistente.
+
+`flutter analyze --no-pub`: sin problemas. Suite normal: 147 aprobadas, 0 fallidas, 1 omitida (integración local opt-in); 37 casos nuevos de HU 2.3. Un fallo intermedio del fixture de scroll se corrigió bombeando el frame final, sin alterar viewport ni ocultar errores. Layouts 360/390/1440, texto 2× y teclado simulado.
+
+Integración opt-in contra backend real/crowdradar_dev: 1/1 aprobada con widgets VM; registro/login/perfil, actual incorrecta, cambio correcto/cierre/aviso, ruta protegida, JWT viejo401, cambio sinJWT401, login viejo rechazado y nuevo correcto. Cuenta QA aleatoria conservada, sin credencial publicada. No es navegador ni Android.
+
+Para reproducir solo esa prueba, con servidor local migrado en `crowdradar_dev`:
+
+```powershell
+$env:CROWDRADAR_API_INTEGRATION = '1'
+flutter test --no-pub test/local_api_smoke_test.dart --dart-define=API_BASE_URL=http://localhost:3000
+Remove-Item Env:CROWDRADAR_API_INTEGRATION
+```
+
+Build Web aprobado (32,0 s) y APK debug aprobado (32,9 s), con URL localhost/10.0.2.2 respectivamente. Se utilizó la contingencia temporal corta documentada para Gradle; permanece el aviso de XML SDK versión4/herramienta3, sin impedir compilación. APK/builds ignorados, no publicados.
+
+Chrome normal/Android y entrega de correo no probados manualmente en este incremento; no afirmar validación manual ni cierre de Sprint. Recuperación/restablecimiento aún fuera de B. El pulido y sus capturas constan abajo.
+
+## Hito A — pulido aplicado, 08/10/2026
+
+Rama `feature/ui-flujos-ciudadano`, padre `feature/hu-3-1-mapa-lugares` en `f2437a2991293fa275626e4d5e8819a22b1aed2a`. HU 3.1/PR #9 sigue sin integrar; esta rama no modifica ese PR ni `develop`/`main`.
+
+Tema neutro, tarjetas claras, formularios contenidos, logo compacto y espaciado compartido. Perfil/edición 680/560 dp, carga inicial/reintento, errores públicos y timeout 15 s; guardar no elimina formulario y bloquea doble envío. Navegación inferior crece con texto ampliado. Mapa conserva datos demostrativos y atribución, sin funciones nuevas. Contratos, dependencias y sesión no cambiaron.
+
+Validación: `flutter analyze --no-pub` sin problemas; `flutter test --no-pub` 110/110 (69 anteriores +37 perfil/edición +4 layouts); build Web correcto. Widgets 360/390/1440 dp, texto 2× y teclado simulado, no recorrido manual. La primera ejecución focalizada detectó overflow de 2 px en navegación 2× y un fixture lazy; ambos corregidos, suite global aprobada sin ocultar excepciones.
+
+[Capturas antes/después y límites](evidencias/ui_flujos_2026_10_08/README.md). No se repitió Chrome normal, IAB ni Android: revisión manual pendiente. No se eludió la detención de seguridad de Chrome. Sin afirmar certificación de accesibilidad ni cierre de Sprint.
+
+## Registro histórico — cierre local HU 3.1 / Web, 07/10/2026
+
+Fotografía de la validación local del 07/10/2026, anterior a su publicación: rama `feature/hu-3-1-mapa-lugares`, HEAD/base `f214886d7a40aabfc3b10b0af1a266128cc421fe`, entonces sin staging, commit ni publicación. HU 2.4 integrada se conserva, con JWT sin revocación backend. Para conocer la publicación/integración posterior, comprobar Git y los PR relacionados; los resultados siguientes conservan su fecha y alcance.
+
+## Validación final Web y formularios
+
+- `dart format` únicamente sobre los 17 Dart candidatos; el formateo incidental de otros archivos se revirtió y no queda en el diff.
+- `flutter analyze --no-pub`: `No issues found!`, código 0.
+- `flutter test --no-pub`: **69: All tests passed!**, código 0. Incluye los 25 casos anteriores HU 2.4, 23 de lugares/mapa, 7 de layout/navegación Web y 14 de usabilidad/servicio de autenticación. Cubre 1440×900, 390×844 y 360×360, sin ocultar overflows/excepciones.
+- `flutter build web --no-pub --dart-define=API_BASE_URL=http://localhost:3000`: **Built build/web**, `58,7 s`, código 0; dry-run Wasm correcto, avisos informativos de tree-shaking. No se probó un despliegue de ese build release; el recorrido fue sobre el servidor de desarrollo de la misma app.
+- `git diff --check`: código 0. Sin cambios de pubspec, lockfile, Gradle ni dependencias. `web/index.html` solo bootstrap de Flutter.
+
+Los intentos intermedios detectaron getters incorrectos en el test de visibilidad y avisos de estilo; después, 68 pruebas pasaron y 1 falló por una respuesta simulada con texto español sin charset UTF-8. Se corrigió el doble HTTP (el backend real usa JSON UTF-8), sin ocultar el resultado. La ejecución final anterior aprobó los 69 casos.
+
+## Recorrido manual Web verificado
+
+URL **http://localhost:5500/#/login**, API **http://localhost:3000**, PostgreSQL 18 local `crowdradar_dev`. Chrome fue iniciado con `flutter run -d chrome --web-hostname=localhost --web-port=5500 --no-pub --dart-define=API_BASE_URL=http://localhost:3000`; no usa `--disable-web-security`. Oracle sigue en IPv4 `127.0.0.1:5500`; Flutter en IPv6 `::1:5500`. No se cambió a 5000 ni se detuvo Oracle.
+
+**Alcance de la evidencia:** el recorrido interactivo siguiente se ejecutó en el navegador integrado (IAB), sobre esa app Flutter y URL local. El control del Chrome normal no estuvo disponible de forma fiable; queda pendiente repetirlo allí con Rael. No se presenta IAB como Chrome normal. Contraseña aleatoria local de 40 caracteres ASCII, solo en memoria, oculta en capturas; sin credencial predeterminada ni autoalmacenamiento.
+
+| Paso | Resultado observado en IAB |
+| --- | --- |
+| Registro nuevo | Rael / Chang, correo QA único, teléfono 9 dígitos y Miraflores. Volvió a login con «Cuenta creada. Ya puedes iniciar sesión…». SQL confirmó usuario y bcrypt en crowdradar_dev. |
+| Correo repetido | «El correo ya está registrado. Inicia sesión o usa otro correo.», sin perder los campos. |
+| Validación de seis campos | Formulario vacío mostró errores por nombre/apellido/distrito, correo, contraseña y teléfono; requisitos visibles. Malformados/límite UTF-8 cubiertos además por tests. |
+| Login recién registrado | Abrió `/#/map`; consulta autenticada y 3 lugares recibidos. |
+| Contraseña incorrecta | «Correo o contraseña incorrectos.», sin abrir sesión. |
+| Backend apagado | Se detuvo solo nuestro servidor, puerto 3000 sin listener; login mostró mensaje comprensible y formulario conservado. Se reinició backend y GET / respondió 200. |
+| Mapa y marcadores | Teselas OpenStreetMap y 3 marcadores; aviso demostrativo/sin tiempo real. |
+| Selección | Demo · Parque Central / Parque · Demostrativo; no detalles completos. |
+| Cierre | Perfil mostró Rael Chang; Cerrar sesión volvió a login con campos vacíos. |
+| Reingreso protegido | Entradas a `/#/map`, `/#/validar`, `/#/favoritos`, `/#/profile`, `/#/profile/edit` redirigieron a `/#/login`. |
+| Recargas | Recarga completa en `/#/login`: formulario vacío; en `/#/register`: registro público; en `/#/map` sin sesión: URL final `/#/login`. Una espera automatizada de accesibilidad expiró mientras cargaba Flutter; después se inspeccionó y activó la accesibilidad, sin cambiar la app ni desactivar seguridad. La prueba automatizada también cubre éxito de registro sin historial previo. |
+| Diseño y teclado | 390×844 y 1440×900 inspeccionados; Tab desde Distrito alcanzó Registrarme; mostrar/ocultar probado sin revelar la credencial. No es una auditoría completa WCAG/lector de pantalla. |
+
+Capturas nuevas (no reemplazan las Android): [mapa/identificación](evidencias/hu_3_1/web_2026_10_07/01_mapa_identificacion.jpg), [backend apagado](evidencias/hu_3_1/web_2026_10_07/02_login_backend_apagado.jpg), [login móvil](evidencias/hu_3_1/web_2026_10_07/03_login_movil.jpg), [registro móvil](evidencias/hu_3_1/web_2026_10_07/04_registro_movil.jpg), [validaciones escritorio](evidencias/hu_3_1/web_2026_10_07/05_validaciones_escritorio.jpg).
+
+### Problema observado y corrección contenida
+
+Antes no se explicaban todos los requisitos; el formulario desaparecía durante la solicitud y errores de red podían mostrar `ClientException`. Registro directo podía intentar volver sin historial. Se añadieron ayudas, validación coherente 8 caracteres/72 bytes, mostrar/ocultar, estados inline públicos con región accesible, campos/botones deshabilitados durante la solicitud y descarte de respuestas antiguas. Un error de registro no se muestra como error de login. Ancho máximo 480, centrado/scroll; no se rediseñó el resto. No hay prueba que permita atribuir todo el fallo original de Rael a una única causa de infraestructura; las deficiencias de interfaz/código sí están identificadas.
+
+Pendientes reales: Chrome normal, clonación limpia de este incremento aún no publicado, revisión de equipo y fuente canónica; sesión solo en memoria, JWT no revocado, User.sync histórico, OSM requiere Internet. No se repitió Android tras las últimas correcciones de formulario. No se implementaron recuperación/restablecimiento/cambio, saturación ni detalle completo.
+
+## Inventario final para revisión (sin staging)
+
+29 archivos: 9 modificados y 20 nuevos. `M`/`??` reproducen `git status --porcelain=v1 --untracked-files=all` desde la raíz del repositorio frontend. Incluyen el incremento previo conservado, no solo los ajustes de este cierre.
+
+```text
+ M README.md
+ M docs/ESTADO_ACTUAL.md
+ M lib/components/cr_bottom_nav.dart
+ M lib/configs/api_config.dart
+ M lib/cubits/login_cubit.dart
+ M lib/pages/login/login_page.dart
+ M lib/pages/map/map_page.dart
+ M lib/pages/register/register_page.dart
+ M lib/services/auth_service.dart
+?? docs/evidencias/hu_3_1/2026_10_07/01_mapa_lugares.png
+?? docs/evidencias/hu_3_1/2026_10_07/02_identificacion.png
+?? docs/evidencias/hu_3_1/2026_10_07/03_error_backend_apagado.png
+?? docs/evidencias/hu_3_1/2026_10_07/04_reintento_correcto.png
+?? docs/evidencias/hu_3_1/web_2026_10_07/01_mapa_identificacion.jpg
+?? docs/evidencias/hu_3_1/web_2026_10_07/02_login_backend_apagado.jpg
+?? docs/evidencias/hu_3_1/web_2026_10_07/03_login_movil.jpg
+?? docs/evidencias/hu_3_1/web_2026_10_07/04_registro_movil.jpg
+?? docs/evidencias/hu_3_1/web_2026_10_07/05_validaciones_escritorio.jpg
+?? lib/components/auth_fields.dart
+?? lib/components/auth_form_layout.dart
+?? lib/cubits/places/places_cubit.dart
+?? lib/cubits/places/places_state.dart
+?? lib/models/place_model.dart
+?? lib/services/place_service.dart
+?? test/auth_usability_test.dart
+?? test/map_page_test.dart
+?? test/places_test.dart
+?? test/web_layout_navigation_test.dart
+?? web/index.html
+```
+
+Revisión de candidatos: sin archivos mayores de 5 MB, generados ni asignaciones de credenciales locales detectadas; JWT real ausente en los textos revisados, `.env` no rastreado. `.dart_tool`, `build/web`, `local.properties`, SDK/AVD y APK siguen fuera de Git. `HEAD = develop = origin/develop` (referencias locales verificadas), diferencia `0 0`; el trabajo está en archivos, no en commits. `origin/main` conserva `6286e0a9c17b41e1e4c3303e32ca102316bc095d`; no existe rama local main en este checkout y no se creó. Evidencias HU 2.4 sin cambios.
+
+## Registro inicial HU 3.1 — 07/10/2026
+
+Rama local `feature/hu-3-1-mapa-lugares`, desde `develop` / merge HU 2.4 `f214886d7a40aabfc3b10b0af1a266128cc421fe`. Se verificó limpio y sincronizado con `origin/develop` antes de crear la rama. Cambios sin staging, commit ni publicación. Issue [#4](https://github.com/raelchang03UL/CrowdRadar-FrontEnd-SW2/issues/4) leído, sin modificaciones.
+
+## Flujo implementado y comprobado
+
+- `PlaceModel` valida datos y coordenadas finitas/rangos. `PlaceService` consulta `/api/places` con JWT, tiempo máximo de 15 segundos y mensajes públicos; no muestra excepciones técnicas.
+- `PlacesCubit` aplica generación de sesión, última solicitud y guarda de vista cerrada. Logout borra inmediatamente la lista; respuestas antiguas no repueblan el estado. Las guardas globales HU 2.4 permanecen intactas.
+- `MapPage` reutiliza AppTheme/AppColors y navegación inferior. Muestra carga, vacío, error/reintento y marcadores dinámicos; encuadra los puntos y permite desplazar el mapa. Selección breve con nombre/categoría y cierre, sin HU 3.3 completa. No hay búsqueda o controles decorativos.
+- No existía catálogo canónico en el código/Issue revisados. Los tres puntos del fixture backend son ilustrativos, con nombres `Demo · ...`, bandera `demostrativo` y aviso visible **Sin monitoreo en tiempo real**. No se atribuyen a lugares realmente monitoreados.
+
+## Validación real
+
+- `flutter analyze --no-pub`: **No issues found!**, código 0.
+- `flutter test --no-pub`: **48: All tests passed!**, código 0: 25 anteriores, 18 de servicio/modelo/cubit y 5 widget del mapa.
+- Los widgets usan 360 × 800 dp, tema real, FlutterMap/MarkerLayer reales y teselas en memoria solo para evitar red externa en tests. Prueban carga, vacío, marcadores/coordenadas, selección, desplazamiento, error/reintento y retiro de marcadores al cerrar sesión.
+- Primera suite nueva: 43 aprobadas y 5 fallidas por `A RenderFlex overflowed by 1.00 pixels on the bottom.` Se corrigió exclusivamente el ajuste del texto de CrBottomNav a una línea con elipsis; sin ampliar el fixture ni ocultar excepciones. Se corrigieron tres avisos de estilo observados durante el desarrollo; análisis final limpio.
+- `git diff --check`: sin errores. Sin cambios en pubspec, lockfile, Gradle, SDK ni dependencias.
+
+## Android 16 / API 36
+
+Se reutilizó `CrowdRadar_API36`, `emulator-5554`, arranque completo `sys.boot_completed=1`. `flutter run -d emulator-5554 --no-pub --dart-define=API_BASE_URL=http://10.0.2.2:3000` compiló el APK debug (assembleDebug 31,9 s), lo instaló y abrió la app. Se usó una cuenta local existente, sin registrar otro usuario.
+
+1. Login desde interfaz contra backend local/PostgreSQL 18 en `crowdradar_dev`.
+2. [Mapa OpenStreetMap cargado y tres marcadores](evidencias/hu_3_1/2026_10_07/01_mapa_lugares.png).
+3. [Selección: Demo · Parque Central / Parque · Demostrativo](evidencias/hu_3_1/2026_10_07/02_identificacion.png).
+4. Se detuvo únicamente nuestro backend; Actualizar mostró [error público y Reintentar](evidencias/hu_3_1/2026_10_07/03_error_backend_apagado.png), sin ClientException visible.
+5. Backend reiniciado; pulsar Reintentar recuperó [los tres marcadores y el mapa](evidencias/hu_3_1/2026_10_07/04_reintento_correcto.png).
+
+La carga y el vacío se probaron automáticamente, no se capturó una base real vacía en Android. El error manual corresponde al backend apagado, no a una caída de OpenStreetMap. Persistió la advertencia no bloqueante `This version only understands SDK XML versions up to 3 but an SDK XML file of version 4 was encountered.`
+
+## Criterios y límites
+
+Los tres criterios técnicos del Issue #4 están demostrados localmente: consulta autenticada con marcadores, coordenadas recibidas exactas y error informativo con recuperación. Pendientes de revisión del equipo, commit/publicación autorizada y fuente canónica de lugares para un uso real. No se marcó el Issue como completado.
+
+La identificación no incluye descripción completa, aforo ni saturación. No hay HU 3.2, HU 3.3 completa, favoritos, geolocalización, reportes, búsqueda ni filtros. JWT sigue sin revocación backend. La migración de `places` no resuelve todavía `User.sync()` histórico. OpenStreetMap necesita Internet; no se añadió modo offline ni tratamiento específico de errores de teselas.
+
+## Registro histórico — HU 2.4
 
 Última revisión: **06/10/2026**, 25 pruebas aprobadas y recorrido Android completado. El registro del 05/10 se conserva debajo; los hallazgos y correcciones adicionales están al final.
 

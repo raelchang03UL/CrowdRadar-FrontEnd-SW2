@@ -6,7 +6,12 @@ class ApiConfig {
 
   static const String register = '/api/auth/register';
   static const String login = '/api/auth/login';
+  static const String changePassword = '/api/auth/password/change';
+  static const String forgotPassword = '/api/auth/password/forgot';
+  static const String validateResetToken = '/api/auth/password/reset/validate';
+  static const String resetPassword = '/api/auth/password/reset';
   static const String profile = '/api/users/profile';
+  static const String places = '/api/places';
 
   static Uri uri(String path) => Uri.parse('$baseUrl$path');
 
