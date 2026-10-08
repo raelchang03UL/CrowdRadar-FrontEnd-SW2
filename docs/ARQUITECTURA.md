@@ -1,0 +1,36 @@
+# Arquitectura frontend
+
+Descripción del incremento HU 3.1/Web revisado el 07/10/2026 en `feature/hu-3-1-mapa-lugares`, desde la base `f214886`. Confirmar Git y el estado de integración del PR al reutilizarla.
+
+## Responsabilidades
+
+```text
+main.dart / MaterialApp.router
+  → router/app_router.dart (acceso y navegación)
+  → pages / components (presentación y formularios)
+  → cubits (estado y operaciones asíncronas)
+  → services (HTTP / traducción de errores)
+  → configs/api_config.dart → backend
+```
+
+`models` representa datos de la API. `theme/AppTheme` y `AppColors` definen el estilo común. `auth_fields` y `auth_form_layout` comparten validación/presentación de autenticación. No añadir HTTP en widgets ni duplicar clientes o temas por pantalla.
+
+`AuthCubit` coordina registro/login/logout. `SessionService` guarda token/usuario en memoria y una generación de sesión para descartar respuestas antiguas. El router protege todas las rutas excepto login/registro; al añadir recuperación debe acordarse qué rutas son públicas sin abrir el resto. El cierre retira datos inmediatamente; una respuesta tardía no los repone.
+
+`PlacesCubit` controla carga/vacío/error/datos y descarta solicitudes antiguas; `PlaceService` usa JWT y timeout; `MapPage` representa lugares mediante flutter_map/OpenStreetMap. Los datos actuales son ilustrativos y se identifican como demostrativos. Seleccionar un marcador no implementa detalle completo ni saturación.
+
+## Configuración y plataformas
+
+Una sola aplicación Flutter para Android/Web. `API_BASE_URL` se define al ejecutar/compilar; el valor por defecto `10.0.2.2:3000` es para Android emulado, no Web. Usar el README para la URL/puerto real. La configuración pública no contiene secretos.
+
+Web usa rutas con fragmento `#/`. Recargar pierde la sesión porque no hay persistencia. Cambiar ese comportamiento o mover tokens a almacenamiento es una decisión de seguridad, no un arreglo visual. No desactivar CORS/seguridad del navegador para conectar.
+
+## Fronteras compartidas
+
+Coordinar antes de editar router, sesión, AuthCubit, API config, UserModel, PlaceModel o tema. El contrato canónico está en backend `docs/CONTRATO_API.md`; enlaces y lectura local en [CONTRIBUTING](../CONTRIBUTING.md). Registrar los dos SHA usados en integración.
+
+## Pruebas y deuda
+
+Flutter tests cubren servicios/modelos/cubits y navegación/widgets; dobles de HTTP/teselas no demuestran una API/base real. Un build aprobado tampoco acredita el recorrido de usuario. Las evidencias actuales distinguen IAB, Chrome normal y Android; comprobar la plataforma sobre el estado final.
+
+Pendientes: recuperación/cambio de contraseña, homogeneizar errores en perfil/edición, sesión/revocación acordadas con backend, E2E automatizado y catálogo real. Mantener la [guía visual](GUIA_VISUAL.md) para las pantallas nuevas; no implementar esos pendientes por una refactorización de UI.
