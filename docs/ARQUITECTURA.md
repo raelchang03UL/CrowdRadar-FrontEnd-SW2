@@ -1,6 +1,6 @@
 # Arquitectura frontend
 
-Incluye HU 3.1, pulido A y HU 2.3 en ramas dependientes de revisión; todavía no integradas en `develop`. Confirmar Git y el estado de integración al reutilizarla.
+Incluye HU 3.1, pulido A, HU 2.3 y avance HU 2.1–2.2 en ramas dependientes de revisión; todavía no integradas en `develop`. Confirmar Git y el estado de integración al reutilizarla.
 
 ## Responsabilidades
 
@@ -15,11 +15,13 @@ main.dart / MaterialApp.router
 
 `models` representa datos de la API. `theme/AppTheme` y `AppColors` definen el estilo común. `auth_fields` y `auth_form_layout` comparten validación/presentación de autenticación. No añadir HTTP en widgets ni duplicar clientes o temas por pantalla.
 
-`AuthCubit` coordina registro/login/logout. `SessionService` guarda token/usuario en memoria y una generación de sesión para descartar respuestas antiguas. El router protege todas las rutas excepto login/registro; al añadir recuperación debe acordarse qué rutas son públicas sin abrir el resto. El cierre retira datos inmediatamente; una respuesta tardía no los repone.
+`AuthCubit` coordina registro/login/logout. `SessionService` guarda token/usuario en memoria y una generación de sesión para descartar respuestas antiguas. El router permite login, registro, solicitud y restablecimiento; protege las restantes rutas. El cierre retira datos inmediatamente; una respuesta tardía no los repone.
 
 `PlacesCubit` controla carga/vacío/error/datos y descarta solicitudes antiguas; `PlaceService` usa JWT y timeout; `MapPage` representa lugares mediante flutter_map/OpenStreetMap. Los datos actuales son ilustrativos y se identifican como demostrativos. Seleccionar un marcador no implementa detalle completo ni saturación.
 
 `PasswordService` traduce el contrato de cambio a resultados públicos sin mutar sesión. `PasswordChangeCubit` controla envío único y generación/token; solo una respuesta perteneciente a la sesión vigente puede cerrarla. La página protegida conserva formulario/errores durante la solicitud; después de éxito exige nuevo login. La invalidación efectiva de todos los JWT anteriores la hace el backend con `users.sessionVersion`, no el widget. No se persisten contraseñas/JWT ni se interpreta un mensaje arbitrario de API como aviso de login.
+
+Recuperación mantiene la misma separación páginas → cubits → servicio. La validación del enlace precede al formulario, pero no lo consume: backend vuelve a verificarlo atómicamente al guardar. Tokens no se muestran como texto ni se guardan en almacenamiento; el éxito retira el enlace de la ruta y exige login normal. Web define `no-referrer`; el enlace usa query del fragmento `#/`, no una consulta enviada al servidor HTTP. Una captura exclusiva de pruebas no es un proveedor de correo ni validación de entrega.
 
 ## Configuración y plataformas
 
@@ -35,4 +37,4 @@ Coordinar antes de editar router, sesión, AuthCubit, API config, UserModel, Pla
 
 Flutter tests cubren servicios/modelos/cubits y navegación/widgets; dobles de HTTP/teselas no demuestran una API/base real. Un build aprobado tampoco acredita el recorrido de usuario. Las evidencias actuales distinguen IAB, Chrome normal y Android; comprobar la plataforma sobre el estado final.
 
-Pendientes: recuperación/restablecimiento, recorrido manual final Chrome/Android, CI y catálogo real. El pulido homogeneiza perfil/edición; HU 2.3 incorpora la política explícita de invalidación backend. Mantener la [guía visual](GUIA_VISUAL.md) para las pantallas nuevas; no implementar pendientes por una refactorización de UI.
+Pendientes: proveedor/remitente y entrega real de correo, recorrido manual final Chrome/Android, enlaces nativos Android, CI y catálogo real. El pulido homogeneiza perfil/edición; cambio/restablecimiento invalidan sesiones en backend. Mantener la [guía visual](GUIA_VISUAL.md) para las pantallas nuevas; no implementar pendientes por una refactorización de UI.
