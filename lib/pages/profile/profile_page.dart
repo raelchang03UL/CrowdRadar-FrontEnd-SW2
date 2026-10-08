@@ -174,6 +174,12 @@ class _ProfileView extends StatelessWidget {
       ),
       const SizedBox(height: 16),
       OutlinedButton.icon(
+        icon: const Icon(Icons.lock_outline),
+        label: const Text('Cambiar contraseña'),
+        onPressed: () => context.push('/profile/password'),
+      ),
+      const SizedBox(height: 16),
+      OutlinedButton.icon(
         icon: const Icon(Icons.logout),
         label: const Text('Cerrar sesión'),
         style: OutlinedButton.styleFrom(

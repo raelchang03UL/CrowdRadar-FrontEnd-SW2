@@ -10,6 +10,7 @@ import '../pages/validar/validar_page.dart';
 import '../pages/favoritos/favoritos_page.dart';
 import '../pages/profile/profile_page.dart';
 import '../pages/profile/edit_profile_page.dart';
+import '../pages/profile/change_password_page.dart';
 
 final appRouter = createAppRouter();
 
@@ -25,7 +26,16 @@ GoRouter createAppRouter({String initialLocation = '/login'}) => GoRouter(
     return null;
   },
   routes: [
-    GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
+    GoRoute(
+      path: '/login',
+      builder: (context, state) => LoginPage(
+        notice: switch (state.uri.queryParameters['notice']) {
+          'passwordChanged' => LoginNotice.passwordChanged,
+          'sessionExpired' => LoginNotice.sessionExpired,
+          _ => null,
+        },
+      ),
+    ),
     GoRoute(
       path: '/register',
       builder: (context, state) => const RegisterPage(),
@@ -37,6 +47,10 @@ GoRouter createAppRouter({String initialLocation = '/login'}) => GoRouter(
       builder: (context, state) => const FavoritosPage(),
     ),
     GoRoute(path: '/profile', builder: (context, state) => const ProfilePage()),
+    GoRoute(
+      path: '/profile/password',
+      builder: (context, state) => const ChangePasswordPage(),
+    ),
     GoRoute(
       path: '/profile/edit',
       builder: (context, state) {

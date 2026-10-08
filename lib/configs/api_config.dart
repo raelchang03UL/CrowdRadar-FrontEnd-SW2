@@ -6,6 +6,7 @@ class ApiConfig {
 
   static const String register = '/api/auth/register';
   static const String login = '/api/auth/login';
+  static const String changePassword = '/api/auth/password/change';
   static const String profile = '/api/users/profile';
   static const String places = '/api/places';
 

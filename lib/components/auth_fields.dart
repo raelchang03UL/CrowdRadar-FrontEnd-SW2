@@ -10,7 +10,7 @@ class AuthValidation {
       ? null
       : 'Escribe un correo válido, por ejemplo nombre@correo.com';
   static String? password(String? value) {
-    if (value == null || value.trim().isEmpty || value.length < 8) {
+    if (value == null || value.trim().isEmpty || value.runes.length < 8) {
       return 'Usa al menos 8 caracteres';
     }
     if (utf8.encode(value).length > 72) return 'No superes 72 bytes';
@@ -27,12 +27,20 @@ class AuthPasswordField extends StatefulWidget {
   final TextEditingController controller;
   final bool enabled;
   final bool registering;
+  final String labelText;
+  final String? helperText;
+  final FormFieldValidator<String>? validator;
+  final TextInputAction? textInputAction;
   final ValueChanged<String>? onSubmitted;
   const AuthPasswordField({
     super.key,
     required this.controller,
     this.enabled = true,
     this.registering = false,
+    this.labelText = 'Contraseña',
+    this.helperText,
+    this.validator,
+    this.textInputAction,
     this.onSubmitted,
   });
   @override
@@ -49,19 +57,22 @@ class _AuthPasswordFieldState extends State<AuthPasswordField> {
     autocorrect: false,
     enableSuggestions: false,
     enableIMEPersonalizedLearning: false,
-    textInputAction: widget.registering
-        ? TextInputAction.next
-        : TextInputAction.done,
+    textInputAction:
+        widget.textInputAction ??
+        (widget.registering ? TextInputAction.next : TextInputAction.done),
     onFieldSubmitted: widget.onSubmitted,
     decoration: InputDecoration(
-      labelText: 'Contraseña',
-      helperText: widget.registering
-          ? 'Mínimo 8 caracteres y máximo 72 bytes.'
-          : 'La que elegiste al crear tu cuenta.',
+      labelText: widget.labelText,
+      helperText:
+          widget.helperText ??
+          (widget.registering
+              ? 'Mínimo 8 caracteres y máximo 72 bytes.'
+              : 'La que elegiste al crear tu cuenta.'),
       helperMaxLines: 2,
       errorMaxLines: 2,
       suffixIcon: IconButton(
-        tooltip: _visible ? 'Ocultar contraseña' : 'Mostrar contraseña',
+        tooltip:
+            '${_visible ? 'Ocultar' : 'Mostrar'} ${widget.labelText.toLowerCase()}',
         onPressed: widget.enabled
             ? () => setState(() => _visible = !_visible)
             : null,
@@ -70,10 +81,13 @@ class _AuthPasswordFieldState extends State<AuthPasswordField> {
         ),
       ),
     ),
-    validator: widget.registering
-        ? AuthValidation.password
-        : (value) =>
-              value == null || value.isEmpty ? 'Escribe tu contraseña' : null,
+    validator:
+        widget.validator ??
+        (widget.registering
+            ? AuthValidation.password
+            : (value) => value == null || value.isEmpty
+                  ? 'Escribe tu contraseña'
+                  : null),
   );
 }
 
