@@ -1,6 +1,8 @@
 # CrowdRadar Frontend
 
-Aplicación móvil Flutter para las historias del Sprint 1: registro de ciudadano, inicio de sesión, visualización del perfil y actualización del perfil.
+Aplicación Flutter Android y Web para registro, inicio de sesión, perfil y mapa de lugares. El soporte Web ejecuta la misma aplicación y servicios; no hay un frontend HTML paralelo.
+
+Para colaborar con el equipo y usar IA sobre el código, empieza por [CONTRIBUTING.md](CONTRIBUTING.md) y [AGENTS.md](AGENTS.md). Consulta [arquitectura](docs/ARQUITECTURA.md) y [guía visual propuesta](docs/GUIA_VISUAL.md); CONTRIBUTING enlaza coordinación y contrato canónico backend. `develop` reúne los aportes integrados de los siete; una rama publicada con PR abierto sigue pendiente de incorporación a esa base.
 
 ## Requisitos
 
@@ -57,7 +59,52 @@ Archivos principales:
 - `lib/services/user_service.dart`
 - `lib/configs/api_config.dart`
 
-## Pruebas
+## HU 3.1 — mapa de lugares (incremento local)
+
+El mapa consulta `GET /api/places` con JWT y muestra un marcador por coordenada recibida, sin marcador fijo. Ofrece carga, vacío, error comprensible y reintento; seleccionar un marcador identifica nombre/categoría, no abre detalles completos. Conserva `flutter_map`, OpenStreetMap y las guardas HU 2.4.
+
+En el backend de esta misma rama, configura `.env` para `crowdradar_dev` y ejecuta:
+
+```powershell
+npm run db:migrate
+# Opcional: datos DEMOSTRATIVOS, no lugares realmente monitoreados.
+npm run db:seed:demo
+npm start
+```
+
+En el frontend, con paquetes ya resueltos:
+
+```powershell
+flutter analyze --no-pub
+flutter test --no-pub
+flutter run -d emulator-5554 --no-pub --dart-define=API_BASE_URL=http://10.0.2.2:3000
+```
+
+En una clonación nueva ejecuta antes `flutter pub get` con el lockfile existente. No se añadieron ni actualizaron dependencias. Validación Web del 07/10/2026: análisis correcto y **69/69 pruebas**. El recorrido Android anterior del mismo día comprobó mapa/selección/error/reintento; no se reejecutó Android tras las últimas mejoras de formularios. Detalle en [ESTADO_ACTUAL.md](docs/ESTADO_ACTUAL.md).
+
+## Web local en Chrome
+
+Con PostgreSQL y backend en `http://localhost:3000`, abre una segunda terminal:
+
+```powershell
+flutter run -d chrome --web-hostname=localhost --web-port=5500 --no-pub --dart-define=API_BASE_URL=http://localhost:3000
+```
+
+Abre **http://localhost:5500/#/login**. El `#/` corresponde al router Flutter. En esta PC Oracle conserva IPv4 `127.0.0.1:5500` y Flutter sirve por IPv6 `::1:5500` al usar localhost; no detener Oracle ni desactivar la seguridad de Chrome. Si se cierran los procesos, repite `npm start` en Backend y el comando anterior en Frontend.
+
+Para registrarte usa nombre/apellido/distrito de 2 caracteres o más, correo válido único, contraseña propia de mínimo 8 caracteres y máximo 72 bytes UTF-8, teléfono de exactamente 9 dígitos. Todos son obligatorios en el formulario. No hay contraseña ni cuenta predeterminada. Después del aviso de éxito, inicia sesión con lo que elegiste. Mostrar/ocultar contraseña es temporal; no se almacena automáticamente. Las solicitudes deshabilitan envíos dobles sin retirar el formulario. Errores de conexión/credenciales se muestran en español sin detalles técnicos.
+
+Para compilar Web:
+
+```powershell
+flutter analyze --no-pub
+flutter test --no-pub
+flutter build web --no-pub --dart-define=API_BASE_URL=http://localhost:3000
+```
+
+`build/web` está ignorado. La sesión solo vive en memoria: recargar una ruta protegida vuelve a login. Las entradas públicas directas son `/#/login` y `/#/register`. HU 3.1 y estas correcciones siguen sin commit/publicación: una clonación actual de `develop` todavía no contiene el incremento.
+
+## Pruebas anteriores
 
 El proyecto incluye `test/widget_test.dart`, que comprueba que la app muestra el inicio de sesión. El 22/09/2026 pasaron `flutter analyze`, `flutter test` (1 prueba) y `flutter build apk --debug`. El APK se instaló en un emulador Android 16 y se comprobó el flujo con `crowdradar_dev`. El estado y las capturas están en [docs/ESTADO_ACTUAL.md del backend](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/blob/develop/docs/ESTADO_ACTUAL.md).
 
@@ -67,4 +114,4 @@ La revisión del 06/10/2026 conserva ese trabajo y añade `test/session_async_te
 
 ## Alcance
 
-La base entregada corresponde al Sprint 1. La revisión actual añade únicamente la HU 2.4 en el frontend, conservando el diseño móvil. Las pantallas de mapa, validación y favoritos no se amplían.
+La base entregada corresponde al Sprint 1 y `develop` incluye HU 2.4. El incremento local actual se limita a HU 3.1: lugares en mapa, sin saturación, búsqueda, filtros, reportes, favoritos, geolocalización ni detalles completos. HU 3.2 y HU 3.3 no están terminadas. No hay commits ni publicación de este incremento todavía.

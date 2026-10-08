@@ -6,6 +6,8 @@ import '../../cubits/login_cubit.dart';
 import '../../cubits/login_state.dart';
 
 import '../../theme/app_colors.dart';
+import '../../components/auth_form_layout.dart';
+import '../../components/auth_fields.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -37,7 +39,10 @@ class _LoginViewState extends State<_LoginView> {
 
   void _onLogin(BuildContext context) {
     if (_formKey.currentState?.validate() ?? false) {
-      context.read<AuthCubit>().login(_emailCtrl.text.trim(), _passwordCtrl.text);
+      context.read<AuthCubit>().login(
+        _emailCtrl.text.trim(),
+        _passwordCtrl.text,
+      );
     }
   }
 
@@ -47,27 +52,15 @@ class _LoginViewState extends State<_LoginView> {
       listener: (context, state) {
         if (state is AuthLoggedIn) {
           context.go('/map');
-        } else if (state is AuthError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.error)),
-          );
         }
       },
       builder: (context, state) {
-        if (state is AuthLoading) {
-          return const Scaffold(
-            backgroundColor: AppColors.bg,
-            body: Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
-            ),
-          );
-        }
+        final loading = state is AuthLoading;
 
         return Scaffold(
           backgroundColor: AppColors.bg,
           body: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
+            child: AuthFormLayout(
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -93,62 +86,71 @@ class _LoginViewState extends State<_LoginView> {
                       ),
                     ),
                     const SizedBox(height: 20),
+                    const Text(
+                      'Usa el correo y la contraseña con los que te registraste.',
+                    ),
+                    const SizedBox(height: 16),
                     TextFormField(
-                    controller: _emailCtrl,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(labelText: 'Correo electrónico'),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Ingresá tu correo';
-                      }
-                      if (!value.contains('@')) {
-                        return 'Correo inválido';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _passwordCtrl,
-                    obscureText: true,
-                    decoration: const InputDecoration(labelText: 'Contraseña'),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Ingresá tu contraseña';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: () => _onLogin(context),
-                    child: const Text('Iniciar sesión'),
-                  ),
-                  const SizedBox(height: 4),
-                  Center(
-                    child: TextButton(
-                      onPressed: () => context.push('/register'),
-                      child: Text.rich(
-                        TextSpan(
-                          text: '¿No tienes cuenta? ',
-                          style: const TextStyle(
-                            color: AppColors.textMuted,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          children: const [
-                            TextSpan(
-                              text: 'Regístrate',
-                              style: TextStyle(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.w700,
-                              ),
+                      enabled: !loading,
+                      controller: _emailCtrl,
+                      keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
+                      decoration: const InputDecoration(
+                        labelText: 'Correo electrónico',
+                        hintText: 'nombre@correo.com',
+                        errorMaxLines: 2,
+                      ),
+                      validator: AuthValidation.email,
+                    ),
+                    const SizedBox(height: 16),
+                    AuthPasswordField(
+                      enabled: !loading,
+                      controller: _passwordCtrl,
+                      onSubmitted: (_) {
+                        if (!loading) _onLogin(context);
+                      },
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: loading ? null : () => _onLogin(context),
+                      child: Text(loading ? 'Ingresando…' : 'Iniciar sesión'),
+                    ),
+                    AuthFeedback(
+                      loading: loading,
+                      error:
+                          state is AuthError &&
+                              context.read<AuthCubit>().lastOperation ==
+                                  AuthOperation.login
+                          ? state.error
+                          : null,
+                    ),
+                    const SizedBox(height: 4),
+                    Center(
+                      child: TextButton(
+                        onPressed: loading
+                            ? null
+                            : () => context.push('/register'),
+                        child: Text.rich(
+                          TextSpan(
+                            text: '¿No tienes cuenta? ',
+                            style: const TextStyle(
+                              color: AppColors.textMuted,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
                             ),
-                          ],
+                            children: const [
+                              TextSpan(
+                                text: 'Regístrate',
+                                style: TextStyle(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
                   ],
                 ),
               ),
