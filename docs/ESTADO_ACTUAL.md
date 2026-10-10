@@ -1,5 +1,13 @@
 # Estado actual
 
+## Corrección — Referer y teselas del mapa, 10/10/2026
+
+Rama `fix/web-referrer-mapa`, padre C `652ea260480a39774b11dcea6bdd4c53b85f5fb0`. El recorrido en Chrome del par C mostró todas las teselas como «Access blocked»: la meta `no-referrer` añadida en C impedía enviar Referer y OpenStreetMap lo exige. Comprobado con las mismas teselas: sin Referer, imagen de bloqueo (HTTP 200, ~7 kB); con Referer de origen, tesela real. La meta pasa a `strict-origin-when-cross-origin`: solo sale el origen; el token de recuperación va tras `#` y nunca forma parte del Referer. La cabecera `no-referrer` de las respuestas de la API backend no cambia.
+
+- `flutter analyze --no-pub` limpio; `flutter test --no-pub` 226 aprobadas/2 omitidas opt-in; `git diff --check` correcto.
+- Chrome normal 10/10 tras reiniciar `flutter run`: el mapa muestra las teselas reales de Lima con los tres marcadores demostrativos. En la misma sesión, con backend `feature/hu-2-1-correo-smtp` y correo real (Brevo), el enlace recibido abrió el formulario, el restablecimiento volvió a login con aviso y el enlace reutilizado no mostró formulario.
+- Pendiente: Android y la integración `local_recovery_api_test.dart`, que presupone el clon hermano `../CrowdRadar-Backend/` (en esta PC los clones se llaman `CR-BackEnd`/`CR-FrontEnd`).
+
 ## Hito C — HU 2.1–2.2, avance verificable, 08/10/2026
 
 Rama `feature/hu-2-1-2-recuperacion`, padre B frontend `1e62c754682f3abe2b166b178d44b7e6e7d1fad0`; backend compañero parte de `97e607ed22b48561bed30a4e821099f76360210d`. A/B/C dependen de HU 3.1 todavía sin integrar (PR #9/#26 abiertos en borrador). Publicar estas ramas no cambia develop/main ni completa un Sprint; no se abrieron nuevos PR ni se modificó backlog.
