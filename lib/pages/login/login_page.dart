@@ -9,7 +9,7 @@ import '../../theme/app_colors.dart';
 import '../../components/auth_form_layout.dart';
 import '../../components/auth_fields.dart';
 
-enum LoginNotice { passwordChanged, sessionExpired }
+enum LoginNotice { passwordChanged, passwordReset, sessionExpired }
 
 class LoginPage extends StatelessWidget {
   final LoginNotice? notice;
@@ -100,11 +100,14 @@ class _LoginViewState extends State<_LoginView> {
                         child: Card(
                           child: Padding(
                             padding: const EdgeInsets.all(16),
-                            child: Text(
-                              widget.notice == LoginNotice.passwordChanged
-                                  ? 'Contraseña actualizada. Inicia sesión nuevamente.'
-                                  : 'Tu sesión no está disponible. Vuelve a iniciar sesión.',
-                            ),
+                            child: Text(switch (widget.notice) {
+                              LoginNotice.passwordChanged =>
+                                'Contraseña actualizada. Inicia sesión nuevamente.',
+                              LoginNotice.passwordReset =>
+                                'Contraseña restablecida. Inicia sesión nuevamente.',
+                              _ =>
+                                'Tu sesión no está disponible. Vuelve a iniciar sesión.',
+                            }),
                           ),
                         ),
                       ),
@@ -145,6 +148,12 @@ class _LoginViewState extends State<_LoginView> {
                           : null,
                     ),
                     const SizedBox(height: 4),
+                    TextButton(
+                      onPressed: loading
+                          ? null
+                          : () => context.go('/forgot-password'),
+                      child: const Text('Recuperar contraseña'),
+                    ),
                     Center(
                       child: TextButton(
                         onPressed: loading

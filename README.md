@@ -2,7 +2,7 @@
 
 Aplicación Flutter Android y Web para registro, inicio de sesión, perfil y mapa de lugares. El soporte Web ejecuta la misma aplicación y servicios; no hay un frontend HTML paralelo.
 
-**Rama de revisión HU 2.3:** `feature/hu-2-3-cambio-password`, desde `feature/ui-flujos-ciudadano` en `0361ae13017def4d9c135a78b3b95ab1f07bf635`. Requiere backend de `feature/hu-2-3-cambio-password` (padre HU 3.1 `c2aa7c0`). Estas ramas dependen de HU 3.1 pendiente de merge; clonar `develop` no incorpora estos incrementos.
+**Rama de revisión HU 2.1–2.2:** `feature/hu-2-1-2-recuperacion`, desde HU 2.3 frontend `1e62c754682f3abe2b166b178d44b7e6e7d1fad0`; backend compañero misma rama desde `97e607ed22b48561bed30a4e821099f76360210d`. HU 2.3 parte del pulido `0361ae1`, y ambos dependen de HU 3.1 pendiente de merge. Clonar `develop` no incorpora estos incrementos; publicación no equivale a integración.
 
 Para colaborar con el equipo y usar IA sobre el código, empieza por [CONTRIBUTING.md](CONTRIBUTING.md) y [AGENTS.md](AGENTS.md). Consulta [arquitectura](docs/ARQUITECTURA.md) y [guía visual](docs/GUIA_VISUAL.md); CONTRIBUTING enlaza coordinación y contrato canónico backend. `develop` reúne los aportes integrados de los siete; una rama publicada con PR abierto sigue pendiente de incorporación a esa base.
 
@@ -57,6 +57,14 @@ Perfil → Cambiar contraseña (`/profile/password`, protegida). Escribe la actu
 
 Antes de arrancar esta versión backend, ejecuta allí `npm run db:migrate`: añade explícitamente la versión de sesión y reproduce `users` en bases nuevas. No hay DDL al arrancar. Los JWT previos a esta versión requieren iniciar sesión de nuevo. Consulta el [contrato de la rama compañera](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/blob/feature/hu-2-3-cambio-password/docs/CONTRATO_API.md).
 
+## HU 2.1–2.2 — avance de recuperación/restablecimiento
+
+Login → Recuperar contraseña (`/forgot-password`, pública). El mensaje no distingue cuentas existentes/inexistentes. El enlace abre `/#/reset-password?token=…`; el token se valida antes de mostrar el formulario y se consume una sola vez al guardar. Después exige login nuevo, sin inicio automático, e invalida sesiones anteriores en backend.
+
+**Envío real pendiente:** el equipo todavía no eligió proveedor/remitente. El backend normal devuelve indisponibilidad uniforme, no afirma haber enviado un correo. No hay cuenta ni clave predeterminada, consola con enlaces ni modo de correo falso habilitable por entorno. El transporte capturado pertenece exclusivamente a pruebas; no demuestra entrega real y no completa HU 2.1/Sprint 2. No publiques un enlace/token real, historial de navegación o captura que lo contenga.
+
+Esta rama requiere la migración 003 y el [contrato C compañero](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/blob/feature/hu-2-1-2-recuperacion/docs/CONTRATO_API.md). Chrome/Android del estado final siguen pendientes de recorrido manual. No hay deep links Android verificados: el enlace Web no acredita apertura automática de la app nativa.
+
 Archivos principales:
 
 - `lib/pages/login/login_page.dart`
@@ -67,7 +75,7 @@ Archivos principales:
 - `lib/services/user_service.dart`
 - `lib/configs/api_config.dart`
 
-## HU 3.1 — mapa de lugares (incremento local)
+## HU 3.1 — mapa de lugares (incremento de revisión)
 
 El mapa consulta `GET /api/places` con JWT y muestra un marcador por coordenada recibida, sin marcador fijo. Ofrece carga, vacío, error comprensible y reintento; seleccionar un marcador identifica nombre/categoría, no abre detalles completos. Conserva `flutter_map`, OpenStreetMap y las guardas HU 2.4.
 
@@ -110,7 +118,7 @@ flutter test --no-pub
 flutter build web --no-pub --dart-define=API_BASE_URL=http://localhost:3000
 ```
 
-`build/web` está ignorado. La sesión solo vive en memoria: recargar una ruta protegida vuelve a login. Las entradas públicas directas son `/#/login` y `/#/register`. HU 3.1 y el pulido están publicados en ramas de revisión; una clonación de `develop` todavía no contiene esos incrementos.
+`build/web` está ignorado. La sesión solo vive en memoria: recargar una ruta protegida vuelve a login. Entradas públicas: `/#/login`, `/#/register`, `/#/forgot-password` y `/#/reset-password` (esta última exige enlace vigente). HU 3.1 y los incrementos posteriores están en ramas de revisión; una clonación de `develop` todavía no los contiene.
 
 ## Pruebas anteriores
 
@@ -122,4 +130,4 @@ La revisión del 06/10/2026 conserva ese trabajo y añade `test/session_async_te
 
 ## Alcance
 
-La base entregada corresponde al Sprint 1 y `develop` incluye HU 2.4. Ramas dependientes incorporan HU 3.1, pulido visual y HU 2.3. No incluyen saturación, búsqueda, filtros, reportes, favoritos, geolocalización ni detalles completos. HU 3.2 y HU 3.3 no están terminadas. Publicación no equivale a integración ni aprobación manual de plataformas; ver [estado técnico](docs/ESTADO_ACTUAL.md).
+La base entregada corresponde al Sprint 1 y `develop` incluye HU 2.4. Ramas dependientes incorporan HU 3.1, pulido, HU 2.3 y partes verificables de HU 2.1–2.2, con envío real pendiente. No incluyen saturación, búsqueda, filtros, reportes, favoritos, geolocalización ni detalles completos. HU 3.2 y HU 3.3 no están terminadas. Publicación no equivale a integración ni aprobación manual de plataformas; ver [estado técnico](docs/ESTADO_ACTUAL.md).

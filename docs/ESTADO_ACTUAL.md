@@ -1,5 +1,36 @@
 # Estado actual
 
+## Hito C — HU 2.1–2.2, avance verificable, 08/10/2026
+
+Rama `feature/hu-2-1-2-recuperacion`, padre B frontend `1e62c754682f3abe2b166b178d44b7e6e7d1fad0`; backend compañero parte de `97e607ed22b48561bed30a4e821099f76360210d`. A/B/C dependen de HU 3.1 todavía sin integrar (PR #9/#26 abiertos en borrador). Publicar estas ramas no cambia develop/main ni completa un Sprint; no se abrieron nuevos PR ni se modificó backlog.
+
+Login → recuperación pública con mensaje uniforme → enlace GoRouter → validación HTTP antes de mostrar campos → nueva contraseña/confirmación → login normal. Enlace inválido/expirado/usado no muestra formulario. Servicio sanea respuestas/timeout; cubits bloquean dobles envíos y descartan respuestas de otra operación/sesión. Éxito limpia la sesión vigente y reemplaza la ruta sensible; no abre sesión automáticamente. Meta Web `no-referrer`, token no mostrado en widgets ni persistido en almacenamiento. La invalidación real de JWT y el consumo atómico pertenecen al backend/migración003.
+
+**Entrega real pendiente:** el equipo confirmó que no hay proveedor elegido. El servidor normal devuelve indisponibilidad uniforme, sin generar enlaces ni simular envío. Correo/aviso capturados en pruebas no demuestran entrega real; HU 2.1/Sprint2 no están terminados. Tampoco se verificó apertura de enlaces en la app nativa Android.
+
+- `flutter analyze --no-pub`: sin problemas.
+- `flutter test --no-pub`: 226 aprobadas, 0 fallidas, 2 omitidas (integraciones locales opt-in). 79 casos nuevos C: contratos/errores/timeout, validación antes de formulario, enlace inválido, doble envío, respuestas antiguas, navegación pública/guardas y layouts360/390/1440, texto2×/teclado. Fallos iniciales de estilo/compilación y un fixture de navegación se corrigieron antes de la ejecución final; no se ocultaron excepciones.
+- Opt-in C: 1/1 aprobada con widgets VM + HTTP real + PostgreSQL18 `crowdradar_auth_test`. Solicitud y correo en RAM → enlace real del servicio → respuesta200 de validación antes de campos → reset → JWT anterior401 → contraseña vieja rechazada/nueva válida/perfil → aviso RAM → enlace usado400 sin formulario. No es navegador/Android ni email real. El helper privado inicia/cierra puerto3031, no expone buzón por HTTP ni imprime enlaces/credenciales. Deja cuenta QA aleatoria identificable en la DB aislada.
+- Opt-in B reejecutado sobre C: 1/1 aprobado contra backend3000 y `crowdradar_dev`.
+- `flutter build web --no-pub --dart-define=API_BASE_URL=http://localhost:3000`: correcto,63,8s. `flutter build apk --debug --no-pub --dart-define=API_BASE_URL=http://10.0.2.2:3000`: correcto,33,9s. Contingencia temporal corta de Gradle documentada; aviso SDKXML4/herramienta3 no bloqueante. Builds/APK ignorados, no publicados.
+- `git diff --check` correcto; pubspec, lockfile, Gradle y dependencias sin modificaciones. No se instaló ni actualizó ningún paquete.
+
+Para repetir C, con ambos clones hermanos en esta rama de revisión, `.env` backend local configurado y PostgreSQL18 activo:
+
+```powershell
+# Primero en CrowdRadar-Backend; crea/reutiliza solo la base auth_test protegida.
+npm run test:db:auth
+npm run test:db:recovery
+# Después en CrowdRadar-FrontEnd (no simultáneo con los runners DB).
+$env:CROWDRADAR_RECOVERY_INTEGRATION = '1'
+flutter test --no-pub test/local_recovery_api_test.dart --dart-define=API_BASE_URL=http://127.0.0.1:3031
+Remove-Item Env:CROWDRADAR_RECOVERY_INTEGRATION
+```
+
+El helper requiere permiso de migración en `crowdradar_auth_test`; no cambia la `.env`, no usa dev/entrega/Supabase y no necesita que el servidor3000 envíe correo. Sus presupuestos de abuso se separan por ejecución sin borrar contadores; el runner backend comprueba los límites reales. Backend500/503 y doble/respuesta antigua se comprueban con dobles controlados, no todos como fallos inyectados en PostgreSQL.
+
+No se repitió recorrido Chrome normal, IAB ni Android para A/B/C; se respetó la detención de seguridad previa sin eludirla con otra herramienta. Capturas disponibles: widgets antes/después de A abajo, no capturas actuales de correo ni prueba manual de B/C. Recepción real, enlaces nativos, revisión/integración y reproducción en otra PC siguen pendientes.
+
 ## Hito B — HU 2.3, 08/10/2026
 
 Rama `feature/hu-2-3-cambio-password`, padre A `0361ae13017def4d9c135a78b3b95ab1f07bf635`. Backend compañero misma rama desde HU 3.1 `c2aa7c0`; requiere migración 002 explícita. Bases aún sin integrar: no se abrió PR nuevo ni se modificaron PR HU 3.1, develop/main o backlog.
