@@ -342,6 +342,7 @@ void main() {
               250,
               scrollable: find.byType(Scrollable).first,
             );
+            await tester.pumpAndSettle();
             expect(action.hitTestable(), findsOneWidget);
             if (editing) {
               expect(

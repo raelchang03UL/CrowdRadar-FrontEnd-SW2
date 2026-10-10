@@ -9,17 +9,21 @@ import '../../theme/app_colors.dart';
 import '../../components/auth_form_layout.dart';
 import '../../components/auth_fields.dart';
 
+enum LoginNotice { passwordChanged, sessionExpired }
+
 class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
+  final LoginNotice? notice;
+  const LoginPage({super.key, this.notice});
 
   @override
   Widget build(BuildContext context) {
-    return const _LoginView();
+    return _LoginView(notice: notice);
   }
 }
 
 class _LoginView extends StatefulWidget {
-  const _LoginView();
+  final LoginNotice? notice;
+  const _LoginView({this.notice});
 
   @override
   State<_LoginView> createState() => _LoginViewState();
@@ -90,6 +94,22 @@ class _LoginViewState extends State<_LoginView> {
                       'Usa el correo y la contraseña con los que te registraste.',
                     ),
                     const SizedBox(height: 16),
+                    if (widget.notice != null) ...[
+                      Semantics(
+                        liveRegion: true,
+                        child: Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Text(
+                              widget.notice == LoginNotice.passwordChanged
+                                  ? 'Contraseña actualizada. Inicia sesión nuevamente.'
+                                  : 'Tu sesión no está disponible. Vuelve a iniciar sesión.',
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
                     TextFormField(
                       enabled: !loading,
                       controller: _emailCtrl,

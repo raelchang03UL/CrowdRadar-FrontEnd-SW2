@@ -1,5 +1,27 @@
 # Estado actual
 
+## Hito B — HU 2.3, 08/10/2026
+
+Rama `feature/hu-2-3-cambio-password`, padre A `0361ae13017def4d9c135a78b3b95ab1f07bf635`. Backend compañero misma rama desde HU 3.1 `c2aa7c0`; requiere migración 002 explícita. Bases aún sin integrar: no se abrió PR nuevo ni se modificaron PR HU 3.1, develop/main o backlog.
+
+Perfil → Cambiar contraseña: tres campos ocultos con visibilidad opcional, confirmación, 8 caracteres Unicode/72 bytes UTF-8, rechazo de reutilización, teclado y formulario estable durante carga/error. Servicio sanea códigos/timeout; cubit bloquea doble envío y conserva guardas de generación. Éxito/401 de sesión vigente limpia datos y vuelve a login con aviso fijo; respuesta antigua nunca cierra una sesión nueva. El backend invalida efectivamente todos los JWT anteriores mediante versión persistente.
+
+`flutter analyze --no-pub`: sin problemas. Suite normal: 147 aprobadas, 0 fallidas, 1 omitida (integración local opt-in); 37 casos nuevos de HU 2.3. Un fallo intermedio del fixture de scroll se corrigió bombeando el frame final, sin alterar viewport ni ocultar errores. Layouts 360/390/1440, texto 2× y teclado simulado.
+
+Integración opt-in contra backend real/crowdradar_dev: 1/1 aprobada con widgets VM; registro/login/perfil, actual incorrecta, cambio correcto/cierre/aviso, ruta protegida, JWT viejo401, cambio sinJWT401, login viejo rechazado y nuevo correcto. Cuenta QA aleatoria conservada, sin credencial publicada. No es navegador ni Android.
+
+Para reproducir solo esa prueba, con servidor local migrado en `crowdradar_dev`:
+
+```powershell
+$env:CROWDRADAR_API_INTEGRATION = '1'
+flutter test --no-pub test/local_api_smoke_test.dart --dart-define=API_BASE_URL=http://localhost:3000
+Remove-Item Env:CROWDRADAR_API_INTEGRATION
+```
+
+Build Web aprobado (32,0 s) y APK debug aprobado (32,9 s), con URL localhost/10.0.2.2 respectivamente. Se utilizó la contingencia temporal corta documentada para Gradle; permanece el aviso de XML SDK versión4/herramienta3, sin impedir compilación. APK/builds ignorados, no publicados.
+
+Chrome normal/Android y entrega de correo no probados manualmente en este incremento; no afirmar validación manual ni cierre de Sprint. Recuperación/restablecimiento aún fuera de B. El pulido y sus capturas constan abajo.
+
 ## Hito A — pulido aplicado, 08/10/2026
 
 Rama `feature/ui-flujos-ciudadano`, padre `feature/hu-3-1-mapa-lugares` en `f2437a2991293fa275626e4d5e8819a22b1aed2a`. HU 3.1/PR #9 sigue sin integrar; esta rama no modifica ese PR ni `develop`/`main`.

@@ -1,6 +1,6 @@
 # Arquitectura frontend
 
-Descripción del incremento HU 3.1/Web revisado el 07/10/2026 en `feature/hu-3-1-mapa-lugares`, desde la base `f214886`. Confirmar Git y el estado de integración del PR al reutilizarla.
+Incluye HU 3.1, pulido A y HU 2.3 en ramas dependientes de revisión; todavía no integradas en `develop`. Confirmar Git y el estado de integración al reutilizarla.
 
 ## Responsabilidades
 
@@ -19,6 +19,8 @@ main.dart / MaterialApp.router
 
 `PlacesCubit` controla carga/vacío/error/datos y descarta solicitudes antiguas; `PlaceService` usa JWT y timeout; `MapPage` representa lugares mediante flutter_map/OpenStreetMap. Los datos actuales son ilustrativos y se identifican como demostrativos. Seleccionar un marcador no implementa detalle completo ni saturación.
 
+`PasswordService` traduce el contrato de cambio a resultados públicos sin mutar sesión. `PasswordChangeCubit` controla envío único y generación/token; solo una respuesta perteneciente a la sesión vigente puede cerrarla. La página protegida conserva formulario/errores durante la solicitud; después de éxito exige nuevo login. La invalidación efectiva de todos los JWT anteriores la hace el backend con `users.sessionVersion`, no el widget. No se persisten contraseñas/JWT ni se interpreta un mensaje arbitrario de API como aviso de login.
+
 ## Configuración y plataformas
 
 Una sola aplicación Flutter para Android/Web. `API_BASE_URL` se define al ejecutar/compilar; el valor por defecto `10.0.2.2:3000` es para Android emulado, no Web. Usar el README para la URL/puerto real. La configuración pública no contiene secretos.
@@ -33,4 +35,4 @@ Coordinar antes de editar router, sesión, AuthCubit, API config, UserModel, Pla
 
 Flutter tests cubren servicios/modelos/cubits y navegación/widgets; dobles de HTTP/teselas no demuestran una API/base real. Un build aprobado tampoco acredita el recorrido de usuario. Las evidencias actuales distinguen IAB, Chrome normal y Android; comprobar la plataforma sobre el estado final.
 
-Pendientes: recuperación/cambio de contraseña, homogeneizar errores en perfil/edición, sesión/revocación acordadas con backend, E2E automatizado y catálogo real. Mantener la [guía visual](GUIA_VISUAL.md) para las pantallas nuevas; no implementar esos pendientes por una refactorización de UI.
+Pendientes: recuperación/restablecimiento, recorrido manual final Chrome/Android, CI y catálogo real. El pulido homogeneiza perfil/edición; HU 2.3 incorpora la política explícita de invalidación backend. Mantener la [guía visual](GUIA_VISUAL.md) para las pantallas nuevas; no implementar pendientes por una refactorización de UI.

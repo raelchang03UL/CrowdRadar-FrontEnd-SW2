@@ -2,7 +2,9 @@
 
 Aplicación Flutter Android y Web para registro, inicio de sesión, perfil y mapa de lugares. El soporte Web ejecuta la misma aplicación y servicios; no hay un frontend HTML paralelo.
 
-Para colaborar con el equipo y usar IA sobre el código, empieza por [CONTRIBUTING.md](CONTRIBUTING.md) y [AGENTS.md](AGENTS.md). Consulta [arquitectura](docs/ARQUITECTURA.md) y [guía visual propuesta](docs/GUIA_VISUAL.md); CONTRIBUTING enlaza coordinación y contrato canónico backend. `develop` reúne los aportes integrados de los siete; una rama publicada con PR abierto sigue pendiente de incorporación a esa base.
+**Rama de revisión HU 2.3:** `feature/hu-2-3-cambio-password`, desde `feature/ui-flujos-ciudadano` en `0361ae13017def4d9c135a78b3b95ab1f07bf635`. Requiere backend de `feature/hu-2-3-cambio-password` (padre HU 3.1 `c2aa7c0`). Estas ramas dependen de HU 3.1 pendiente de merge; clonar `develop` no incorpora estos incrementos.
+
+Para colaborar con el equipo y usar IA sobre el código, empieza por [CONTRIBUTING.md](CONTRIBUTING.md) y [AGENTS.md](AGENTS.md). Consulta [arquitectura](docs/ARQUITECTURA.md) y [guía visual](docs/GUIA_VISUAL.md); CONTRIBUTING enlaza coordinación y contrato canónico backend. `develop` reúne los aportes integrados de los siete; una rama publicada con PR abierto sigue pendiente de incorporación a esa base.
 
 ## Requisitos
 
@@ -48,6 +50,12 @@ El valor predeterminado sigue siendo `http://10.0.2.2:3000` cuando no se envía 
 ## HU 2.4 — cierre de sesión local
 
 Desde Perfil, **Cerrar sesión** borra el token y el usuario en memoria. El router redirige a `/login` y bloquea `/map`, `/validar`, `/favoritos`, `/profile` y `/profile/edit` sin sesión, incluso después del cierre. Login y registro son públicos. No se añade persistencia ni revocación del JWT en el backend.
+
+## HU 2.3 — cambiar contraseña
+
+Perfil → Cambiar contraseña (`/profile/password`, protegida). Escribe la actual, la nueva y su confirmación. Mínimo 8 caracteres Unicode y máximo 72 bytes UTF-8; no se recorta ni se permite reutilizar la actual. Tras éxito, todas las sesiones anteriores quedan invalidadas **en PostgreSQL/backend** mediante versión persistente y la app vuelve al login. El cierre local HU 2.4, por separado, sigue sin revocar JWT.
+
+Antes de arrancar esta versión backend, ejecuta allí `npm run db:migrate`: añade explícitamente la versión de sesión y reproduce `users` en bases nuevas. No hay DDL al arrancar. Los JWT previos a esta versión requieren iniciar sesión de nuevo. Consulta el [contrato de la rama compañera](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/blob/feature/hu-2-3-cambio-password/docs/CONTRATO_API.md).
 
 Archivos principales:
 
@@ -102,7 +110,7 @@ flutter test --no-pub
 flutter build web --no-pub --dart-define=API_BASE_URL=http://localhost:3000
 ```
 
-`build/web` está ignorado. La sesión solo vive en memoria: recargar una ruta protegida vuelve a login. Las entradas públicas directas son `/#/login` y `/#/register`. HU 3.1 y estas correcciones siguen sin commit/publicación: una clonación actual de `develop` todavía no contiene el incremento.
+`build/web` está ignorado. La sesión solo vive en memoria: recargar una ruta protegida vuelve a login. Las entradas públicas directas son `/#/login` y `/#/register`. HU 3.1 y el pulido están publicados en ramas de revisión; una clonación de `develop` todavía no contiene esos incrementos.
 
 ## Pruebas anteriores
 
@@ -114,4 +122,4 @@ La revisión del 06/10/2026 conserva ese trabajo y añade `test/session_async_te
 
 ## Alcance
 
-La base entregada corresponde al Sprint 1 y `develop` incluye HU 2.4. El incremento local actual se limita a HU 3.1: lugares en mapa, sin saturación, búsqueda, filtros, reportes, favoritos, geolocalización ni detalles completos. HU 3.2 y HU 3.3 no están terminadas. No hay commits ni publicación de este incremento todavía.
+La base entregada corresponde al Sprint 1 y `develop` incluye HU 2.4. Ramas dependientes incorporan HU 3.1, pulido visual y HU 2.3. No incluyen saturación, búsqueda, filtros, reportes, favoritos, geolocalización ni detalles completos. HU 3.2 y HU 3.3 no están terminadas. Publicación no equivale a integración ni aprobación manual de plataformas; ver [estado técnico](docs/ESTADO_ACTUAL.md).
