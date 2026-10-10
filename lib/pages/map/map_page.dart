@@ -3,27 +3,36 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../../components/cr_bottom_nav.dart';
+import '../../configs/generic_response.dart';
 import '../../cubits/places/places_cubit.dart';
 import '../../cubits/places/places_state.dart';
 import '../../models/place_model.dart';
 import '../../services/place_service.dart';
+import '../../services/saturation_report_service.dart';
 import '../../theme/app_colors.dart';
 
 class MapPage extends StatelessWidget {
   final PlaceService? service;
+  final SaturationReportService? reportService;
   final TileProvider? tileProvider;
-  const MapPage({super.key, this.service, this.tileProvider});
+  const MapPage({
+    super.key,
+    this.service,
+    this.reportService,
+    this.tileProvider,
+  });
 
   @override
   Widget build(BuildContext context) => BlocProvider(
     create: (_) => PlacesCubit(service ?? PlaceService())..loadPlaces(),
-    child: _MapView(tileProvider: tileProvider),
+    child: _MapView(reportService: reportService, tileProvider: tileProvider),
   );
 }
 
 class _MapView extends StatelessWidget {
+  final SaturationReportService? reportService;
   final TileProvider? tileProvider;
-  const _MapView({this.tileProvider});
+  const _MapView({this.reportService, this.tileProvider});
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -62,7 +71,11 @@ class _MapView extends StatelessWidget {
               retry: context.read<PlacesCubit>().loadPlaces,
             );
           }
-          return _PlacesMap(places: state.places, tileProvider: tileProvider);
+          return _PlacesMap(
+            places: state.places,
+            reportService: reportService ?? SaturationReportService(),
+            tileProvider: tileProvider,
+          );
         }
         return const _MapStatus(
           message: 'Inicia sesión para ver los lugares.',
@@ -127,8 +140,13 @@ class _MapStatus extends StatelessWidget {
 
 class _PlacesMap extends StatefulWidget {
   final List<PlaceModel> places;
+  final SaturationReportService reportService;
   final TileProvider? tileProvider;
-  const _PlacesMap({required this.places, this.tileProvider});
+  const _PlacesMap({
+    required this.places,
+    required this.reportService,
+    this.tileProvider,
+  });
   @override
   State<_PlacesMap> createState() => _PlacesMapState();
 }
@@ -296,6 +314,11 @@ class _PlacesMapState extends State<_PlacesMap> {
                                 ),
                               ),
                               IconButton(
+                                tooltip: 'Reportar saturación',
+                                onPressed: () => _showReportDialog(place),
+                                icon: const Icon(Icons.poll_outlined),
+                              ),
+                              IconButton(
                                 tooltip: 'Cerrar identificación',
                                 onPressed: () =>
                                     setState(() => _selected = null),
@@ -312,6 +335,72 @@ class _PlacesMapState extends State<_PlacesMap> {
           ),
         ),
       ],
+    );
+  }
+
+  Future<void> _showReportDialog(PlaceModel place) async {
+    var selectedLevel = SaturationLevel.tranquil;
+    var sending = false;
+    final result = await showDialog<GenericResponse<void>>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text("Saturación de ${place.nombre}"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final option in SaturationLevel.values)
+                RadioListTile<String>(
+                  value: option.wireValue,
+                  groupValue: selectedLevel.wireValue,
+                  title: Text(option.label),
+                  onChanged: sending
+                      ? null
+                      : (value) {
+                          if (value == null) return;
+                          setDialogState(
+                            () => selectedLevel = SaturationLevel.values
+                                .firstWhere(
+                                  (level) => level.wireValue == value,
+                                ),
+                          );
+                        },
+                ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: sending ? null : () => Navigator.pop(dialogContext),
+              child: const Text("Cancelar"),
+            ),
+            FilledButton(
+              onPressed: sending
+                  ? null
+                  : () async {
+                      setDialogState(() => sending = true);
+                      final response = await widget.reportService.createReport(
+                        placeId: place.id,
+                        level: selectedLevel,
+                      );
+                      if (dialogContext.mounted) {
+                        Navigator.pop(dialogContext, response);
+                      }
+                    },
+              child: sending
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text("Enviar reporte"),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (!mounted || result == null) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(result.message)),
     );
   }
 }
