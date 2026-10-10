@@ -7,6 +7,8 @@ import '../../cubits/login_cubit.dart';
 import '../../cubits/login_state.dart';
 
 import '../../theme/app_colors.dart';
+import '../../components/auth_form_layout.dart';
+import '../../components/auth_fields.dart';
 
 class RegisterPage extends StatelessWidget {
   const RegisterPage({super.key});
@@ -47,31 +49,14 @@ class _RegisterViewState extends State<_RegisterView> {
   void _onRegister(BuildContext context) {
     if (_formKey.currentState?.validate() ?? false) {
       context.read<AuthCubit>().register(
-            nombre: _nombreCtrl.text.trim(),
-            apellido: _apellidoCtrl.text.trim(),
-            email: _emailCtrl.text.trim(),
-            password: _passwordCtrl.text,
-            telefono: _telefonoCtrl.text.trim(),
-            distrito: _distritoCtrl.text.trim(),
-          );
+        nombre: _nombreCtrl.text.trim(),
+        apellido: _apellidoCtrl.text.trim(),
+        email: _emailCtrl.text.trim(),
+        password: _passwordCtrl.text,
+        telefono: _telefonoCtrl.text.trim(),
+        distrito: _distritoCtrl.text.trim(),
+      );
     }
-  }
-
-  String? _requerido(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Este campo es obligatorio';
-    }
-    return null;
-  }
-
-  String? _nombreApellido(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Este campo es obligatorio';
-    }
-    if (value.trim().length < 2) {
-      return 'Mínimo 2 caracteres';
-    }
-    return null;
   }
 
   @override
@@ -80,28 +65,25 @@ class _RegisterViewState extends State<_RegisterView> {
       listener: (context, state) {
         if (state is AuthRegistered) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Usuario registrado correctamente')),
+            const SnackBar(
+              content: Text(
+                'Cuenta creada. Ya puedes iniciar sesión con tu correo y contraseña.',
+              ),
+            ),
           );
-          context.pop();
-        } else if (state is AuthError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.error)),
-          );
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            context.go('/login');
+          }
         }
       },
       builder: (context, state) {
-        if (state is AuthLoading) {
-          return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
-            ),
-          );
-        }
+        final loading = state is AuthLoading;
 
         return Scaffold(
           appBar: AppBar(title: const Text('Crear cuenta')),
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+          body: AuthFormLayout(
             child: Form(
               key: _formKey,
               child: Column(
@@ -119,69 +101,94 @@ class _RegisterViewState extends State<_RegisterView> {
                     ),
                   ),
                   const SizedBox(height: 20),
+                  const Text(
+                    'Todos los campos son obligatorios. Usa un correo que no hayas registrado en este entorno.',
+                  ),
+                  const SizedBox(height: 16),
                   TextFormField(
+                    enabled: !loading,
                     controller: _nombreCtrl,
-                    decoration: const InputDecoration(labelText: 'Nombre'),
-                    validator: _nombreApellido,
+                    textInputAction: TextInputAction.next,
+                    decoration: const InputDecoration(
+                      labelText: 'Nombre',
+                      helperText: 'Al menos 2 caracteres.',
+                    ),
+                    validator: AuthValidation.name,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
+                    enabled: !loading,
                     controller: _apellidoCtrl,
-                    decoration: const InputDecoration(labelText: 'Apellido'),
-                    validator: _nombreApellido,
+                    textInputAction: TextInputAction.next,
+                    decoration: const InputDecoration(
+                      labelText: 'Apellido',
+                      helperText: 'Al menos 2 caracteres.',
+                    ),
+                    validator: AuthValidation.name,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
+                    enabled: !loading,
                     controller: _emailCtrl,
                     keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(labelText: 'Correo electrónico'),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Este campo es obligatorio';
-                      }
-                      if (!value.contains('@')) {
-                        return 'Correo inválido';
-                      }
-                      return null;
-                    },
+                    textInputAction: TextInputAction.next,
+                    decoration: const InputDecoration(
+                      labelText: 'Correo electrónico',
+                      hintText: 'nombre@correo.com',
+                      helperText: 'Debe ser único en esta base local.',
+                      errorMaxLines: 2,
+                    ),
+                    validator: AuthValidation.email,
                   ),
                   const SizedBox(height: 16),
-                  TextFormField(
+                  AuthPasswordField(
+                    enabled: !loading,
+                    registering: true,
                     controller: _passwordCtrl,
-                    obscureText: true,
-                    decoration: const InputDecoration(labelText: 'Contraseña'),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Este campo es obligatorio';
-                      }
-                      if (value.length < 8) {
-                        return 'La contraseña debe tener al menos 8 caracteres';
-                      }
-                      return null;
-                    },
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
+                    enabled: !loading,
                     controller: _telefonoCtrl,
                     keyboardType: TextInputType.phone,
+                    textInputAction: TextInputAction.next,
                     maxLength: 9,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     decoration: const InputDecoration(
                       labelText: 'Teléfono',
                       counterText: '',
+                      helperText: 'Exactamente 9 dígitos, sin espacios.',
                     ),
-                    validator: _requerido,
+                    validator: AuthValidation.phone,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
+                    enabled: !loading,
                     controller: _distritoCtrl,
-                    decoration: const InputDecoration(labelText: 'Distrito'),
-                    validator: _requerido,
+                    textInputAction: TextInputAction.done,
+                    onFieldSubmitted: (_) {
+                      if (!loading) _onRegister(context);
+                    },
+                    decoration: const InputDecoration(
+                      labelText: 'Distrito',
+                      helperText:
+                          'Al menos 2 caracteres, por ejemplo Miraflores.',
+                    ),
+                    validator: AuthValidation.name,
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton(
-                    onPressed: () => _onRegister(context),
-                    child: const Text('Registrarme'),
+                    onPressed: loading ? null : () => _onRegister(context),
+                    child: Text(loading ? 'Creando cuenta…' : 'Registrarme'),
+                  ),
+                  AuthFeedback(
+                    loading: loading,
+                    error:
+                        state is AuthError &&
+                            context.read<AuthCubit>().lastOperation ==
+                                AuthOperation.register
+                        ? state.error
+                        : null,
                   ),
                 ],
               ),

@@ -25,9 +25,7 @@ class CrBottomNav extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         color: AppColors.surface,
-        border: Border(
-          top: BorderSide(color: AppColors.borderNav, width: 1),
-        ),
+        border: Border(top: BorderSide(color: AppColors.borderNav, width: 1)),
       ),
       child: SafeArea(
         top: false,
@@ -60,6 +58,9 @@ class CrBottomNav extends StatelessWidget {
             const SizedBox(height: 2),
             Text(
               label,
+              maxLines: 1,
+              softWrap: false,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontSize: 11,
                 color: color,
