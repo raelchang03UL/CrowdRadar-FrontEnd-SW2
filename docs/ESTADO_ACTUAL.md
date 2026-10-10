@@ -1,5 +1,9 @@
 # Estado actual
 
+## Corrección — error persistente en cambio de contraseña, 10/10/2026
+
+Rama `fix/hu-2-3-error-cambio-password` desde develop `cffd3d5` (HU 3.1, A, B y C ya integrados por #9, #11, #12 y #13). El recorrido Chrome del 10/10 mostró que, tras «La contraseña actual no es correcta.», el mensaje seguía visible mientras se corregían los campos y junto a errores de validación nuevos. Ahora editar cualquier campo (`Form.onChanged`) retira el error del envío anterior; carga, guardas de sesión y doble envío no cambian. `flutter analyze --no-pub` limpio; `flutter test --no-pub` 226 aprobadas/2 omitidas opt-in (la prueba de error corregible comprueba la retirada). Sin cambios de contrato ni dependencias.
+
 ## Hito C — HU 2.1–2.2, avance verificable, 08/10/2026
 
 Rama `feature/hu-2-1-2-recuperacion`, padre B frontend `1e62c754682f3abe2b166b178d44b7e6e7d1fad0`; backend compañero parte de `97e607ed22b48561bed30a4e821099f76360210d`. A/B/C dependen de HU 3.1 todavía sin integrar (PR #9/#26 abiertos en borrador). Publicar estas ramas no cambia develop/main ni completa un Sprint; no se abrieron nuevos PR ni se modificó backlog.
