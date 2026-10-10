@@ -70,10 +70,10 @@ class _LoginViewState extends State<_LoginView> {
                     Center(
                       child: Image.asset(
                         'assets/images/crowdradar-logo-transparent.png',
-                        height: 130,
+                        height: 88,
                       ),
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 24),
                     const Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
@@ -85,7 +85,7 @@ class _LoginViewState extends State<_LoginView> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 8),
                     const Text(
                       'Usa el correo y la contraseña con los que te registraste.',
                     ),

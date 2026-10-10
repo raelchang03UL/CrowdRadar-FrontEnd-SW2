@@ -100,9 +100,9 @@ class _RegisterViewState extends State<_RegisterView> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 8),
                   const Text(
-                    'Todos los campos son obligatorios. Usa un correo que no hayas registrado en este entorno.',
+                    'Completa tus datos para empezar. Todos los campos son obligatorios.',
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
@@ -135,7 +135,8 @@ class _RegisterViewState extends State<_RegisterView> {
                     decoration: const InputDecoration(
                       labelText: 'Correo electrónico',
                       hintText: 'nombre@correo.com',
-                      helperText: 'Debe ser único en esta base local.',
+                      helperText:
+                          'Usa un correo que no hayas registrado antes.',
                       errorMaxLines: 2,
                     ),
                     validator: AuthValidation.email,

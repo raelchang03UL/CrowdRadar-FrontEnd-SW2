@@ -1,20 +1,20 @@
-# Guía visual — propuesta de pulido sobrio
+# Guía visual — pulido sobrio
 
-Dirección propuesta por coordinación el 07/10/2026 tras revisar capturas Web y tema actual. **Todavía no aplicada al código**; será un cambio visual delimitado tras integrar la base HU 3.1. Busca claridad y consistencia para una aplicación académica que pueda evolucionar.
+Dirección propuesta el 07/10 y aplicada el 08/10/2026 en `feature/ui-flujos-ciudadano`, dependiente de HU 3.1 todavía sin integrar. Login, registro, perfil, edición y mapa comparten el tema; no incluye nuevos módulos. Validación automatizada y capturas de widgets, no aprobación manual de Chrome/Android.
 
 ## Dirección
 
 - Conservar el logo, azul principal `#1A3C8F` y Material 3. Reutilizar AppTheme/AppColors, no crear un tema distinto por página.
-- Sustituir el fondo verde pálido actual por un neutro suave propuesto (`#F5F7FA`) y mantener superficies blancas. Validar visualmente antes de fijarlo.
+- Fondo neutro `#F5F7FA`, superficies blancas, texto secundario `#526078` y error `#B42318`. Revisión manual de plataformas pendiente.
 - Espaciado coherente de 8/16/24/32 dp; márgenes de 16–24 en móvil. Evitar espacios grandes sin función entre logo, título y formulario.
 - Una acción principal por bloque. Títulos, subtítulos y ayudas con jerarquía clara; sombras discretas, iconos existentes y radios moderados coherentes.
 - Sin degradados llamativos, tarjetas anidadas sin motivo, animaciones continuas, indicadores inventados ni controles decorativos.
 
-## Pantallas del siguiente pulido
+## Pantallas
 
 Login/registro/recuperación/cambio: bloque de marca compacto, título y ayuda breve, formulario con ancho máximo legible; conservar campos durante carga/error, mostrar/ocultar contraseña, confirmación y foco/teclado adecuados. La ayuda al ciudadano debe hablar de la acción, no de servidores, SDK ni detalles de arquitectura; el diagnóstico técnico pertenece a documentación/logs privados.
 
-Perfil/edición: separar identidad y datos editables, acción de contraseña visible y cierre de sesión reconocible. Mantener navegación y operaciones actuales; no convertir la tarea en gestión de roles o nuevos módulos.
+Perfil/edición: identidad y datos agrupados, anchos máximos 680/560 dp, cierre de sesión reconocible. La acción de contraseña se añadirá únicamente junto con su función real. Edición directa carga datos; guardar conserva formulario y errores públicos. No incluye gestión de roles.
 
 Mapa: jerarquía entre título, contexto, mapa y selección. Mantener visible la advertencia de datos demostrativos y la atribución OpenStreetMap. Selección legible con botón de cerrar claro. No añadir buscador, filtros, tarjetas de saturación ni detalle completo como parte del pulido.
 

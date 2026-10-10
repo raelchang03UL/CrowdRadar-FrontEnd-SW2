@@ -30,7 +30,12 @@ class CrBottomNav extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: SizedBox(
-          height: 56,
+          height:
+              56 +
+              (MediaQuery.textScalerOf(context).scale(11) - 11).clamp(
+                0,
+                double.infinity,
+              ),
           child: Row(
             children: [
               _item(context, 0, Icons.map_outlined, 'Mapa'),
@@ -50,11 +55,17 @@ class CrBottomNav extends StatelessWidget {
 
     return Expanded(
       child: InkWell(
+        borderRadius: BorderRadius.circular(12),
         onTap: () => _onTap(context, index),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 23, color: color),
+            Semantics(
+              selected: active,
+              label: label,
+              excludeSemantics: true,
+              child: Icon(icon, size: 23, color: color),
+            ),
             const SizedBox(height: 2),
             Text(
               label,

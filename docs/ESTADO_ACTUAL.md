@@ -1,4 +1,16 @@
-# Estado actual — cierre local HU 3.1 / Web, 07/10/2026
+# Estado actual
+
+## Hito A — pulido aplicado, 08/10/2026
+
+Rama `feature/ui-flujos-ciudadano`, padre `feature/hu-3-1-mapa-lugares` en `f2437a2991293fa275626e4d5e8819a22b1aed2a`. HU 3.1/PR #9 sigue sin integrar; esta rama no modifica ese PR ni `develop`/`main`.
+
+Tema neutro, tarjetas claras, formularios contenidos, logo compacto y espaciado compartido. Perfil/edición 680/560 dp, carga inicial/reintento, errores públicos y timeout 15 s; guardar no elimina formulario y bloquea doble envío. Navegación inferior crece con texto ampliado. Mapa conserva datos demostrativos y atribución, sin funciones nuevas. Contratos, dependencias y sesión no cambiaron.
+
+Validación: `flutter analyze --no-pub` sin problemas; `flutter test --no-pub` 110/110 (69 anteriores +37 perfil/edición +4 layouts); build Web correcto. Widgets 360/390/1440 dp, texto 2× y teclado simulado, no recorrido manual. La primera ejecución focalizada detectó overflow de 2 px en navegación 2× y un fixture lazy; ambos corregidos, suite global aprobada sin ocultar excepciones.
+
+[Capturas antes/después y límites](evidencias/ui_flujos_2026_10_08/README.md). No se repitió Chrome normal, IAB ni Android: revisión manual pendiente. No se eludió la detención de seguridad de Chrome. Sin afirmar certificación de accesibilidad ni cierre de Sprint.
+
+## Registro histórico — cierre local HU 3.1 / Web, 07/10/2026
 
 Fotografía de la validación local del 07/10/2026, anterior a su publicación: rama `feature/hu-3-1-mapa-lugares`, HEAD/base `f214886d7a40aabfc3b10b0af1a266128cc421fe`, entonces sin staging, commit ni publicación. HU 2.4 integrada se conserva, con JWT sin revocación backend. Para conocer la publicación/integración posterior, comprobar Git y los PR relacionados; los resultados siguientes conservan su fecha y alcance.
 
