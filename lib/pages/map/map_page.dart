@@ -3,27 +3,34 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../../components/cr_bottom_nav.dart';
+import '../../configs/generic_response.dart';
 import '../../cubits/places/places_cubit.dart';
 import '../../cubits/places/places_state.dart';
 import '../../models/place_model.dart';
 import '../../services/place_service.dart';
+import '../../services/saturation_report_service.dart';
 import '../../theme/app_colors.dart';
 
 class MapPage extends StatelessWidget {
   final PlaceService? service;
+  final SaturationReportService? reportService;
   final TileProvider? tileProvider;
-  const MapPage({super.key, this.service, this.tileProvider});
+  const MapPage({super.key, this.service, this.reportService, this.tileProvider});
 
   @override
   Widget build(BuildContext context) => BlocProvider(
     create: (_) => PlacesCubit(service ?? PlaceService())..loadPlaces(),
-    child: _MapView(tileProvider: tileProvider),
+    child: _MapView(
+      reportService: reportService ?? SaturationReportService(),
+      tileProvider: tileProvider,
+    ),
   );
 }
 
 class _MapView extends StatelessWidget {
+  final SaturationReportService? reportService;
   final TileProvider? tileProvider;
-  const _MapView({this.tileProvider});
+  const _MapView({this.reportService, this.tileProvider});
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -62,7 +69,11 @@ class _MapView extends StatelessWidget {
               retry: context.read<PlacesCubit>().loadPlaces,
             );
           }
-          return _PlacesMap(places: state.places, tileProvider: tileProvider);
+          return _PlacesMap(
+            places: state.places,
+            reportService: reportService,
+            tileProvider: tileProvider,
+          );
         }
         return const _MapStatus(
           message: 'Inicia sesión para ver los lugares.',
@@ -127,8 +138,13 @@ class _MapStatus extends StatelessWidget {
 
 class _PlacesMap extends StatefulWidget {
   final List<PlaceModel> places;
+  final SaturationReportService? reportService;
   final TileProvider? tileProvider;
-  const _PlacesMap({required this.places, this.tileProvider});
+  const _PlacesMap({
+    required this.places,
+    this.reportService,
+    this.tileProvider,
+  });
   @override
   State<_PlacesMap> createState() => _PlacesMapState();
 }
@@ -296,6 +312,13 @@ class _PlacesMapState extends State<_PlacesMap> {
                                 ),
                               ),
                               IconButton(
+                                tooltip: 'Reportar saturación',
+                                onPressed: widget.reportService == null
+                                    ? null
+                                    : () => _showReportDialog(place),
+                                icon: const Icon(Icons.campaign_outlined),
+                              ),
+                              IconButton(
                                 tooltip: 'Cerrar identificación',
                                 onPressed: () =>
                                     setState(() => _selected = null),
@@ -314,4 +337,323 @@ class _PlacesMapState extends State<_PlacesMap> {
       ],
     );
   }
+  Future<void> _showReportDialog(PlaceModel place) async {
+    SaturationLevel? selectedLevel;
+    var sending = false;
+    final result = await showModalBottomSheet<
+      GenericResponse<SaturationReportReward>
+    >(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => StatefulBuilder(
+        builder: (context, setState) => _ReportSheet(
+          placeName: place.nombre,
+          selectedLevel: selectedLevel,
+          sending: sending,
+          onSelect: (level) => setState(() => selectedLevel = level),
+          onSubmit: selectedLevel == null || sending
+              ? null
+              : () async {
+                  setState(() => sending = true);
+                  final response = await widget.reportService!.createReport(
+                    placeId: place.id,
+                    level: selectedLevel!,
+                  );
+                  if (context.mounted) Navigator.pop(context, response);
+                },
+        ),
+      ),
+    );
+    if (!mounted || result == null) return;
+    if (!result.success) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(result.message)));
+      return;
+    }
+    await showModalBottomSheet<void>(
+      context: context,
+      builder: (_) => _ReportSuccessSheet(reward: result.data),
+    );
+  }
+}
+
+class _ReportSheet extends StatelessWidget {
+  final String placeName;
+  final SaturationLevel? selectedLevel;
+  final bool sending;
+  final ValueChanged<SaturationLevel> onSelect;
+  final VoidCallback? onSubmit;
+
+  const _ReportSheet({
+    required this.placeName,
+    required this.selectedLevel,
+    required this.sending,
+    required this.onSelect,
+    required this.onSubmit,
+  });
+
+  @override
+  Widget build(BuildContext context) => SafeArea(
+    child: Padding(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Center(
+            child: Container(
+              width: 34,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.black26,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ),
+          const SizedBox(height: 18),
+          Text(
+            '¿Qué tan lleno está?',
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            placeName,
+            style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+          ),
+          const SizedBox(height: 16),
+          if (selectedLevel == null) ...[
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.red.withValues(alpha: 0.06),
+                border: Border.all(color: Colors.redAccent),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.error_outline, size: 17, color: Colors.redAccent),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Selecciona un nivel de saturación para enviar tu reporte.',
+                      style: TextStyle(
+                        color: Colors.redAccent,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+          ],
+          for (final level in SaturationLevel.values) ...[
+            _LevelOption(
+              level: level,
+              selected: selectedLevel == level,
+              onTap: sending ? null : () => onSelect(level),
+            ),
+            const SizedBox(height: 8),
+          ],
+          FilledButton(
+            onPressed: onSubmit,
+            child: sending
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Text('Enviar reporte'),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+class _LevelOption extends StatelessWidget {
+  final SaturationLevel level;
+  final bool selected;
+  final VoidCallback? onTap;
+
+  const _LevelOption({
+    required this.level,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = switch (level) {
+      SaturationLevel.tranquil => const Color(0xFF2ECC71),
+      SaturationLevel.moderate => const Color(0xFFFFA217),
+      SaturationLevel.saturated => const Color(0xFFF04B43),
+    };
+    final description = switch (level) {
+      SaturationLevel.tranquil => 'Hay espacio, poca gente',
+      SaturationLevel.moderate => 'Algo concurrido',
+      SaturationLevel.saturated => 'Lleno, mucha gente',
+    };
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: selected ? color.withValues(alpha: 0.12) : Colors.transparent,
+          border: Border.all(
+            color: selected ? color : AppColors.border,
+            width: selected ? 1.5 : 1,
+          ),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(radius: 7, backgroundColor: color),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    level.label,
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  Text(
+                    description,
+                    style: const TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (selected) Icon(Icons.check, color: color),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ReportSuccessSheet extends StatelessWidget {
+  final SaturationReportReward? reward;
+  const _ReportSuccessSheet({required this.reward});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    decoration: const BoxDecoration(
+      color: Color(0xFFF1F8E9),
+      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    ),
+    child: SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 36, 24, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _SuccessIcon(rewarded: reward != null),
+            const SizedBox(height: 22),
+            Text(
+              reward == null ? '¡Gracias por reportar!' : '¡Sumaste karma!',
+              style: const TextStyle(
+                color: AppColors.text,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              reward == null
+                  ? 'Tu reporte fue enviado correctamente y ya ayuda a otros ciudadanos.'
+                  : 'Recibiste puntos por tu reporte válido. Sigue colaborando.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+            ),
+            if (reward != null) ...[
+              const SizedBox(height: 16),
+              _KarmaChip(points: reward!.pointsAwarded),
+            ],
+            const SizedBox(height: 20),
+            FilledButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Continuar'),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+class _SuccessIcon extends StatelessWidget {
+  final bool rewarded;
+  const _SuccessIcon({required this.rewarded});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = rewarded ? const Color(0xFFFFA217) : const Color(0xFF2ECC71);
+    return SizedBox(
+      width: 92,
+      height: 92,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          for (final size in [88.0, 68.0, 50.0])
+            Container(
+              width: size,
+              height: size,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: color.withValues(alpha: 0.28)),
+              ),
+            ),
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+            child: Icon(
+              rewarded ? Icons.star : Icons.check,
+              color: Colors.white,
+              size: 25,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _KarmaChip extends StatelessWidget {
+  final int points;
+  const _KarmaChip({required this.points});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    decoration: BoxDecoration(
+      color: const Color(0xFFFFF3D7),
+      borderRadius: BorderRadius.circular(18),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(Icons.star, size: 16, color: Color(0xFFF39C12)),
+        const SizedBox(width: 6),
+        Text(
+          '+$points karma',
+          style: const TextStyle(
+            color: Color(0xFFB56B00),
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    ),
+  );
 }
