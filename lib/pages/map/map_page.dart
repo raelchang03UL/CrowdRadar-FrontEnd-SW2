@@ -3,27 +3,40 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../../components/cr_bottom_nav.dart';
+import '../../components/saturation_panel.dart';
 import '../../cubits/places/places_cubit.dart';
 import '../../cubits/places/places_state.dart';
+import '../../cubits/places/saturation_cubit.dart';
 import '../../models/place_model.dart';
 import '../../services/place_service.dart';
+import '../../services/saturation_service.dart';
 import '../../theme/app_colors.dart';
 
 class MapPage extends StatelessWidget {
   final PlaceService? service;
   final TileProvider? tileProvider;
-  const MapPage({super.key, this.service, this.tileProvider});
+  final SaturationService? saturationService;
+  const MapPage({
+    super.key,
+    this.service,
+    this.tileProvider,
+    this.saturationService,
+  });
 
   @override
   Widget build(BuildContext context) => BlocProvider(
     create: (_) => PlacesCubit(service ?? PlaceService())..loadPlaces(),
-    child: _MapView(tileProvider: tileProvider),
+    child: _MapView(
+      tileProvider: tileProvider,
+      saturationService: saturationService ?? SaturationService(),
+    ),
   );
 }
 
 class _MapView extends StatelessWidget {
   final TileProvider? tileProvider;
-  const _MapView({this.tileProvider});
+  final SaturationService saturationService;
+  const _MapView({this.tileProvider, required this.saturationService});
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -62,7 +75,11 @@ class _MapView extends StatelessWidget {
               retry: context.read<PlacesCubit>().loadPlaces,
             );
           }
-          return _PlacesMap(places: state.places, tileProvider: tileProvider);
+          return _PlacesMap(
+            places: state.places,
+            tileProvider: tileProvider,
+            saturationService: saturationService,
+          );
         }
         return const _MapStatus(
           message: 'Inicia sesión para ver los lugares.',
@@ -128,13 +145,41 @@ class _MapStatus extends StatelessWidget {
 class _PlacesMap extends StatefulWidget {
   final List<PlaceModel> places;
   final TileProvider? tileProvider;
-  const _PlacesMap({required this.places, this.tileProvider});
+  final SaturationService saturationService;
+  const _PlacesMap({
+    required this.places,
+    this.tileProvider,
+    required this.saturationService,
+  });
   @override
   State<_PlacesMap> createState() => _PlacesMapState();
 }
 
 class _PlacesMapState extends State<_PlacesMap> {
   PlaceModel? _selected;
+  late final SaturationCubit _saturationCubit;
+
+  @override
+  void initState() {
+    super.initState();
+    _saturationCubit = SaturationCubit(widget.saturationService);
+  }
+
+  void _select(PlaceModel place) {
+    setState(() => _selected = place);
+    _saturationCubit.loadPlace(place.id);
+  }
+
+  void _clearSelection() {
+    setState(() => _selected = null);
+    _saturationCubit.clearSelection();
+  }
+
+  @override
+  void dispose() {
+    _saturationCubit.close();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -164,7 +209,7 @@ class _PlacesMapState extends State<_PlacesMap> {
               Text(
                 demo
                     ? 'Datos demostrativos · Sin monitoreo en tiempo real'
-                    : 'Selecciona un marcador para identificar el lugar.',
+                    : 'Selecciona un marcador para consultar el lugar y su saturación.',
                 style: const TextStyle(
                   color: AppColors.textMuted,
                   fontSize: 12,
@@ -174,141 +219,166 @@ class _PlacesMapState extends State<_PlacesMap> {
           ),
         ),
         Expanded(
-          child: Stack(
-            children: [
-              FlutterMap(
-                options: MapOptions(
-                  initialCenter: points.first,
-                  initialZoom: 14,
-                  initialCameraFit: points.length > 1
-                      ? CameraFit.bounds(
-                          bounds: LatLngBounds.fromPoints(points),
-                          padding: const EdgeInsets.all(60),
-                          maxZoom: 15,
-                        )
-                      : null,
-                  onTap: (_, _) => setState(() => _selected = null),
-                ),
-                children: [
-                  TileLayer(
-                    urlTemplate:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName: 'com.example.crowdradar',
-                    tileProvider: widget.tileProvider,
+          child: LayoutBuilder(
+            builder: (context, constraints) => Stack(
+              children: [
+                FlutterMap(
+                  options: MapOptions(
+                    initialCenter: points.first,
+                    initialZoom: 14,
+                    initialCameraFit: points.length > 1
+                        ? CameraFit.bounds(
+                            bounds: LatLngBounds.fromPoints(points),
+                            padding: const EdgeInsets.all(60),
+                            maxZoom: 15,
+                          )
+                        : null,
+                    onTap: (_, _) => _clearSelection(),
                   ),
-                  MarkerLayer(
-                    markers: widget.places
-                        .map(
-                          (place) => Marker(
-                            key: ValueKey('marker-${place.id}'),
-                            point: LatLng(place.latitud, place.longitud),
-                            width: 48,
-                            height: 48,
-                            alignment: Alignment.topCenter,
-                            child: IconButton(
-                              key: ValueKey('select-place-${place.id}'),
-                              tooltip: place.nombre,
-                              padding: EdgeInsets.zero,
-                              onPressed: () =>
-                                  setState(() => _selected = place),
-                              icon: Icon(
-                                Icons.location_on,
-                                size: 44,
-                                color: _selected?.id == place.id
-                                    ? AppColors.secondary
-                                    : AppColors.primary,
-                              ),
-                            ),
-                          ),
-                        )
-                        .toList(growable: false),
-                  ),
-                ],
-              ),
-              Positioned(
-                left: 8,
-                bottom: 4,
-                right: 8,
-                child: Align(
-                  alignment: Alignment.bottomLeft,
-                  child: ColoredBox(
-                    color: AppColors.surface,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 4,
-                        vertical: 2,
-                      ),
-                      child: Text(
-                        '© OpenStreetMap contributors · openstreetmap.org/copyright',
-                        style: Theme.of(
-                          context,
-                        ).textTheme.labelSmall?.copyWith(fontSize: 9),
-                      ),
+                  children: [
+                    TileLayer(
+                      urlTemplate:
+                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      userAgentPackageName: 'com.example.crowdradar',
+                      tileProvider: widget.tileProvider,
                     ),
-                  ),
-                ),
-              ),
-              if (_selected case final place?)
-                Positioned(
-                  left: 16,
-                  right: 16,
-                  bottom: 34,
-                  child: Align(
-                    alignment: Alignment.bottomCenter,
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 480),
-                      child: Material(
-                        elevation: 2,
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(12),
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 12, 4, 12),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.place_outlined,
-                                color: AppColors.primary,
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      place.nombre,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleSmall
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      '${place.categoria}${place.demostrativo ? ' · Demostrativo' : ''}',
-                                      style: const TextStyle(
-                                        color: AppColors.textMuted,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
+                    MarkerLayer(
+                      markers: widget.places
+                          .map(
+                            (place) => Marker(
+                              key: ValueKey('marker-${place.id}'),
+                              point: LatLng(place.latitud, place.longitud),
+                              width: 48,
+                              height: 48,
+                              alignment: Alignment.topCenter,
+                              child: IconButton(
+                                key: ValueKey('select-place-${place.id}'),
+                                tooltip: place.nombre,
+                                padding: EdgeInsets.zero,
+                                onPressed: () => _select(place),
+                                icon: Icon(
+                                  Icons.location_on,
+                                  size: 44,
+                                  color: _selected?.id == place.id
+                                      ? AppColors.secondary
+                                      : AppColors.primary,
                                 ),
                               ),
-                              IconButton(
-                                tooltip: 'Cerrar identificación',
-                                onPressed: () =>
-                                    setState(() => _selected = null),
-                                icon: const Icon(Icons.close, size: 20),
-                              ),
-                            ],
-                          ),
+                            ),
+                          )
+                          .toList(growable: false),
+                    ),
+                  ],
+                ),
+                Positioned(
+                  left: 8,
+                  bottom: 4,
+                  right: 8,
+                  child: Align(
+                    alignment: Alignment.bottomLeft,
+                    child: ColoredBox(
+                      color: AppColors.surface,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 2,
+                        ),
+                        child: Text(
+                          '© OpenStreetMap contributors · openstreetmap.org/copyright',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.labelSmall?.copyWith(fontSize: 9),
                         ),
                       ),
                     ),
                   ),
                 ),
-            ],
+                if (_selected case final place?)
+                  Positioned(
+                    left: 16,
+                    right: 16,
+                    bottom: 34,
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: 480,
+                          maxHeight: (constraints.maxHeight * 0.45).clamp(
+                            0,
+                            480,
+                          ),
+                        ),
+                        child: Material(
+                          elevation: 2,
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(12),
+                          child: SingleChildScrollView(
+                            key: const ValueKey('saturation-selection-scroll'),
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Icon(
+                                      Icons.place_outlined,
+                                      color: AppColors.primary,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            place.nombre,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleSmall
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            '${place.categoria}${place.demostrativo ? ' · Demostrativo' : ''}',
+                                            style: const TextStyle(
+                                              color: AppColors.textMuted,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    IconButton(
+                                      tooltip: 'Cerrar identificación',
+                                      onPressed: _clearSelection,
+                                      icon: const Icon(Icons.close, size: 20),
+                                    ),
+                                  ],
+                                ),
+                                BlocBuilder<SaturationCubit, SaturationState>(
+                                  bloc: _saturationCubit,
+                                  builder: (context, state) => SaturationPanel(
+                                    state: state.placeId == place.id
+                                        ? state
+                                        : const SaturationState(),
+                                    retry: () =>
+                                        _saturationCubit.loadPlace(place.id),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ],

@@ -1,6 +1,6 @@
 # Arquitectura frontend
 
-Incluye HU 3.1, pulido A, HU 2.3 y avance HU 2.1–2.2 en ramas dependientes de revisión; todavía no integradas en `develop`. Confirmar Git y el estado de integración al reutilizarla.
+La base develop `dfdb753` utilizada el 11/10/2026 incluye HU 3.1, pulido A y flujos HU 2.1–2.3. El incremento HU 3.2 de esta rama está pendiente de integrar. Confirmar Git y el estado de integración al reutilizarla; las evidencias históricas permanecen en ESTADO_ACTUAL.
 
 ## Responsabilidades
 
@@ -17,7 +17,9 @@ main.dart / MaterialApp.router
 
 `AuthCubit` coordina registro/login/logout. `SessionService` guarda token/usuario en memoria y una generación de sesión para descartar respuestas antiguas. El router permite login, registro, solicitud y restablecimiento; protege las restantes rutas. El cierre retira datos inmediatamente; una respuesta tardía no los repone.
 
-`PlacesCubit` controla carga/vacío/error/datos y descarta solicitudes antiguas; `PlaceService` usa JWT y timeout; `MapPage` representa lugares mediante flutter_map/OpenStreetMap. Los datos actuales son ilustrativos y se identifican como demostrativos. Seleccionar un marcador no implementa detalle completo ni saturación.
+`PlacesCubit` controla carga/vacío/error/datos y descarta solicitudes antiguas; `PlaceService` usa JWT y timeout; `MapPage` representa lugares mediante flutter_map/OpenStreetMap. Los datos actuales son ilustrativos y se identifican como demostrativos. Seleccionar un marcador conserva la identificación, sin implementar detalle completo.
+
+En el incremento local HU 3.2, `SaturationService` consulta `/api/places/:id/saturation` con JWT y timeout; `SaturationModel` valida el DTO y su coherencia, sin calcular votos. `SaturationCubit` controla carga/error/estimación por lugar y descarta respuestas de solicitudes anteriores, sesiones cambiadas, selección retirada o vista cerrada. `SaturationPanel` presenta niveles y ausencia de información con texto, cifras y fecha de consulta; `MapPage` contiene el panel desplazable con altura limitada. No se modifica el modelo de lugar, router, tema ni almacenamiento de sesión. La regla provisional se calcula solo en backend; las cifras de ventana/mínimo de la presentación provienen del DTO.
 
 `PasswordService` traduce el contrato de cambio a resultados públicos sin mutar sesión. `PasswordChangeCubit` controla envío único y generación/token; solo una respuesta perteneciente a la sesión vigente puede cerrarla. La página protegida conserva formulario/errores durante la solicitud; después de éxito exige nuevo login. La invalidación efectiva de todos los JWT anteriores la hace el backend con `users.sessionVersion`, no el widget. No se persisten contraseñas/JWT ni se interpreta un mensaje arbitrario de API como aviso de login.
 
