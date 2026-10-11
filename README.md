@@ -1,5 +1,11 @@
 # CrowdRadar Frontend
 
+## HU 3.3 — detalles del lugar (rama de revisión)
+
+Rama `feature/hu-3-3-detalles-lugar`, desde `develop`. En el mapa, seleccionar un marcador y pulsar **Ver detalles**. La pantalla protegida `/places/:id` muestra nombre, dirección, categoría y referencia, con carga, error público y reintento. Una dirección null muestra **Dirección no registrada**; los datos demostrativos se identifican como ilustrativos.
+
+Requiere la rama compañera del backend y su migración `004-places-direccion`. No añade búsqueda, paquetes, almacenamiento de sesión ni cambios de tema. Análisis/tests/build se documentan en el PR; Android y revisión humana pendientes.
+
 Aplicación Flutter Android y Web para registro, inicio de sesión, perfil y mapa de lugares. El soporte Web ejecuta la misma aplicación y servicios; no hay un frontend HTML paralelo.
 
 **Rama de revisión HU 2.1–2.2:** `feature/hu-2-1-2-recuperacion`, desde HU 2.3 frontend `1e62c754682f3abe2b166b178d44b7e6e7d1fad0`; backend compañero misma rama desde `97e607ed22b48561bed30a4e821099f76360210d`. HU 2.3 parte del pulido `0361ae1`, y ambos dependen de HU 3.1 pendiente de merge. Clonar `develop` no incorpora estos incrementos; publicación no equivale a integración.
