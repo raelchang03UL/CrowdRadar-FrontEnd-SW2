@@ -1,5 +1,9 @@
 # Estado actual
 
+## Corrección — error persistente en cambio de contraseña, 10/10/2026
+
+Rama `fix/hu-2-3-error-cambio-password` desde develop `cffd3d5` (HU 3.1, A, B y C ya integrados por #9, #11, #12 y #13). El recorrido Chrome del 10/10 mostró que, tras «La contraseña actual no es correcta.», el mensaje seguía visible mientras se corregían los campos y junto a errores de validación nuevos. Ahora editar cualquier campo (`Form.onChanged`) retira el error del envío anterior; carga, guardas de sesión y doble envío no cambian. `flutter analyze --no-pub` limpio; `flutter test --no-pub` 226 aprobadas/2 omitidas opt-in (la prueba de error corregible comprueba la retirada). Sin cambios de contrato ni dependencias.
+
 ## Corrección — Referer y teselas del mapa, 10/10/2026
 
 Rama `fix/web-referrer-mapa`, padre C `652ea260480a39774b11dcea6bdd4c53b85f5fb0`. El recorrido en Chrome del par C mostró todas las teselas como «Access blocked»: la meta `no-referrer` añadida en C impedía enviar Referer y OpenStreetMap lo exige. Comprobado con las mismas teselas: sin Referer, imagen de bloqueo (HTTP 200, ~7 kB); con Referer de origen, tesela real. La meta pasa a `strict-origin-when-cross-origin`: solo sale el origen; el token de recuperación va tras `#` y nunca forma parte del Referer. La cabecera `no-referrer` de las respuestas de la API backend no cambia.
