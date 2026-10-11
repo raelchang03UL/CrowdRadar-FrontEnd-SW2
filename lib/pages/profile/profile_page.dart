@@ -123,6 +123,21 @@ class _ProfileView extends StatelessWidget {
         ),
       ),
       const SizedBox(height: 24),
+      Card(
+        child: ListTile(
+          leading: const Icon(Icons.stars_outlined, color: AppColors.primary),
+          title: const Text('Karma'),
+          subtitle: const Text('Puntos obtenidos por tus reportes'),
+          trailing: Text(
+            '${user.karmaPoints}',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              color: AppColors.primary,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ),
+      const SizedBox(height: 24),
       Text(
         'Datos de tu cuenta',
         style: Theme.of(context).textTheme.titleMedium,

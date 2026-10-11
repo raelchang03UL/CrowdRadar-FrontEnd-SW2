@@ -11,6 +11,7 @@ class ApiConfig {
   static const String validateResetToken = '/api/auth/password/reset/validate';
   static const String resetPassword = '/api/auth/password/reset';
   static const String profile = '/api/users/profile';
+  static const String karma = '/api/users/karma';
   static const String places = '/api/places';
 
   static Uri uri(String path) => Uri.parse('$baseUrl$path');
