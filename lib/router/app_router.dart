@@ -14,6 +14,7 @@ import '../pages/favoritos/favoritos_page.dart';
 import '../pages/profile/profile_page.dart';
 import '../pages/profile/edit_profile_page.dart';
 import '../pages/profile/change_password_page.dart';
+import '../pages/reports/report_history_page.dart';
 
 final appRouter = createAppRouter();
 
@@ -68,6 +69,7 @@ GoRouter createAppRouter({
       builder: (context, state) => const FavoritosPage(),
     ),
     GoRoute(path: '/profile', builder: (context, state) => const ProfilePage()),
+    GoRoute(path: '/profile/reports', builder: (context, state) => const ReportHistoryPage()),
     GoRoute(
       path: '/profile/password',
       builder: (context, state) => const ChangePasswordPage(),
