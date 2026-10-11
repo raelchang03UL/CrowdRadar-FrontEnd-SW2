@@ -6,6 +6,8 @@ import 'places_state.dart';
 class PlacesCubit extends Cubit<PlacesState> {
   final PlaceService _service;
   int _request = 0;
+  String _consulta = '';
+  String get consulta => _consulta;
 
   PlacesCubit(this._service) : super(PlacesInitial()) {
     SessionService.changes.addListener(_onSessionChanged);
@@ -13,6 +15,7 @@ class PlacesCubit extends Cubit<PlacesState> {
 
   void _onSessionChanged() {
     _request++;
+    _consulta = '';
     if (!isClosed) emit(PlacesInitial());
   }
 
@@ -26,7 +29,9 @@ class PlacesCubit extends Cubit<PlacesState> {
     }
     emit(PlacesLoading());
     try {
-      final result = await _service.getPlaces();
+      final result = _consulta.isEmpty
+          ? await _service.getPlaces()
+          : await _service.searchPlaces(_consulta);
       if (isClosed ||
           request != _request ||
           generation != SessionService.generation) {
@@ -45,6 +50,12 @@ class PlacesCubit extends Cubit<PlacesState> {
       }
       emit(PlacesError(message: PlaceService.loadError));
     }
+  }
+
+  Future<void> searchPlaces(String consulta) {
+    if (isClosed) return Future.value();
+    _consulta = consulta.trim();
+    return loadPlaces();
   }
 
   @override

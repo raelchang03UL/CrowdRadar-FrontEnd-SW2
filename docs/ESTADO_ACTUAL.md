@@ -1,5 +1,11 @@
 # Estado actual
 
+## HU 3.4 — búsqueda de lugares, 10/10/2026
+
+Rama `feature/hu-3-4-busqueda-lugares`, posterior a HU 3.3, para frontend #5. Lupa del mapa → buscador protegido, nombre completo/parcial, todas las coincidencias, sin resultados, limpiar y reintento con la consulta conservada. Resultado → detalle; regreso mantiene consulta/resultados. Solicitudes antiguas y cambios de sesión no restauran datos.
+
+No modifica tema, sesiones ni dependencias. El PR se compara inicialmente contra la rama de detalles; integrar HU 3.3 antes de cambiar su base a develop. Backend compañero en la rama homónima; resultados reales y par de SHA en los PR. Android, revisión humana y catálogo real pendientes.
+
 ## HU 3.3 — información del lugar, 10/10/2026
 
 Rama `feature/hu-3-3-detalles-lugar`, desde develop `dfdb753`, compañera de backend #7. Marcador → Ver detalles abre `/places/:id` con nombre, dirección, categoría y referencia, estados de carga/error/reintento y aviso demostrativo. El cubit y el servicio descartan respuestas de generaciones de sesión anteriores; logout elimina los datos y el router vuelve a login.

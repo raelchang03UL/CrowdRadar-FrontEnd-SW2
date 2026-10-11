@@ -11,6 +11,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:crowdradar/pages/places/place_detail_page.dart';
+import 'package:crowdradar/pages/places/place_search_page.dart';
 
 class _Service extends PlaceService {
   final Future<GenericResponse<List<PlaceModel>>> Function() load;
@@ -56,7 +57,7 @@ void main() {
   });
   tearDown(SessionService.clear);
 
-  testWidgets('mapa abre detalles desde marcador y permite volver', (
+  testWidgets('mapa abre detalles desde marcador y búsqueda desde la barra', (
     tester,
   ) async {
     final service = _Service(
@@ -68,6 +69,10 @@ void main() {
         GoRoute(
           path: '/map',
           builder: (_, _) => MapPage(service: service, tileProvider: _Tiles()),
+        ),
+        GoRoute(
+          path: '/places/search',
+          builder: (_, _) => PlaceSearchPage(service: service),
         ),
         GoRoute(
           path: '/places/:id',
@@ -92,6 +97,9 @@ void main() {
     await tester.tap(find.byTooltip('Volver'));
     await tester.pumpAndSettle();
     expect(find.byType(MapPage), findsOneWidget);
+    await tester.tap(find.byTooltip('Buscar lugares'));
+    await tester.pumpAndSettle();
+    expect(find.byType(PlaceSearchPage), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

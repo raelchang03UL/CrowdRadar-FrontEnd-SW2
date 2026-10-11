@@ -10,8 +10,21 @@ class PlaceService {
       'No pudimos cargar los lugares. Comprueba tu conexión y vuelve a intentarlo.';
   static const detailError =
       'No pudimos cargar la información del lugar. Comprueba tu conexión y vuelve a intentarlo.';
+  static const invalidSearch = 'Busca por nombre usando hasta 160 caracteres.';
 
-  Future<GenericResponse<List<PlaceModel>>> getPlaces() async {
+  Future<GenericResponse<List<PlaceModel>>> getPlaces() => _getList();
+
+  Future<GenericResponse<List<PlaceModel>>> searchPlaces(String consulta) {
+    final nombre = consulta.trim();
+    if (nombre.length > 160) {
+      return Future.value(
+        const GenericResponse(success: false, message: invalidSearch),
+      );
+    }
+    return _getList(nombre: nombre);
+  }
+
+  Future<GenericResponse<List<PlaceModel>>> _getList({String? nombre}) async {
     final generation = SessionService.generation;
     final token = SessionService.token;
     if (token == null || !SessionService.isAuthenticated) {
@@ -23,7 +36,9 @@ class PlaceService {
     try {
       final response = await http
           .get(
-            ApiConfig.uri(ApiConfig.places),
+            ApiConfig.uri(ApiConfig.places).replace(
+              queryParameters: nombre == null ? null : {'nombre': nombre},
+            ),
             headers: ApiConfig.authHeaders(token),
           )
           .timeout(const Duration(seconds: 15));
