@@ -3,13 +3,25 @@ import 'package:http/http.dart' as http;
 import '../configs/api_config.dart';
 import '../configs/generic_response.dart';
 import '../models/place_model.dart';
+import '../models/saturation_model.dart';
 import 'session_service.dart';
 
 class PlaceService {
   static const loadError =
       'No pudimos cargar los lugares. Comprueba tu conexión y vuelve a intentarlo.';
 
-  Future<GenericResponse<List<PlaceModel>>> getPlaces() async {
+  static const filtroError =
+      'El nivel de saturación no es válido. Selecciona nuevamente el filtro.';
+
+  Future<GenericResponse<List<PlaceModel>>> getPlaces() => _obtenerLugares();
+
+  Future<GenericResponse<List<PlaceModel>>> getPlacesBySaturation(
+    SaturationLevel nivel,
+  ) => _obtenerLugares(nivel: nivel);
+
+  Future<GenericResponse<List<PlaceModel>>> _obtenerLugares({
+    SaturationLevel? nivel,
+  }) async {
     final generation = SessionService.generation;
     final token = SessionService.token;
     if (token == null || !SessionService.isAuthenticated) {
@@ -21,7 +33,11 @@ class PlaceService {
     try {
       final response = await http
           .get(
-            ApiConfig.uri(ApiConfig.places),
+            nivel == null
+                ? ApiConfig.uri(ApiConfig.places)
+                : ApiConfig.uri(
+                    ApiConfig.places,
+                  ).replace(queryParameters: {'nivel': nivel.valorApi}),
             headers: ApiConfig.authHeaders(token),
           )
           .timeout(const Duration(seconds: 15));
@@ -33,6 +49,13 @@ class PlaceService {
         );
       }
       if (response.statusCode != 200) {
+        if (response.statusCode == 400) {
+          final cuerpo = jsonDecode(utf8.decode(response.bodyBytes));
+          if (cuerpo is Map<String, dynamic> &&
+              cuerpo['code'] == 'SATURATION_FILTER_INVALID') {
+            return const GenericResponse(success: false, message: filtroError);
+          }
+        }
         return const GenericResponse(success: false, message: loadError);
       }
       final body = jsonDecode(utf8.decode(response.bodyBytes));

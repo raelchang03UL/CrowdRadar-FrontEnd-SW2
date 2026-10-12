@@ -1,5 +1,19 @@
 enum SaturationLevel { tranquilo, moderado, saturado }
 
+extension EtiquetaNivelSaturacion on SaturationLevel {
+  String get valorApi => switch (this) {
+    SaturationLevel.tranquilo => 'TRANQUILO',
+    SaturationLevel.moderado => 'MODERADO',
+    SaturationLevel.saturado => 'SATURADO',
+  };
+
+  String get etiqueta => switch (this) {
+    SaturationLevel.tranquilo => 'Tranquilo',
+    SaturationLevel.moderado => 'Moderado',
+    SaturationLevel.saturado => 'Saturado',
+  };
+}
+
 enum SaturationReason { insufficientReports, tie }
 
 // Estimación recibida de la API; el cliente no calcula votos ni aforo.

@@ -1,5 +1,36 @@
 # Estado actual
 
+## Corrección — margen Android del selector HU 3.6, 12/10/2026
+
+`SafeArea` mantiene las opciones por encima de la barra de navegación, sin nuevas funciones, reglas, API ni dependencias. Solo cambia el selector y añade dos regresiones: ambas fallaron antes y aprobaron después del arreglo en una copia limpia del PR frontend #20, padre `63bf1ffc6ea15b7145a2f6e27b54c4e8ba6e281c`.
+
+Validación individual: análisis limpio; 352 pruebas aprobadas, 0 fallidas y 2 integraciones auth opt-in omitidas; diff-check correcto. Los dos Dart son idénticos a los probados en Android sobre la copia conjunta. El [registro Android fechado](evidencias/hu_3_6/2026_10_12/VALIDACION_ANDROID.md) distingue aquel recorrido nativo y sus 463 pruebas de esta suite individual. Los antecedentes conservan su fecha: no acreditan revisión humana ni el futuro par integrado.
+
+Los ajustes conjuntos de integración permanecen locales y fuera de esta publicación, por indicación del usuario. No se crean PR adicionales. No se fusionan ramas, no se cierran Issues y no se publica el entorno Android. Coordinación HU 3.2/HU 4.1 y comprobación después de integrar siguen pendientes.
+
+## Corrección — mensaje vacío HU 3.6, 11/10/2026
+
+El filtro sin coincidencias presenta literalmente el criterio del Issue #7: «No existen lugares cercanos que cumplan con ese criterio». Conserva el nivel seleccionado, los controles para cambiar/quitar y el reintento. Es un ajuste de redacción; no incorpora GPS, radio, cálculo de distancias ni cambios del contrato o algoritmo backend.
+
+Validación local de la corrección: análisis sin problemas; suite completa, 350 aprobadas/0 fallidas/2 omitidas opt-in; pruebas del mensaje exacto en ausencia de resultados y layouts 360/390/1440 con texto2×; formato de los dos Dart afectados y diff-check correctos. Android continúa pospuesto y no se repitió el recorrido Web en esta corrección. Los registros anteriores mantienen su alcance y fecha.
+
+## HU 3.6 — filtro de saturación, 11/10/2026
+
+Rama `feature/hu-3-6-filtro-saturacion`, padre HU 3.2 frontend `9c831decf868b856248db96dad8e8db8464207b8`; backend compañero parte de `0605b51fb5aa6933de9b587e9ad9c73f5e46c2d1`. [Issue canónico #7](https://github.com/raelchang03UL/CrowdRadar-FrontEnd-SW2/issues/7). Registro previo a publicación; el PR dependiente apunta al padre HU 3.2, aún no integrado en develop. Consultar los PR para el SHA final del par; no se modifican Issues/Project ni se realiza merge.
+
+Selector Todos/Tranquilo/Moderado/Saturado, contexto del filtro y botón quitar. Usa el enum existente de HU 3.2 y método aditivo `getPlacesBySaturation`, conservando `getPlaces()`. HTTP solo en servicio; algoritmo/ventana/votos solo en backend. Actualizar/reintentar conservan el nivel; cambiar/quitar consulta otra lista. Carga, ausencia de coincidencias y errores públicos (401/400/503/timeout) no inventan niveles ni prometen radio o actualización automática.
+
+Las solicitudes antiguas quedan descartadas por operación/sesión/dispose. Logout limpia filtro; retornar del selector exige contexto montado y misma sesión autenticada. Cada lista nueva retira selección previa y cierra la consulta HU 3.2, incluso con respuesta inmediata sin frame de carga. Seleccionar un resultado sigue mostrando su panel HU 3.2. Semántica/teclado del selector y textos identifican nivel sin depender solo del color.
+
+- Flutter 3.41.9/Dart 3.11.5: `flutter analyze --no-pub`, sin problemas; `flutter test --no-pub`, 350 aprobadas/0 fallidas/2 omitidas (integraciones auth opt-in). 48 pruebas nuevas de servicio/cubit/UI: tres niveles/Todos/cambiar/quitar, vacío/error/reintento, latest/session/logout/dispose, selección anterior, layouts 360/390/1440 y texto2×/teclado/semántica.
+- Revisión detectó riesgo en viewport bajo; el test 360×360/texto2× reprodujo overflow del encabezado. Se corrigió en MapPage con encabezados desplazables/altura limitada, quitar siempre visible y encuadre de cámara adaptado. Test corto, suite completa y análisis pasaron después. Se corrigieron fixtures de animación/tema/Tooltip antes de la suite final, sin ocultar excepciones.
+- Formato de ocho Dart candidatos sin cambios, diff-check limpio; paquetes desde caché, sin modificar pubspec/lockfile, router/tema/SessionService/PlaceModel ni Gradle. Build Web final `flutter build web --no-pub --dart-define=API_BASE_URL=http://127.0.0.1:3006`, aprobado en 57,4 s; build no publicado.
+- Recorrido IAB en loopback:5506, API real HU 3.6 en 3006 y PostgreSQL `crowdradar_auth_test`: login QA → Tranquilo/Moderado/Saturado cada uno con un marcador y nivel individual coincidente/tres personas → cambio retira selección → actualizar conserva filtro → quitar recupera cuatro lugares, uno sin reportes → logout/nuevo login vuelve a Todos. Son fixtures ficticios transaccionales de tres usuarios, no reportes reales ni confirmados. Teselas reales OSM, atribución y aviso demostrativo visibles. El helper solo inyectó transacción en modelos/repositorios reales; no falseó respuestas HTTP. Errores/vacío/races/layouts son automatizados, no se atribuyen al recorrido positivo manual.
+- Backend compañero: 92/92 Node y cinco bloques PostgreSQL/HTTP reales aprobados, rollback y filas/historial completos conservados. Al finalizar Web se cerraron procesos/conexiones; la verificación posterior de solo lectura confirmó ausencia de fixtures QA y cuatro migraciones anteriores. No nueva migración en HU 3.6 ni uso de Sprint 1/Supabase.
+- Revisión independiente final del diff, de lectura, sin bloqueos; no sustituye la revisión humana del equipo. Android no ejecutado: se pospone expresamente; no se instala SDK/emulador ni se usa teléfono.
+
+Captura sin credenciales: [filtro Saturado y consulta HU 3.2](evidencias/hu_3_6/2026_10_11/saturado.png), datos QA ilustrativos. Pendientes: acuerdo/coordinación HU 3.2/HU 4.1, integrar primero padre y luego par HU 3.6, reconciliar MapPage con los otros PR y validar Android. Si «cercanos» exige distancia, el equipo debe precisar radio/geolocalización antes de prometerla. PR abierto no equivale a HU Done.
+
 ## Incremento local HU 3.2 — consulta de saturación, 11/10/2026
 
 Rama `feature/hu-3-2-consulta-saturacion`, base develop frontend `dfdb75371d9c3a8ecdb7bc79cf8346988659f0ba`. [Issue canónico backend #6](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/issues/6). Registro de validación local previo a publicación: entonces sin staging, commit, push, PR, merge ni cambios en el backlog. Consultar Git/PR para la publicación posterior; no implica integración. El backend compañero implementa un contrato aditivo y una migración explícita; este incremento no depende de los PR de detalles/búsqueda todavía en revisión.
