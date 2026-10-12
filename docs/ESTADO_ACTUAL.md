@@ -1,5 +1,13 @@
 # Estado actual
 
+## Corrección — margen Android del selector HU 3.6, 12/10/2026
+
+`SafeArea` mantiene las opciones por encima de la barra de navegación, sin nuevas funciones, reglas, API ni dependencias. Solo cambia el selector y añade dos regresiones: ambas fallaron antes y aprobaron después del arreglo en una copia limpia del PR frontend #20, padre `63bf1ffc6ea15b7145a2f6e27b54c4e8ba6e281c`.
+
+Validación individual: análisis limpio; 352 pruebas aprobadas, 0 fallidas y 2 integraciones auth opt-in omitidas; diff-check correcto. Los dos Dart son idénticos a los probados en Android sobre la copia conjunta. El [registro Android fechado](evidencias/hu_3_6/2026_10_12/VALIDACION_ANDROID.md) distingue aquel recorrido nativo y sus 463 pruebas de esta suite individual. Los antecedentes conservan su fecha: no acreditan revisión humana ni el futuro par integrado.
+
+Los ajustes conjuntos de integración permanecen locales y fuera de esta publicación, por indicación del usuario. No se crean PR adicionales. No se fusionan ramas, no se cierran Issues y no se publica el entorno Android. Coordinación HU 3.2/HU 4.1 y comprobación después de integrar siguen pendientes.
+
 ## Corrección — mensaje vacío HU 3.6, 11/10/2026
 
 El filtro sin coincidencias presenta literalmente el criterio del Issue #7: «No existen lugares cercanos que cumplan con ese criterio». Conserva el nivel seleccionado, los controles para cambiar/quitar y el reintento. Es un ajuste de redacción; no incorpora GPS, radio, cálculo de distancias ni cambios del contrato o algoritmo backend.

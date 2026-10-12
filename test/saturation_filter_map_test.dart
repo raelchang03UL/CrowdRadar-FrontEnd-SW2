@@ -138,6 +138,35 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
   }
 
+  for (final escala in [1.0, 2.0]) {
+    testWidgets(
+      'selector mantiene Saturado sobre la barra Android de 48 px texto${escala}x',
+      (tester) async {
+        const margenSistema = 48.0;
+        const tamano = Size(390, 844);
+        tester.view.viewPadding = const FakeViewPadding(bottom: margenSistema);
+        tester.view.padding = const FakeViewPadding(bottom: margenSistema);
+        addTearDown(tester.view.resetViewPadding);
+        addTearDown(tester.view.resetPadding);
+        final servicio = _Servicio((nivel) async => _respuesta(nivel));
+        await montar(tester, servicio, tamano: tamano, escala: escala);
+        await tester.tap(find.byTooltip('Filtrar por saturación'));
+        await tester.pumpAndSettle();
+        final opcion = find.byKey(const ValueKey('opcion-saturacion-SATURADO'));
+        await tester.ensureVisible(opcion);
+        await tester.pumpAndSettle();
+        expect(
+          tester.getRect(opcion).bottom,
+          lessThanOrEqualTo(tamano.height - margenSistema),
+        );
+        await tester.tap(opcion);
+        await tester.pumpAndSettle();
+        expect(servicio.solicitudes.last, SaturationLevel.saturado);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
+
   for (final nivel in SaturationLevel.values) {
     testWidgets('mapa filtra ${nivel.etiqueta}, actualiza y quita con Todos', (
       tester,
