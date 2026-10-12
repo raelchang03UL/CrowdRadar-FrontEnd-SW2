@@ -214,9 +214,7 @@ void main() {
       await elegir(tester, SaturationLevel.moderado);
       await tester.pumpAndSettle();
       expect(
-        find.text(
-          'No hay lugares con nivel moderado en esta consulta. Puedes cambiar o quitar el filtro.',
-        ),
+        find.text('No existen lugares cercanos que cumplan con ese criterio'),
         findsOneWidget,
       );
       expect(find.byType(MarkerLayer), findsNothing);
@@ -489,6 +487,14 @@ void main() {
           await elegir(tester, SaturationLevel.saturado);
           await tester.pumpAndSettle();
           expect(find.text('Saturación: Saturado'), findsOneWidget);
+          if (!error) {
+            expect(
+              find.text(
+                'No existen lugares cercanos que cumplan con ese criterio',
+              ),
+              findsOneWidget,
+            );
+          }
           await tester.ensureVisible(find.text('Reintentar'));
           await tester.tap(find.text('Reintentar'));
           await tester.pumpAndSettle();

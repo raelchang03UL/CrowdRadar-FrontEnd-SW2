@@ -157,7 +157,7 @@ class _MapView extends StatelessWidget {
         return _MapStatus(
           message: nivel == null
               ? 'Aún no hay lugares disponibles.'
-              : 'No hay lugares con nivel ${nivel.etiqueta.toLowerCase()} en esta consulta. Puedes cambiar o quitar el filtro.',
+              : 'No existen lugares cercanos que cumplan con ese criterio',
           icon: Icons.map_outlined,
           retry: context.read<PlacesCubit>().loadPlaces,
         );

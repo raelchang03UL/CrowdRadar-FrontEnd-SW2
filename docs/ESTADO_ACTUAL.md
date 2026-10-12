@@ -1,5 +1,11 @@
 # Estado actual
 
+## Corrección — mensaje vacío HU 3.6, 11/10/2026
+
+El filtro sin coincidencias presenta literalmente el criterio del Issue #7: «No existen lugares cercanos que cumplan con ese criterio». Conserva el nivel seleccionado, los controles para cambiar/quitar y el reintento. Es un ajuste de redacción; no incorpora GPS, radio, cálculo de distancias ni cambios del contrato o algoritmo backend.
+
+Validación local de la corrección: análisis sin problemas; suite completa, 350 aprobadas/0 fallidas/2 omitidas opt-in; pruebas del mensaje exacto en ausencia de resultados y layouts 360/390/1440 con texto2×; formato de los dos Dart afectados y diff-check correctos. Android continúa pospuesto y no se repitió el recorrido Web en esta corrección. Los registros anteriores mantienen su alcance y fecha.
+
 ## HU 3.6 — filtro de saturación, 11/10/2026
 
 Rama `feature/hu-3-6-filtro-saturacion`, padre HU 3.2 frontend `9c831decf868b856248db96dad8e8db8464207b8`; backend compañero parte de `0605b51fb5aa6933de9b587e9ad9c73f5e46c2d1`. [Issue canónico #7](https://github.com/raelchang03UL/CrowdRadar-FrontEnd-SW2/issues/7). Registro previo a publicación; el PR dependiente apunta al padre HU 3.2, aún no integrado en develop. Consultar los PR para el SHA final del par; no se modifican Issues/Project ni se realiza merge.
