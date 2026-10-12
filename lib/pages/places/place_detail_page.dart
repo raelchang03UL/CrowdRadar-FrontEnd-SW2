@@ -12,6 +12,7 @@ class PlaceDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => BlocProvider(
+    key: ValueKey(id),
     create: (_) => PlaceDetailCubit(service ?? PlaceService(), id)..loadPlace(),
     child: Scaffold(
       appBar: AppBar(
