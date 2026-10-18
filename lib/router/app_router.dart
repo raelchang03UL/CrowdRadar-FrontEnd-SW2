@@ -4,6 +4,7 @@ import '../models/user_model.dart';
 import '../services/session_service.dart';
 import '../services/recovery_service.dart';
 import '../services/place_service.dart';
+import '../pages/places/place_search_page.dart';
 import '../pages/places/place_detail_page.dart';
 
 import '../pages/login/login_page.dart';
@@ -67,6 +68,10 @@ GoRouter createAppRouter({
     GoRoute(
       path: '/map',
       builder: (context, state) => MapPage(service: placeService),
+    ),
+    GoRoute(
+      path: '/places/search',
+      builder: (context, state) => PlaceSearchPage(service: placeService),
     ),
     GoRoute(
       path: '/places/:id',

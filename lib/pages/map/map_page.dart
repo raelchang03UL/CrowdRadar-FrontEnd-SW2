@@ -32,6 +32,11 @@ class _MapView extends StatelessWidget {
       title: const Text('Lugares'),
       centerTitle: false,
       actions: [
+        IconButton(
+          tooltip: 'Buscar lugares',
+          icon: const Icon(Icons.search),
+          onPressed: () => context.push('/places/search'),
+        ),
         BlocBuilder<PlacesCubit, PlacesState>(
           builder: (context, state) => IconButton(
             tooltip: 'Actualizar lugares',

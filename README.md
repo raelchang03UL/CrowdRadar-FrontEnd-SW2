@@ -1,5 +1,11 @@
 # CrowdRadar Frontend
 
+## HU 3.4 — buscar lugares (revisión dependiente)
+
+Rama `feature/hu-3-4-busqueda-lugares`, basada en HU 3.3. La lupa del mapa abre `/places/search`: nombre completo/parcial, todas las coincidencias, mensaje sin resultados, limpiar y reintentar conservando la consulta. Un resultado abre el detalle existente; volver conserva la búsqueda y logout borra los datos.
+
+Requiere backend HU 3.4 con `GET /api/places?nombre=`. Sus PR muestran solo búsqueda frente a las ramas de detalles; integrar HU 3.3 y cambiar la base a develop antes del merge de búsqueda. Sin paquetes o migraciones nuevas; el catálogo sigue siendo demostrativo.
+
 ## HU 3.3 — detalles del lugar (rama de revisión)
 
 Rama `feature/hu-3-3-detalles-lugar`, desde `develop`. En el mapa, seleccionar un marcador y pulsar **Ver detalles**. La pantalla protegida `/places/:id` muestra nombre, dirección, categoría y referencia, con carga, error público y reintento. Una dirección null muestra **Dirección no registrada**; los datos demostrativos se identifican como ilustrativos.
