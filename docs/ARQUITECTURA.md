@@ -1,42 +1,25 @@
 # Arquitectura frontend
 
-La base develop `dfdb753` utilizada el 11/10/2026 incluye HU 3.1, pulido A y flujos HU 2.1–2.3. El incremento HU 3.2 de esta rama está pendiente de integrar. Confirmar Git y el estado de integración al reutilizarla; las evidencias históricas permanecen en ESTADO_ACTUAL.
+Corte local R01,17/10/2026. Una aplicación FlutterAndroid/Web,principalWebresponsive; conservaCubit,GoRouter,flutter_map ytemaMaterial3. Rama local no publicada,no incluyeexperimento visual de lacarpetaoriginal.
 
-## Responsabilidades
+## Fronteras reales
 
-```text
-main.dart / MaterialApp.router
-  → router/app_router.dart (acceso y navegación)
-  → pages / components (presentación y formularios)
-  → cubits (estado y operaciones asíncronas)
-  → services (HTTP / traducción de errores)
-  → configs/api_config.dart → backend
-```
+Pages/components→cubits→serviciosHTTP→API. Models sonDTO;configs contiene soloAPI_BASE_URL pública. No SQL,SMTP ni clavesprivilegiadas enFlutter. AppTheme/AppColors controlan identidad. No cambio de framework/gestor/carpetas porapariencia.
 
-`models` representa datos de la API. `theme/AppTheme` y `AppColors` definen el estilo común. `auth_fields` y `auth_form_layout` comparten validación/presentación de autenticación. No añadir HTTP en widgets ni duplicar clientes o temas por pantalla.
+AuthCubit/SessionService/router conservanJWT yusuario solo enmemoria,generación de sesión yguardas. Login/registro/recuperación sonpúblicos; el restoprotegidoporrouter yJWTbackend. Recargar pierde sesión. Logout noprovoca revocación backend; cambio/reset sí invalidanversiones. Las respuestasdeotraoperación/sesión ycubitscerrados sedescartan.
 
-`AuthCubit` coordina registro/login/logout. `SessionService` guarda token/usuario en memoria y una generación de sesión para descartar respuestas antiguas. El router permite login, registro, solicitud y restablecimiento; protege las restantes rutas. El cierre retira datos inmediatamente; una respuesta tardía no los repone.
+PlacesCubit mantiene nombre/categoría/nivel,última solicitud ylimpieza porsesión. PlaceService combinaobjetodeconsulta,saneaerrores ytimeouts; detalleusaclaveporID para reconstruirCubit al cambiode ruta. SatService/Cubit consultan laestimación deAPI,sin calcularaforo encliente.
 
-`PlacesCubit` controla carga/vacío/error/datos y descarta solicitudes antiguas; `PlaceService` usa JWT y timeout; `MapPage` representa lugares mediante flutter_map/OpenStreetMap. Los datos actuales son ilustrativos y se identifican como demostrativos. Seleccionar un marcador conserva la identificación, sin implementar detalle completo.
+ReportPlaceSheet reutiliza SaturationReportService deManu; solo presentación yestado delenvío. Bloquea doblepulsación ysalida durantepetición; limpiadatos al cambiarsesión ydescartarespuestatardía. Premioúnicamente delaAPI,no fallbackficticio. Perfil/historialdeManuusanlos endpoints propios; servidorautoriza yconservatransacciones.
 
-En el incremento local HU 3.2, `SaturationService` consulta `/api/places/:id/saturation` con JWT y timeout; `SaturationModel` valida el DTO y su coherencia, sin calcular votos. `SaturationCubit` controla carga/error/estimación por lugar y descarta respuestas de solicitudes anteriores, sesiones cambiadas, selección retirada o vista cerrada. `SaturationPanel` presenta niveles y ausencia de información con texto, cifras y fecha de consulta; `MapPage` contiene el panel desplazable con altura limitada. No se modifica el modelo de lugar, router, tema ni almacenamiento de sesión. La regla provisional se calcula solo en backend; las cifras de ventana/mínimo de la presentación provienen del DTO.
+## Patrones y decisiones
 
-`PasswordService` traduce el contrato de cambio a resultados públicos sin mutar sesión. `PasswordChangeCubit` controla envío único y generación/token; solo una respuesta perteneciente a la sesión vigente puede cerrarla. La página protegida conserva formulario/errores durante la solicitud; después de éxito exige nuevo login. La invalidación efectiva de todos los JWT anteriores la hace el backend con `users.sessionVersion`, no el widget. No se persisten contraseñas/JWT ni se interpreta un mensaje arbitrario de API como aviso de login.
+Cubit esgestiónreactivadeestado/presentación,no GoFState automático. SessionService notifica medianteListenable/ValueNotifier (Observer delframework),sin afirmarSingletonGoF. Reutilizarcomponentes/contratos evitaHTTPenwidgets; no seintroducenGenericService,FactoryMethod oeventbus sinproblema demostrado.
 
-Recuperación mantiene la misma separación páginas → cubits → servicio. La validación del enlace precede al formulario, pero no lo consume: backend vuelve a verificarlo atómicamente al guardar. Tokens no se muestran como texto ni se guardan en almacenamiento; el éxito retira el enlace de la ruta y exige login normal. Web define `strict-origin-when-cross-origin`: a terceros solo sale el origen, nunca ruta, query ni fragmento, y el enlace usa query del fragmento `#/`, no una consulta enviada al servidor HTTP. `no-referrer` no se usa porque OpenStreetMap exige Referer y bloquea las teselas sin él. Una captura exclusiva de pruebas no es un proveedor de correo ni validación de entrega.
+Alternativa aformulario modalcontrolado eraStatefulBuilder quepodíacerrarsedurantepetición yperderconfirmación; elcomponentepropio administra montaje,sesión ylistener/dispose. Coste: controlar asincronía/teclado/scroll;8pruebasnuevasde carreras/errores/responsive.
 
-## Configuración y plataformas
+## Plataforma y evidencia
 
-Una sola aplicación Flutter para Android/Web. `API_BASE_URL` se define al ejecutar/compilar; el valor por defecto `10.0.2.2:3000` es para Android emulado, no Web. Usar el README para la URL/puerto real. La configuración pública no contiene secretos.
+431 aprobadas/2opt-inomitidas,análisis limpio;buildWeb yrecorridoIAB+API/PostgreSQLQA.360/390/1440, texto2x probados enwidgets;IAB390×844 y1440×900. No equiparar IAB aChrome normal ni aAndroid; Androidfinal/SMTP real pendientes. ReferrerWeb strict-origin-when-cross-origin conservaOSM sin filtrarquery/fragmentoderecuperación. No persistirJWT ni desactivarseguridaddelnavegador.
 
-Web usa rutas con fragmento `#/`. Recargar pierde la sesión porque no hay persistencia. Cambiar ese comportamiento o mover tokens a almacenamiento es una decisión de seguridad, no un arreglo visual. No desactivar CORS/seguridad del navegador para conectar.
-
-## Fronteras compartidas
-
-Coordinar antes de editar router, sesión, AuthCubit, API config, UserModel, PlaceModel o tema. El contrato canónico está en backend `docs/CONTRATO_API.md`; enlaces y lectura local en [CONTRIBUTING](../CONTRIBUTING.md). Registrar los dos SHA usados en integración.
-
-## Pruebas y deuda
-
-Flutter tests cubren servicios/modelos/cubits y navegación/widgets; dobles de HTTP/teselas no demuestran una API/base real. Un build aprobado tampoco acredita el recorrido de usuario. Las evidencias actuales distinguen IAB, Chrome normal y Android; comprobar la plataforma sobre el estado final.
-
-Pendientes: proveedor/remitente y entrega real de correo, recorrido manual final Chrome/Android, enlaces nativos Android, CI y catálogo real. El pulido homogeneiza perfil/edición; cambio/restablecimiento invalidan sesiones en backend. Mantener la [guía visual](GUIA_VISUAL.md) para las pantallas nuevas; no implementar pendientes por una refactorización de UI.
+Contrato yUML editable canónicos enbackend docs/CONTRATO_API.md ydocs/modelos/consolidacion.puml. Evidencias fechadasidentifican elpar yloslímites;verESTADO_ACTUAL.

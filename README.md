@@ -1,52 +1,8 @@
 # CrowdRadar Frontend
 
-## HU 3.4 — buscar lugares (revisión dependiente)
+Incremento **solo local** del Release 01, 17/10/2026, rama `feature/local-r01-consolidacion-20261017`; NO publicado. Flutter Android/Web, principal Web responsive. Reúne detalle, búsqueda, categoría y saturación de Nick; reporte, karma e historial de Manu con correcciones de concurrencia/contrato. Conserva el tema publicado; no incorpora el experimento visual rechazado.
 
-Rama `feature/hu-3-4-busqueda-lugares`, basada en HU 3.3. La lupa del mapa abre `/places/search`: nombre completo/parcial, todas las coincidencias, mensaje sin resultados, limpiar y reintentar conservando la consulta. Un resultado abre el detalle existente; volver conserva la búsqueda y logout borra los datos.
-
-Requiere backend HU 3.4 con `GET /api/places?nombre=`. Sus PR muestran solo búsqueda frente a las ramas de detalles; integrar HU 3.3 y cambiar la base a develop antes del merge de búsqueda. Sin paquetes o migraciones nuevas; el catálogo sigue siendo demostrativo.
-
-## HU 3.3 — detalles del lugar (rama de revisión)
-
-Rama `feature/hu-3-3-detalles-lugar`, desde `develop`. En el mapa, seleccionar un marcador y pulsar **Ver detalles**. La pantalla protegida `/places/:id` muestra nombre, dirección, categoría y referencia, con carga, error público y reintento. Una dirección null muestra **Dirección no registrada**; los datos demostrativos se identifican como ilustrativos.
-
-Requiere la rama compañera del backend y su migración `004-places-direccion`. No añade búsqueda, paquetes, almacenamiento de sesión ni cambios de tema. Análisis/tests/build se documentan en el PR; Android y revisión humana pendientes.
-
-Aplicación Flutter Android y Web para registro, inicio de sesión, perfil y mapa de lugares. El soporte Web ejecuta la misma aplicación y servicios; no hay un frontend HTML paralelo.
-
-**Incremento local HU 3.5:** `feature/hu-3-5-filtro-categoria`, desde `develop`, con backend compañero en la rama homónima. En el mapa, **Filtrar por categoría** consulta el catálogo activo; elegir otra categoría actualiza los marcadores y **Quitar filtro** restaura el listado. Incluye carga, sin coincidencias y errores con reintento conservando el filtro. No requiere dependencias ni migraciones nuevas. Esta rama no contiene los PR pendientes de detalles/búsqueda; coordinar los archivos compartidos al integrar, sin reemplazar sus cambios. Evidencia y pendientes en [estado actual](docs/ESTADO_ACTUAL.md).
-
-**Rama de revisión HU 2.1–2.2:** `feature/hu-2-1-2-recuperacion`, desde HU 2.3 frontend `1e62c754682f3abe2b166b178d44b7e6e7d1fad0`; backend compañero misma rama desde `97e607ed22b48561bed30a4e821099f76360210d`. HU 2.3 parte del pulido `0361ae1`, y ambos dependen de HU 3.1 pendiente de merge. Clonar `develop` no incorpora estos incrementos; publicación no equivale a integración.
-
-**Referencia histórica de revisión, 08/10/2026:** `feature/hu-2-1-2-recuperacion`, desde HU 2.3 frontend `1e62c754682f3abe2b166b178d44b7e6e7d1fad0`; backend compañero misma rama desde `97e607ed22b48561bed30a4e821099f76360210d`. Entonces HU 2.3 partía del pulido `0361ae1` y ambos dependían de HU 3.1 pendiente de merge. La base develop `dfdb753` utilizada el 11/10 ya incorpora HU 3.1, pulido y HU 2.1–2.3; la referencia antigua no es la rama para ejecutar HU 3.2. Publicación no equivale a integración.
-
-Para colaborar con el equipo y usar IA sobre el código, empieza por [CONTRIBUTING.md](CONTRIBUTING.md) y [AGENTS.md](AGENTS.md). Consulta [arquitectura](docs/ARQUITECTURA.md) y [guía visual](docs/GUIA_VISUAL.md); CONTRIBUTING enlaza coordinación y contrato canónico backend. `develop` reúne los aportes integrados de los siete; una rama publicada con PR abierto sigue pendiente de incorporación a esa base.
-
-**Origen funcional de esta instantánea:** HU 2.1–2.2 publicada en `feature/hu-2-1-2-recuperacion`, desde HU 2.3 frontend `1e62c754682f3abe2b166b178d44b7e6e7d1fad0`; backend compañero misma rama desde `97e607ed22b48561bed30a4e821099f76360210d`. HU 2.3 parte del pulido `0361ae1`, y ambos dependen de HU 3.1 pendiente de merge. Clonar `develop` no incorpora estos incrementos; publicación no equivale a integración.
-
-Para colaborar con el equipo y usar IA sobre el código, empieza por [AGENTS.md](AGENTS.md) y [CONTRIBUTING.md](CONTRIBUTING.md). Después, lee `docs/INICIO_EQUIPO.md` en el clon backend hermano: explica el arranque sin historial de chats e incluye un prompt sin tarea asignada. Consulta [arquitectura](docs/ARQUITECTURA.md) y [guía visual](docs/GUIA_VISUAL.md); CONTRIBUTING enlaza coordinación y contrato canónico backend. `develop` reúne los aportes integrados de los siete; una rama publicada con PR abierto sigue pendiente de incorporación a esa base.
-
-**Descarga actual del equipo:** usar `integration/base-equipo` en ambos repositorios para leer, ejecutar y revisar los avances con las guías nuevas. Es una instantánea pendiente de integración, no la base aprobada para iniciar funcionalidades. La guía de inicio backend contiene ambos comandos de clonación; tras aprobar/integrar el par, las tareas nuevas parten de `develop` actualizado.
-
-## HU 3.6 — filtrar por saturación (rama dependiente)
-
-Rama `feature/hu-3-6-filtro-saturacion`, sobre HU 3.2 frontend `9c831decf868b856248db96dad8e8db8464207b8`; su PR apunta al padre `feature/hu-3-2-consulta-saturacion`, no a `develop`. [Issue canónico #7](https://github.com/raelchang03UL/CrowdRadar-FrontEnd-SW2/issues/7). Requiere el backend compañero HU 3.6 y primero revisar/integrar el par HU 3.2; no incorpora detalle/búsqueda/categorías de otras ramas.
-
-En Lugares, «Filtrar por saturación» ofrece Todos, Tranquilo, Moderado y Saturado. Elegir/cambiar consulta `GET /api/places?nivel=<VALOR>` con JWT; Todos y «Quitar filtro de saturación» vuelven al listado sin query. Actualizar/Reintentar conservan el nivel vigente. Muestra carga, error público y ausencia de coincidencias; un lugar sin información suficiente solo aparece en Todos. El backend usa la misma regla de HU 3.2, no un algoritmo en Flutter.
-
-El cambio de lista retira la selección y su consulta anterior; logout/cambio de sesión descarta solicitudes tardías y limpia el filtro. Sigue disponible el panel HU 3.2 al seleccionar un marcador del resultado. Texto/semántica identifican el nivel sin depender solo del color; selector y encabezados son desplazables para texto grande/ventanas bajas. No promete radio de cercanía ni actualización automática.
-
-Sin dependencias, lockfiles, configuración Android, rutas de navegación, tema o políticas de sesión nuevas. [Validaciones y límites reales](docs/ESTADO_ACTUAL.md); Android se pospone por decisión del usuario.
-
-### Antecedente HU 3.2
-
-Rama `feature/hu-3-2-consulta-saturacion`, desde frontend develop `dfdb75371d9c3a8ecdb7bc79cf8346988659f0ba`. Requiere el backend compañero de esta HU y su migración explícita de reportes; no afirma que ese contrato ya esté integrado en develop. Issue canónico: [backend #6](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/issues/6).
-
-Seleccionar un marcador conserva nombre/categoría y consulta `GET /api/places/:id/saturation` con JWT. Muestra Tranquilo, Moderado o Saturado con texto e icono, o «Sin información suficiente» diferenciando pocos reportes de empate. Ofrece carga, error, reintento y actualización manual. El panel permite desplazamiento y mantiene la atribución del mapa y el aviso de datos demostrativos.
-
-La regla provisional confirmada por el responsable local es: al menos 3 personas distintas en los últimos 30 minutos, último reporte de cada persona y nivel con más votos; empate o pocos reportes no producen un nivel. No requiere simultaneidad. El backend calcula la estimación; Flutter únicamente valida/representa el DTO, sus cifras y fechas. No equivale a aforo exacto ni actualización en tiempo real; se vuelve a consultar al seleccionar o actualizar. Los marcadores demo sin reportes devuelven ausencia de información, no niveles inventados.
-
-El incremento padre HU 3.2 no añadió envío de reportes, filtros ni detalle completo HU 3.3. Esta rama añade únicamente el filtro HU 3.6 descrito arriba; lo demás permanece separado. No hay dependencias, tema, router, modelo de lugar o política de sesión nuevos. Android está omitido por decisión del usuario, no validado. [Evidencia y pendientes del incremento](docs/ESTADO_ACTUAL.md).
+Autenticación, recuperación SMTP y mapa ya estaban integrados en develop. SMTP requiere configuración privada por PC; no instalar «Brevo» ni compartir contraseñas. Lee [CONTRIBUTING](CONTRIBUTING.md), [arquitectura](docs/ARQUITECTURA.md), [guía visual](docs/GUIA_VISUAL.md) y [pruebas/limitaciones](docs/ESTADO_ACTUAL.md). El contrato canónico está en backend.
 
 ## Requisitos
 
@@ -103,7 +59,7 @@ Antes de arrancar esta versión backend, ejecuta allí `npm run db:migrate`: añ
 
 Login → Recuperar contraseña (`/forgot-password`, pública). El mensaje no distingue cuentas existentes/inexistentes. El enlace abre `/#/reset-password?token=…`; el token se valida antes de mostrar el formulario y se consume una sola vez al guardar. Después exige login nuevo, sin inicio automático, e invalida sesiones anteriores en backend.
 
-**Envío real pendiente:** el equipo todavía no eligió proveedor/remitente. El backend normal devuelve indisponibilidad uniforme, no afirma haber enviado un correo. No hay cuenta ni clave predeterminada, consola con enlaces ni modo de correo falso habilitable por entorno. El transporte capturado pertenece exclusivamente a pruebas; no demuestra entrega real y no completa HU 2.1/Sprint 2. No publiques un enlace/token real, historial de navegación o captura que lo contenga.
+**Correo:** adaptador SMTP/Brevo integrado; sin configuración privada la API responde503 uniforme. Transporte en memoria solo para pruebas. No publicar enlaces, tokens ni claves. Recepción real de esta PC no ejecutada.
 
 Esta rama requiere la migración 003 y el [contrato C compañero](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/blob/feature/hu-2-1-2-recuperacion/docs/CONTRATO_API.md). Chrome/Android del estado final siguen pendientes de recorrido manual. No hay deep links Android verificados: el enlace Web no acredita apertura automática de la app nativa.
 

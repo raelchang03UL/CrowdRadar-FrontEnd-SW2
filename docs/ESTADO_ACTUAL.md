@@ -1,5 +1,18 @@
 # Estado actual
 
+## Corte local de consolidación Release 01 — 17/10/2026
+
+Rama `feature/local-r01-consolidacion-20261017`, no publicada; base Bffe9b19/Fdfdb753. Se reutilizaron los diez PR de Nick y las tres ramas independientes de Manu, preservando commits/autores. No se tocaron los árboles originales con borradores/experimento. No implica aceptación humana de17 HU.
+
+- Sin premio ficticio: el formulario solo muestra recompensa enviada por API; bloqueo de doble envío/cierre durante petición, errores públicos y descarte/limpieza tras cambio de sesión. Perfil/historial reutilizados, sin arrastrar Gradle/locks/exclusiones del analizador.
+- Flutter3.41.9/Dart3.11.5: análisis sin problemas;431 aprobadas/2 opt-in omitidas. Incluye8 nuevas de reporte/filtros/errores/sesión y360/390/1440 a texto2x. Build Web correcto66,8s antes del último ajuste puramente de llaves; se repetirá sobre el candidato final.
+- Navegador IAB real + API3033 + PostgreSQL QA: registro/login, selección/saturación, reporte→+10 real, detalle con dirección ausente honesta,perfil con10,historial propio,filtros combinados/categoría/vacío. Móvil390×844 y escritorio1440×900. La primera revisión encontró y corrigió BIGINT textual del perfil.
+- Capturas en docs/evidencias/consolidacion_2026_10_17: referencia origin/develop dfdb753 y después con el mismo catálogo QA,viewport yselección; no son capturas del experimento rechazado.
+- Pendientes: Android/build manual final, SMTP real y las2 opt-in omitidas. IAB no se presenta como Chrome normal ni una auditoría WCAG.
+
+Políticas aprobadas por Rael:10 puntos por reporte válido una sola vez;cooldown3 minutos;3 personas/30min para saturación yempate insuficiente. Código local probado no equivale a integración compartida/aceptación. Las secciones siguientes conservan fechas/resultados históricos; no usarlas como instrucciones vigentes.
+
+
 ## HU 3.4 — búsqueda de lugares, 10/10/2026
 
 Rama `feature/hu-3-4-busqueda-lugares`, posterior a HU 3.3, para frontend #5. Lupa del mapa → buscador protegido, nombre completo/parcial, todas las coincidencias, sin resultados, limpiar y reintento con la consulta conservada. Resultado → detalle; regreso mantiene consulta/resultados. Solicitudes antiguas y cambios de sesión no restauran datos.
