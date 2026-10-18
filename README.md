@@ -18,7 +18,19 @@ Aplicación Flutter Android y Web para registro, inicio de sesión, perfil y map
 
 **Rama de revisión HU 2.1–2.2:** `feature/hu-2-1-2-recuperacion`, desde HU 2.3 frontend `1e62c754682f3abe2b166b178d44b7e6e7d1fad0`; backend compañero misma rama desde `97e607ed22b48561bed30a4e821099f76360210d`. HU 2.3 parte del pulido `0361ae1`, y ambos dependen de HU 3.1 pendiente de merge. Clonar `develop` no incorpora estos incrementos; publicación no equivale a integración.
 
+**Referencia histórica de revisión, 08/10/2026:** `feature/hu-2-1-2-recuperacion`, desde HU 2.3 frontend `1e62c754682f3abe2b166b178d44b7e6e7d1fad0`; backend compañero misma rama desde `97e607ed22b48561bed30a4e821099f76360210d`. Entonces HU 2.3 partía del pulido `0361ae1` y ambos dependían de HU 3.1 pendiente de merge. La base develop `dfdb753` utilizada el 11/10 ya incorpora HU 3.1, pulido y HU 2.1–2.3; la referencia antigua no es la rama para ejecutar HU 3.2. Publicación no equivale a integración.
+
 Para colaborar con el equipo y usar IA sobre el código, empieza por [CONTRIBUTING.md](CONTRIBUTING.md) y [AGENTS.md](AGENTS.md). Consulta [arquitectura](docs/ARQUITECTURA.md) y [guía visual](docs/GUIA_VISUAL.md); CONTRIBUTING enlaza coordinación y contrato canónico backend. `develop` reúne los aportes integrados de los siete; una rama publicada con PR abierto sigue pendiente de incorporación a esa base.
+
+## Incremento local HU 3.2 — consultar saturación
+
+Rama `feature/hu-3-2-consulta-saturacion`, desde frontend develop `dfdb75371d9c3a8ecdb7bc79cf8346988659f0ba`. Requiere el backend compañero de esta HU y su migración explícita de reportes; no afirma que ese contrato ya esté integrado en develop. Issue canónico: [backend #6](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/issues/6).
+
+Seleccionar un marcador conserva nombre/categoría y consulta `GET /api/places/:id/saturation` con JWT. Muestra Tranquilo, Moderado o Saturado con texto e icono, o «Sin información suficiente» diferenciando pocos reportes de empate. Ofrece carga, error, reintento y actualización manual. El panel permite desplazamiento y mantiene la atribución del mapa y el aviso de datos demostrativos.
+
+La regla provisional confirmada por el responsable local es: al menos 3 personas distintas en los últimos 30 minutos, último reporte de cada persona y nivel con más votos; empate o pocos reportes no producen un nivel. No requiere simultaneidad. El backend calcula la estimación; Flutter únicamente valida/representa el DTO, sus cifras y fechas. No equivale a aforo exacto ni actualización en tiempo real; se vuelve a consultar al seleccionar o actualizar. Los marcadores demo sin reportes devuelven ausencia de información, no niveles inventados.
+
+No se añade envío de reportes, filtros HU 3.6 ni detalle completo HU 3.3; esos trabajos permanecen separados. No hay dependencias, tema, router, modelo de lugar o política de sesión nuevos. Android está omitido por decisión del usuario, no validado. [Evidencia y pendientes del incremento](docs/ESTADO_ACTUAL.md).
 
 ## Requisitos
 
@@ -132,7 +144,7 @@ flutter test --no-pub
 flutter build web --no-pub --dart-define=API_BASE_URL=http://localhost:3000
 ```
 
-`build/web` está ignorado. La sesión solo vive en memoria: recargar una ruta protegida vuelve a login. Entradas públicas: `/#/login`, `/#/register`, `/#/forgot-password` y `/#/reset-password` (esta última exige enlace vigente). HU 3.1 y los incrementos posteriores están en ramas de revisión; una clonación de `develop` todavía no los contiene.
+`build/web` está ignorado. La sesión solo vive en memoria: recargar una ruta protegida vuelve a login. Entradas públicas: `/#/login`, `/#/register`, `/#/forgot-password` y `/#/reset-password` (esta última exige enlace vigente). La base develop `dfdb753` ya incluye HU 3.1 y los incrementos de autenticación; el nuevo incremento HU 3.2 permanece local en su rama, no en develop.
 
 ## Pruebas anteriores
 
@@ -144,4 +156,4 @@ La revisión del 06/10/2026 conserva ese trabajo y añade `test/session_async_te
 
 ## Alcance
 
-La base entregada corresponde al Sprint 1 y `develop` incluye HU 2.4. Ramas dependientes incorporan HU 3.1, pulido, HU 2.3 y partes verificables de HU 2.1–2.2, con envío real pendiente. No incluyen saturación, búsqueda, filtros, reportes, favoritos, geolocalización ni detalles completos. HU 3.2 y HU 3.3 no están terminadas. Publicación no equivale a integración ni aprobación manual de plataformas; ver [estado técnico](docs/ESTADO_ACTUAL.md).
+La base develop utilizada incluye Sprint 1, HU 2.4, mapa HU 3.1, pulido y flujos HU 2.1–2.3. Esta rama añade localmente la consulta de saturación HU 3.2 según el contrato compañero. No incluye formulario de reportes, búsqueda, filtros, favoritos, geolocalización ni detalle completo. La entrega real de correo y otras plataformas no se revalidan por añadir este incremento. HU 3.2 no está formalmente terminada: faltan revisión humana e integración del par backend/frontend. Publicación no equivale a integración ni aprobación manual de plataformas; ver [estado técnico](docs/ESTADO_ACTUAL.md).

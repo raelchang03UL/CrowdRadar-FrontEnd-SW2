@@ -5,6 +5,8 @@ import 'package:crowdradar/models/user_model.dart';
 import 'package:crowdradar/pages/map/map_page.dart';
 import 'package:crowdradar/services/place_service.dart';
 import 'package:crowdradar/services/session_service.dart';
+import 'package:crowdradar/services/saturation_service.dart';
+import 'package:crowdradar/models/saturation_model.dart';
 import 'package:crowdradar/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -23,6 +25,24 @@ class _Service extends PlaceService {
     success: true,
     data: (await load()).data!.firstWhere((place) => place.id == id),
   );
+}
+
+class _Saturation extends SaturationService {
+  @override
+  Future<GenericResponse<SaturationModel>> getSaturation(int placeId) async =>
+      GenericResponse(
+        success: true,
+        data: SaturationModel.fromJson({
+          'placeId': placeId,
+          'level': null,
+          'reason': 'INSUFFICIENT_REPORTS',
+          'reportCount': 0,
+          'minimumReports': 3,
+          'windowMinutes': 30,
+          'evaluatedAt': '2026-10-11T17:25:00.000Z',
+          'updatedAt': null,
+        }),
+      );
 }
 
 // Solo sustituye la red de teselas: se renderizan FlutterMap y MarkerLayer reales.
@@ -144,7 +164,11 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.lightTheme,
-        home: MapPage(service: service, tileProvider: _Tiles()),
+        home: MapPage(
+          service: service,
+          tileProvider: _Tiles(),
+          saturationService: _Saturation(),
+        ),
       ),
     );
     await tester.pump();
@@ -175,7 +199,7 @@ void main() {
   });
 
   testWidgets(
-    'marcadores coinciden con backend y selección solo identifica el lugar',
+    'marcadores coinciden con backend y selección conserva identificación',
     (tester) async {
       await mount(
         tester,
