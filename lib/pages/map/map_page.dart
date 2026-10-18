@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:go_router/go_router.dart';
 import '../../components/cr_bottom_nav.dart';
 import '../../cubits/places/places_cubit.dart';
 import '../../cubits/places/places_state.dart';
@@ -291,6 +292,11 @@ class _PlacesMapState extends State<_PlacesMap> {
                                         color: AppColors.textMuted,
                                         fontSize: 12,
                                       ),
+                                    ),
+                                    TextButton(
+                                      onPressed: () =>
+                                          context.push('/places/${place.id}'),
+                                      child: const Text('Ver detalles'),
                                     ),
                                   ],
                                 ),

@@ -9,12 +9,19 @@ import 'package:crowdradar/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:crowdradar/pages/places/place_detail_page.dart';
 
 class _Service extends PlaceService {
   final Future<GenericResponse<List<PlaceModel>>> Function() load;
   _Service(this.load);
   @override
   Future<GenericResponse<List<PlaceModel>>> getPlaces() => load();
+  @override
+  Future<GenericResponse<PlaceModel>> getPlace(int id) async => GenericResponse(
+    success: true,
+    data: (await load()).data!.firstWhere((place) => place.id == id),
+  );
 }
 
 // Solo sustituye la red de teselas: se renderizan FlutterMap y MarkerLayer reales.
@@ -48,6 +55,78 @@ void main() {
     SessionService.start(token: 'test-token', user: const UserModel(id: 1));
   });
   tearDown(SessionService.clear);
+
+  testWidgets('mapa abre detalles desde marcador y permite volver', (
+    tester,
+  ) async {
+    final service = _Service(
+      () async => const GenericResponse(success: true, data: places),
+    );
+    final router = GoRouter(
+      initialLocation: '/map',
+      routes: [
+        GoRoute(
+          path: '/map',
+          builder: (_, _) => MapPage(service: service, tileProvider: _Tiles()),
+        ),
+        GoRoute(
+          path: '/places/:id',
+          builder: (_, state) => PlaceDetailPage(
+            id: int.parse(state.pathParameters['id']!),
+            service: service,
+          ),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(
+      MaterialApp.router(theme: AppTheme.lightTheme, routerConfig: router),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('select-place-1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Ver detalles'));
+    await tester.pumpAndSettle();
+    expect(find.byType(PlaceDetailPage), findsOneWidget);
+    expect(find.text('Dirección no registrada'), findsOneWidget);
+    await tester.tap(find.byTooltip('Volver'));
+    await tester.pumpAndSettle();
+    expect(find.byType(MapPage), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  for (final ancho in [360.0, 390.0, 1440.0]) {
+    testWidgets('mapa y selección sin overflow a ancho $ancho y texto 2x', (
+      tester,
+    ) async {
+      tester.view.physicalSize = Size(ancho, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.lightTheme,
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(
+              context,
+            ).copyWith(textScaler: const TextScaler.linear(2)),
+            child: child!,
+          ),
+          home: MapPage(
+            service: _Service(
+              () async => const GenericResponse(success: true, data: places),
+            ),
+            tileProvider: _Tiles(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('select-place-1')));
+      await tester.pumpAndSettle();
+      expect(find.text('Ver detalles'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  }
 
   Future<void> mount(WidgetTester tester, PlaceService service) async {
     tester.view.physicalSize = const Size(1080, 2400);

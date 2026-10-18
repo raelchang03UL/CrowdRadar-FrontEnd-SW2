@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import '../models/user_model.dart';
 import '../services/session_service.dart';
 import '../services/recovery_service.dart';
+import '../services/place_service.dart';
+import '../pages/places/place_detail_page.dart';
 
 import '../pages/login/login_page.dart';
 import '../pages/register/register_page.dart';
@@ -20,6 +22,7 @@ final appRouter = createAppRouter();
 GoRouter createAppRouter({
   String initialLocation = '/login',
   RecoveryService? recoveryService,
+  PlaceService? placeService,
 }) => GoRouter(
   initialLocation: initialLocation,
   refreshListenable: SessionService.changes,
@@ -61,7 +64,17 @@ GoRouter createAppRouter({
         service: recoveryService,
       ),
     ),
-    GoRoute(path: '/map', builder: (context, state) => const MapPage()),
+    GoRoute(
+      path: '/map',
+      builder: (context, state) => MapPage(service: placeService),
+    ),
+    GoRoute(
+      path: '/places/:id',
+      builder: (context, state) => PlaceDetailPage(
+        id: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
+        service: placeService,
+      ),
+    ),
     GoRoute(path: '/validar', builder: (context, state) => const ValidarPage()),
     GoRoute(
       path: '/favoritos',
