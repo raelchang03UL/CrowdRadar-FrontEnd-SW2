@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import '../../components/selector_categoria.dart';
 import '../../cubits/places/categorias_cubit.dart';
 import '../../components/cr_bottom_nav.dart';
+import '../../components/report_place_sheet.dart';
+import '../../services/saturation_report_service.dart';
 import '../../components/saturation_panel.dart';
 import '../../components/selector_saturacion.dart';
 import '../../cubits/places/places_cubit.dart';
@@ -20,11 +22,13 @@ import '../../theme/app_colors.dart';
 
 class MapPage extends StatelessWidget {
   final PlaceService? service;
+  final SaturationReportService? reportService;
   final TileProvider? tileProvider;
   final SaturationService? saturationService;
   const MapPage({
     super.key,
     this.service,
+    this.reportService,
     this.tileProvider,
     this.saturationService,
   });
@@ -34,6 +38,7 @@ class MapPage extends StatelessWidget {
     create: (_) => PlacesCubit(service ?? PlaceService())..loadPlaces(),
     child: _MapView(
       service: service ?? PlaceService(),
+      reportService: reportService ?? SaturationReportService(),
       tileProvider: tileProvider,
       saturationService: saturationService ?? SaturationService(),
     ),
@@ -44,7 +49,8 @@ class _MapView extends StatelessWidget {
   final TileProvider? tileProvider;
   final SaturationService saturationService;
   final PlaceService service;
-  const _MapView({this.tileProvider, required this.saturationService, required this.service});
+  final SaturationReportService reportService;
+  const _MapView({this.tileProvider, required this.saturationService, required this.service, required this.reportService});
   Future<void> _seleccionarCategoria(BuildContext context) async {
     final cubit = context.read<PlacesCubit>();
     final generacion = SessionService.generation;
@@ -190,6 +196,7 @@ class _MapView extends StatelessWidget {
         );
       }
       return _PlacesMap(
+        reportService: reportService,
         // Cada lista consultada retira la selección previa, incluso si la
         // respuesta inmediata no llegó a dibujar el estado de carga.
         key: ValueKey(state),
@@ -258,11 +265,13 @@ class _MapStatus extends StatelessWidget {
 
 class _PlacesMap extends StatefulWidget {
   final List<PlaceModel> places;
+  final SaturationReportService reportService;
   final TileProvider? tileProvider;
   final SaturationService saturationService;
   const _PlacesMap({
     super.key,
     required this.places,
+    required this.reportService,
     this.tileProvider,
     required this.saturationService,
   });
@@ -272,6 +281,18 @@ class _PlacesMap extends StatefulWidget {
 
 class _PlacesMapState extends State<_PlacesMap> {
   PlaceModel? _selected;
+  Future<void> _report(PlaceModel place) async {
+    final generation = SessionService.generation;
+    final sent = await showModalBottomSheet<bool>(
+      context: context, isScrollControlled: true, useSafeArea: true,
+      isDismissible: false, enableDrag: false,
+      constraints: const BoxConstraints(maxWidth: 520),
+      builder: (_) => ReportPlaceSheet(place: place, service: widget.reportService),
+    );
+    if (!mounted || generation != SessionService.generation || !SessionService.isAuthenticated || sent != true) return;
+    await _saturationCubit.loadPlace(place.id);
+  }
+
   late final SaturationCubit _saturationCubit;
 
   @override
@@ -494,7 +515,7 @@ class _PlacesMapState extends State<_PlacesMap> {
                                   BlocBuilder<SaturationCubit, SaturationState>(
                                     bloc: _saturationCubit,
                                     builder: (context, state) =>
-                                        Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [TextButton(onPressed: () => context.push('/places/${place.id}'), child: const Text('Ver detalles')), SaturationPanel(
+                                        Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [TextButton(onPressed: () => context.push('/places/${place.id}'), child: const Text('Ver detalles')), OutlinedButton.icon(onPressed: () => _report(place), icon: const Icon(Icons.add_location_alt_outlined), label: const Text('Reportar saturación')), SaturationPanel(
                                           state: state.placeId == place.id
                                               ? state
                                               : const SaturationState(),
