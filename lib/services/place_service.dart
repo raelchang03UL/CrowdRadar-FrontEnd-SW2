@@ -9,9 +9,13 @@ import 'session_service.dart';
 class PlaceService {
   static const loadError =
       'No pudimos cargar los lugares. Comprueba tu conexión y vuelve a intentarlo.';
-  static const filtroError = 'El nivel de saturación no es válido. Selecciona nuevamente el filtro.';
-  Future<GenericResponse<List<PlaceModel>>> getPlacesBySaturation(SaturationLevel nivel) => _getList(nivel: nivel);
-  static const categoriesError = 'No pudimos cargar las categorías. Vuelve a intentarlo.';
+  static const filtroError =
+      'El nivel de saturación no es válido. Selecciona nuevamente el filtro.';
+  Future<GenericResponse<List<PlaceModel>>> getPlacesBySaturation(
+    SaturationLevel nivel,
+  ) => _getList(nivel: nivel);
+  static const categoriesError =
+      'No pudimos cargar las categorías. Vuelve a intentarlo.';
   static const detailError =
       'No pudimos cargar la información del lugar. Comprueba tu conexión y vuelve a intentarlo.';
   static const invalidSearch = 'Busca por nombre usando hasta 160 caracteres.';
@@ -28,17 +32,31 @@ class PlaceService {
     return _getList(nombre: nombre);
   }
 
-  Future<GenericResponse<List<PlaceModel>>> filterPlacesByCategory(String categoria) {
+  Future<GenericResponse<List<PlaceModel>>> filterPlacesByCategory(
+    String categoria,
+  ) {
     if (categoria.trim().runes.length > 80) {
-      return Future.value(const GenericResponse(success: false, message: 'Selecciona una categoría de hasta 80 caracteres.'));
+      return Future.value(
+        const GenericResponse(
+          success: false,
+          message: 'Selecciona una categoría de hasta 80 caracteres.',
+        ),
+      );
     }
     return queryPlaces(categoria: categoria.trim());
   }
 
-  Future<GenericResponse<List<PlaceModel>>> queryPlaces({String nombre = '', String categoria = '', SaturationLevel? nivel}) =>
-      _getList(nombre: nombre, categoria: categoria, nivel: nivel);
+  Future<GenericResponse<List<PlaceModel>>> queryPlaces({
+    String nombre = '',
+    String categoria = '',
+    SaturationLevel? nivel,
+  }) => _getList(nombre: nombre, categoria: categoria, nivel: nivel);
 
-  Future<GenericResponse<List<PlaceModel>>> _getList({String? nombre, String? categoria, SaturationLevel? nivel}) async {
+  Future<GenericResponse<List<PlaceModel>>> _getList({
+    String? nombre,
+    String? categoria,
+    SaturationLevel? nivel,
+  }) async {
     final generation = SessionService.generation;
     final token = SessionService.token;
     if (token == null || !SessionService.isAuthenticated) {
@@ -48,15 +66,16 @@ class PlaceService {
       );
     }
     try {
+      final query = {
+        if (nombre != null && nombre.isNotEmpty) 'nombre': nombre,
+        if (categoria != null && categoria.isNotEmpty) 'categoria': categoria,
+        if (nivel != null) 'nivel': nivel.valorApi,
+      };
       final response = await http
           .get(
-            ApiConfig.uri(ApiConfig.places).replace(
-              queryParameters: {
-                if (nombre != null && nombre.isNotEmpty) 'nombre': nombre,
-                if (categoria != null && categoria.isNotEmpty) 'categoria': categoria,
-                if (nivel != null) 'nivel': nivel.valorApi,
-              },
-            ),
+            ApiConfig.uri(
+              ApiConfig.places,
+            ).replace(queryParameters: query.isEmpty ? null : query),
             headers: ApiConfig.authHeaders(token),
           )
           .timeout(const Duration(seconds: 15));
@@ -200,7 +219,6 @@ class PlaceService {
       return const GenericResponse(success: false, message: categoriesError);
     }
   }
-
 
   GenericResponse<T> _sessionChanged<T>() => const GenericResponse(
     success: false,

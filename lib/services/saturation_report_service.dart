@@ -94,9 +94,12 @@ class SaturationReportService {
       return GenericResponse(
         success: true,
         message: body['message'] as String,
-        data: data is Map<String, dynamic> &&
-                data['pointsAwarded'] is int && (data['pointsAwarded'] as int) >= 0 &&
-                data['karmaPoints'] is int && (data['karmaPoints'] as int) >= 0
+        data:
+            data is Map<String, dynamic> &&
+                data['pointsAwarded'] is int &&
+                (data['pointsAwarded'] as int) >= 0 &&
+                data['karmaPoints'] is int &&
+                (data['karmaPoints'] as int) >= 0
             ? SaturationReportReward(
                 pointsAwarded: (data['pointsAwarded'] as num).toInt(),
                 karmaPoints: (data['karmaPoints'] as num).toInt(),

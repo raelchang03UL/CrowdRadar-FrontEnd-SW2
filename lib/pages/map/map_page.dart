@@ -7,7 +7,8 @@ import '../../components/selector_categoria.dart';
 import '../../cubits/places/categorias_cubit.dart';
 import '../../components/cr_bottom_nav.dart';
 import '../../components/report_place_sheet.dart';
-import '../../services/saturation_report_service.dart' show SaturationReportService;
+import '../../services/saturation_report_service.dart'
+    show SaturationReportService;
 import '../../components/saturation_panel.dart';
 import '../../components/selector_saturacion.dart';
 import '../../cubits/places/places_cubit.dart';
@@ -50,7 +51,12 @@ class _MapView extends StatelessWidget {
   final SaturationService saturationService;
   final PlaceService service;
   final SaturationReportService reportService;
-  const _MapView({this.tileProvider, required this.saturationService, required this.service, required this.reportService});
+  const _MapView({
+    this.tileProvider,
+    required this.saturationService,
+    required this.service,
+    required this.reportService,
+  });
   Future<void> _seleccionarCategoria(BuildContext context) async {
     final cubit = context.read<PlacesCubit>();
     final generacion = SessionService.generation;
@@ -69,8 +75,6 @@ class _MapView extends StatelessWidget {
     }
     await cubit.filterByCategory(categoria);
   }
-
-
 
   Future<void> _elegirNivel(BuildContext context) async {
     final cubit = context.read<PlacesCubit>();
@@ -98,8 +102,16 @@ class _MapView extends StatelessWidget {
       title: const Text('Lugares'),
       centerTitle: false,
       actions: [
-        IconButton(tooltip: 'Buscar lugares', icon: const Icon(Icons.search), onPressed: () => context.push('/places/search')),
-        IconButton(tooltip: 'Filtrar por categoría', icon: const Icon(Icons.category_outlined), onPressed: () => _seleccionarCategoria(context)),
+        IconButton(
+          tooltip: 'Buscar lugares',
+          icon: const Icon(Icons.search),
+          onPressed: () => context.push('/places/search'),
+        ),
+        IconButton(
+          tooltip: 'Filtrar por categoría',
+          icon: const Icon(Icons.category_outlined),
+          onPressed: () => _seleccionarCategoria(context),
+        ),
         BlocBuilder<PlacesCubit, PlacesState>(
           builder: (context, state) => IconButton(
             tooltip: 'Filtrar por saturación',
@@ -127,6 +139,31 @@ class _MapView extends StatelessWidget {
         return LayoutBuilder(
           builder: (context, espacio) => Column(
             children: [
+              if (context.read<PlacesCubit>().categoria.isNotEmpty)
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: espacio.maxHeight * 0.3,
+                  ),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          'Categoría: ${context.read<PlacesCubit>().categoria}',
+                        ),
+                        TextButton(
+                          onPressed: () =>
+                              context.read<PlacesCubit>().filterByCategory(''),
+                          child: const Text('Quitar filtro'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               if (nivel != null)
                 ConstrainedBox(
                   constraints: BoxConstraints(
@@ -188,7 +225,9 @@ class _MapView extends StatelessWidget {
     if (state is PlacesLoaded) {
       if (state.places.isEmpty) {
         return _MapStatus(
-          message: nivel == null
+          message: context.read<PlacesCubit>().categoria.isNotEmpty
+              ? 'No hay lugares disponibles para esta categoría.'
+              : nivel == null
               ? 'Aún no hay lugares disponibles.'
               : 'No existen lugares cercanos que cumplan con ese criterio',
           icon: Icons.map_outlined,
@@ -284,12 +323,21 @@ class _PlacesMapState extends State<_PlacesMap> {
   Future<void> _report(PlaceModel place) async {
     final generation = SessionService.generation;
     final sent = await showModalBottomSheet<bool>(
-      context: context, isScrollControlled: true, useSafeArea: true,
-      isDismissible: false, enableDrag: false,
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      isDismissible: false,
+      enableDrag: false,
       constraints: const BoxConstraints(maxWidth: 520),
-      builder: (_) => ReportPlaceSheet(place: place, service: widget.reportService),
+      builder: (_) =>
+          ReportPlaceSheet(place: place, service: widget.reportService),
     );
-    if (!mounted || generation != SessionService.generation || !SessionService.isAuthenticated || sent != true) return;
+    if (!mounted ||
+        generation != SessionService.generation ||
+        !SessionService.isAuthenticated ||
+        sent != true) {
+      return;
+    }
     await _saturationCubit.loadPlace(place.id);
   }
 
@@ -514,14 +562,35 @@ class _PlacesMapState extends State<_PlacesMap> {
                                   ),
                                   BlocBuilder<SaturationCubit, SaturationState>(
                                     bloc: _saturationCubit,
-                                    builder: (context, state) =>
-                                        Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [TextButton(onPressed: () => context.push('/places/${place.id}'), child: const Text('Ver detalles')), OutlinedButton.icon(onPressed: () => _report(place), icon: const Icon(Icons.add_location_alt_outlined), label: const Text('Reportar saturación')), SaturationPanel(
+                                    builder: (context, state) => Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        TextButton(
+                                          onPressed: () => context.push(
+                                            '/places/${place.id}',
+                                          ),
+                                          child: const Text('Ver detalles'),
+                                        ),
+                                        OutlinedButton.icon(
+                                          onPressed: () => _report(place),
+                                          icon: const Icon(
+                                            Icons.add_location_alt_outlined,
+                                          ),
+                                          label: const Text(
+                                            'Reportar saturación',
+                                          ),
+                                        ),
+                                        SaturationPanel(
                                           state: state.placeId == place.id
                                               ? state
                                               : const SaturationState(),
                                           retry: () => _saturationCubit
                                               .loadPlace(place.id),
-                                        )]),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ],
                               ),

@@ -14,6 +14,7 @@ class PlacesCubit extends Cubit<PlacesState> {
     _nivelSaturacion = nivel;
     await loadPlaces();
   }
+
   String _categoria = '';
   String get categoria => _categoria;
   String _consulta = '';
@@ -41,12 +42,23 @@ class PlacesCubit extends Cubit<PlacesState> {
     }
     emit(PlacesLoading());
     try {
-      final active = [_consulta.isNotEmpty, _categoria.isNotEmpty, _nivelSaturacion != null].where((value) => value).length;
+      final active = [
+        _consulta.isNotEmpty,
+        _categoria.isNotEmpty,
+        _nivelSaturacion != null,
+      ].where((value) => value).length;
       final result = active > 1
-          ? await _service.queryPlaces(nombre: _consulta, categoria: _categoria, nivel: _nivelSaturacion)
-          : _consulta.isNotEmpty ? await _service.searchPlaces(_consulta)
-          : _categoria.isNotEmpty ? await _service.filterPlacesByCategory(_categoria)
-          : _nivelSaturacion != null ? await _service.getPlacesBySaturation(_nivelSaturacion!)
+          ? await _service.queryPlaces(
+              nombre: _consulta,
+              categoria: _categoria,
+              nivel: _nivelSaturacion,
+            )
+          : _consulta.isNotEmpty
+          ? await _service.searchPlaces(_consulta)
+          : _categoria.isNotEmpty
+          ? await _service.filterPlacesByCategory(_categoria)
+          : _nivelSaturacion != null
+          ? await _service.getPlacesBySaturation(_nivelSaturacion!)
           : await _service.getPlaces();
       if (isClosed ||
           request != _request ||
