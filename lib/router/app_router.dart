@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:flutter/widgets.dart';
 
 import '../models/user_model.dart';
 import '../services/session_service.dart';
@@ -18,6 +19,8 @@ import '../pages/profile/profile_page.dart';
 import '../pages/profile/edit_profile_page.dart';
 import '../pages/profile/change_password_page.dart';
 import '../pages/reports/report_history_page.dart';
+import '../pages/reports/report_review_page.dart';
+import '../pages/places/place_history_page.dart';
 
 final appRouter = createAppRouter();
 
@@ -81,13 +84,38 @@ GoRouter createAppRouter({
         service: placeService,
       ),
     ),
+    GoRoute(
+      path: '/reports/:id',
+      builder: (context, state) => ReportReviewPage(
+        key: ValueKey(state.uri.path),
+        id: state.pathParameters['id'] ?? '',
+      ),
+    ),
+    GoRoute(
+      path: '/profile/reports/:id/validation',
+      builder: (context, state) => ReportReviewPage(
+        key: ValueKey(state.uri.path),
+        id: state.pathParameters['id'] ?? '',
+        ownOnly: true,
+      ),
+    ),
+    GoRoute(
+      path: '/places/:id/history',
+      builder: (context, state) => PlaceHistoryPage(
+        key: ValueKey(state.uri.path),
+        id: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
+      ),
+    ),
     GoRoute(path: '/validar', builder: (context, state) => const ValidarPage()),
     GoRoute(
       path: '/favoritos',
       builder: (context, state) => const FavoritosPage(),
     ),
     GoRoute(path: '/profile', builder: (context, state) => const ProfilePage()),
-    GoRoute(path: '/profile/reports', builder: (context, state) => const ReportHistoryPage()),
+    GoRoute(
+      path: '/profile/reports',
+      builder: (context, state) => const ReportHistoryPage(),
+    ),
     GoRoute(
       path: '/profile/password',
       builder: (context, state) => const ChangePasswordPage(),

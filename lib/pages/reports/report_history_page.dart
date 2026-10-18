@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../../configs/lima_time.dart';
 
 import '../../components/cr_bottom_nav.dart';
 import '../../models/saturation_report_model.dart';
@@ -23,7 +25,8 @@ class _ReportHistoryPageState extends State<ReportHistoryPage> {
   }
 
   Future<List<SaturationReportModel>> _load() async {
-    final response = await (widget.service ?? ReportHistoryService()).getReports();
+    final response = await (widget.service ?? ReportHistoryService())
+        .getReports();
     if (!response.success || response.data == null) {
       throw Exception(response.message);
     }
@@ -50,7 +53,10 @@ class _ReportHistoryPageState extends State<ReportHistoryPage> {
           if (snapshot.hasError) {
             return _StateMessage(
               icon: Icons.cloud_off_outlined,
-              message: snapshot.error.toString().replaceFirst('Exception: ', ''),
+              message: snapshot.error.toString().replaceFirst(
+                'Exception: ',
+                '',
+              ),
               action: _retry,
             );
           }
@@ -82,11 +88,14 @@ class _HistorySummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Row(
     children: [
-      Expanded(child: _SummaryItem(value: '${reports.length}', label: 'Reportes')),
+      Expanded(
+        child: _SummaryItem(value: '${reports.length}', label: 'Reportes'),
+      ),
       const SizedBox(width: 8),
       Expanded(
         child: _SummaryItem(
-          value: '${reports.where((report) => report.level == 'TRANQUILO').length}',
+          value:
+              '${reports.where((report) => report.level == 'TRANQUILO').length}',
           label: 'Tranquilos',
           color: AppColors.success,
         ),
@@ -94,7 +103,8 @@ class _HistorySummary extends StatelessWidget {
       const SizedBox(width: 8),
       Expanded(
         child: _SummaryItem(
-          value: '${reports.where((report) => report.level == 'SATURADO').length}',
+          value:
+              '${reports.where((report) => report.level == 'SATURADO').length}',
           label: 'Saturados',
           color: AppColors.warning,
         ),
@@ -148,6 +158,9 @@ class _ReportCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       onTap: () => showModalBottomSheet<void>(
         context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        constraints: const BoxConstraints(maxWidth: 680),
         builder: (_) => _ReportDetails(report: report),
       ),
       child: Padding(
@@ -185,10 +198,7 @@ class _ReportCard extends StatelessWidget {
             const SizedBox(height: 7),
             Row(
               children: [
-                _StatusChip(
-                  label: 'Registrado',
-                  color: AppColors.success,
-                ),
+                _StatusChip(label: 'Registrado', color: AppColors.success),
                 const Spacer(),
                 Icon(Icons.chevron_right, size: 18, color: AppColors.textMuted),
               ],
@@ -206,18 +216,7 @@ class _ReportCard extends StatelessWidget {
     _ => AppColors.primary,
   };
 
-  String _formatDate(DateTime date) =>
-      '${_dayName(date.weekday)}, ${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')} · ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
-
-  String _dayName(int weekday) => const [
-    'Lun',
-    'Mar',
-    'Mié',
-    'Jue',
-    'Vie',
-    'Sáb',
-    'Dom',
-  ][weekday - 1];
+  String _formatDate(DateTime date) => '${limaDate(date)} (Lima)';
 }
 
 class _LevelChip extends StatelessWidget {
@@ -226,10 +225,7 @@ class _LevelChip extends StatelessWidget {
   const _LevelChip({required this.label, required this.color});
 
   @override
-  Widget build(BuildContext context) => _StatusChip(
-    label: label,
-    color: color,
-  );
+  Widget build(BuildContext context) => _StatusChip(label: label, color: color);
 }
 
 class _StatusChip extends StatelessWidget {
@@ -246,11 +242,7 @@ class _StatusChip extends StatelessWidget {
     ),
     child: Text(
       label,
-      style: TextStyle(
-        color: color,
-        fontSize: 10,
-        fontWeight: FontWeight.w700,
-      ),
+      style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w700),
     ),
   );
 }
@@ -269,9 +261,9 @@ class _EmptyHistory extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             'Aún no tienes reportes',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 6),
           const Text(
@@ -291,24 +283,44 @@ class _ReportDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SafeArea(
-    child: Padding(
+    child: SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Detalle del reporte', style: Theme.of(context).textTheme.titleLarge),
+          Text(
+            'Detalle del reporte',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
           const SizedBox(height: 20),
           _DetailRow(Icons.location_on_outlined, 'Lugar', report.placeName),
-          _DetailRow(Icons.calendar_today_outlined, 'Fecha', _dateTime(report.createdAt)),
-          _DetailRow(Icons.people_outline, 'Nivel de saturación', report.levelLabel),
+          _DetailRow(
+            Icons.calendar_today_outlined,
+            'Fecha',
+            _dateTime(report.createdAt),
+          ),
+          _DetailRow(
+            Icons.people_outline,
+            'Nivel de saturación',
+            report.levelLabel,
+          ),
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: () {
+              final router = GoRouter.of(context);
+              Navigator.pop(context);
+              router.push('/profile/reports/${report.id}/validation');
+            },
+            icon: const Icon(Icons.fact_check_outlined),
+            label: const Text('Ver estado de validación'),
+          ),
         ],
       ),
     ),
   );
 
-  String _dateTime(DateTime date) =>
-      '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+  String _dateTime(DateTime date) => '${limaDate(date)} (Lima)';
 }
 
 class _DetailRow extends StatelessWidget {

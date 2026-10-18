@@ -225,7 +225,10 @@ class _MapView extends StatelessWidget {
     if (state is PlacesLoaded) {
       if (state.places.isEmpty) {
         return _MapStatus(
-          message: context.read<PlacesCubit>().categoria.isNotEmpty
+          message:
+              context.read<PlacesCubit>().categoria.isNotEmpty && nivel != null
+              ? 'No hay lugares que coincidan con los filtros.'
+              : context.read<PlacesCubit>().categoria.isNotEmpty
               ? 'No hay lugares disponibles para esta categoría.'
               : nivel == null
               ? 'Aún no hay lugares disponibles.'

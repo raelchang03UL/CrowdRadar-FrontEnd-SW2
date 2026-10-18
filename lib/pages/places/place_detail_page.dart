@@ -69,6 +69,13 @@ class PlaceDetailPage extends StatelessWidget {
                             valor: lugar.direccion ?? 'Dirección no registrada',
                           ),
                           _Dato(titulo: 'Categoría', valor: lugar.categoria),
+                          OutlinedButton.icon(
+                            onPressed: () =>
+                                context.push('/places/${lugar.id}/history'),
+                            icon: const Icon(Icons.history),
+                            label: const Text('Historial de saturación'),
+                          ),
+                          const SizedBox(height: 16),
                           if (lugar.referencia?.trim().isNotEmpty ?? false)
                             _Dato(
                               titulo: 'Referencia',
