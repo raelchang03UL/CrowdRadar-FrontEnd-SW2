@@ -7,7 +7,7 @@ import '../../components/selector_categoria.dart';
 import '../../cubits/places/categorias_cubit.dart';
 import '../../components/cr_bottom_nav.dart';
 import '../../components/report_place_sheet.dart';
-import '../../services/saturation_report_service.dart';
+import '../../services/saturation_report_service.dart' show SaturationReportService;
 import '../../components/saturation_panel.dart';
 import '../../components/selector_saturacion.dart';
 import '../../cubits/places/places_cubit.dart';

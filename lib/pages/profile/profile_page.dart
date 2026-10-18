@@ -189,6 +189,12 @@ class _ProfileView extends StatelessWidget {
       ),
       const SizedBox(height: 16),
       OutlinedButton.icon(
+        icon: const Icon(Icons.history),
+        label: const Text('Historial de reportes'),
+        onPressed: () => context.push('/profile/reports'),
+      ),
+      const SizedBox(height: 16),
+      OutlinedButton.icon(
         icon: const Icon(Icons.lock_outline),
         label: const Text('Cambiar contraseña'),
         onPressed: () => context.push('/profile/password'),
