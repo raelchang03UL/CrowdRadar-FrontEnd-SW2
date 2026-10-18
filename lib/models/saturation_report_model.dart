@@ -1,5 +1,5 @@
 class SaturationReportModel {
-  final int id;
+  final String id;
   final DateTime createdAt;
   final String level;
   final int placeId;
@@ -14,15 +14,16 @@ class SaturationReportModel {
   });
 
   factory SaturationReportModel.fromJson(Map<String, dynamic> json) {
-    final id = json['id'];
+    final id = json['id']?.toString();
     final createdAt = DateTime.tryParse(json['createdAt']?.toString() ?? '');
     final level = json['level'];
     final placeId = json['placeId'];
     final placeName = json['placeName'];
-    if (id is! int ||
+    if (id == null ||
+        !RegExp(r'^[1-9]\d{0,18}$').hasMatch(id) ||
+        BigInt.parse(id) > BigInt.parse('9223372036854775807') ||
         createdAt == null ||
-        level is! String ||
-        level.isEmpty ||
+        !const ['TRANQUILO', 'MODERADO', 'SATURADO'].contains(level) ||
         placeId is! int ||
         placeName is! String ||
         placeName.trim().isEmpty) {
@@ -31,7 +32,7 @@ class SaturationReportModel {
     return SaturationReportModel(
       id: id,
       createdAt: createdAt,
-      level: level,
+      level: level as String,
       placeId: placeId,
       placeName: placeName,
     );
