@@ -22,7 +22,17 @@ Aplicación Flutter Android y Web para registro, inicio de sesión, perfil y map
 
 Para colaborar con el equipo y usar IA sobre el código, empieza por [CONTRIBUTING.md](CONTRIBUTING.md) y [AGENTS.md](AGENTS.md). Consulta [arquitectura](docs/ARQUITECTURA.md) y [guía visual](docs/GUIA_VISUAL.md); CONTRIBUTING enlaza coordinación y contrato canónico backend. `develop` reúne los aportes integrados de los siete; una rama publicada con PR abierto sigue pendiente de incorporación a esa base.
 
-## Incremento local HU 3.2 — consultar saturación
+## HU 3.6 — filtrar por saturación (rama dependiente)
+
+Rama `feature/hu-3-6-filtro-saturacion`, sobre HU 3.2 frontend `9c831decf868b856248db96dad8e8db8464207b8`; su PR apunta al padre `feature/hu-3-2-consulta-saturacion`, no a `develop`. [Issue canónico #7](https://github.com/raelchang03UL/CrowdRadar-FrontEnd-SW2/issues/7). Requiere el backend compañero HU 3.6 y primero revisar/integrar el par HU 3.2; no incorpora detalle/búsqueda/categorías de otras ramas.
+
+En Lugares, «Filtrar por saturación» ofrece Todos, Tranquilo, Moderado y Saturado. Elegir/cambiar consulta `GET /api/places?nivel=<VALOR>` con JWT; Todos y «Quitar filtro de saturación» vuelven al listado sin query. Actualizar/Reintentar conservan el nivel vigente. Muestra carga, error público y ausencia de coincidencias; un lugar sin información suficiente solo aparece en Todos. El backend usa la misma regla de HU 3.2, no un algoritmo en Flutter.
+
+El cambio de lista retira la selección y su consulta anterior; logout/cambio de sesión descarta solicitudes tardías y limpia el filtro. Sigue disponible el panel HU 3.2 al seleccionar un marcador del resultado. Texto/semántica identifican el nivel sin depender solo del color; selector y encabezados son desplazables para texto grande/ventanas bajas. No promete radio de cercanía ni actualización automática.
+
+Sin dependencias, lockfiles, configuración Android, rutas de navegación, tema o políticas de sesión nuevas. [Validaciones y límites reales](docs/ESTADO_ACTUAL.md); Android se pospone por decisión del usuario.
+
+### Antecedente HU 3.2
 
 Rama `feature/hu-3-2-consulta-saturacion`, desde frontend develop `dfdb75371d9c3a8ecdb7bc79cf8346988659f0ba`. Requiere el backend compañero de esta HU y su migración explícita de reportes; no afirma que ese contrato ya esté integrado en develop. Issue canónico: [backend #6](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/issues/6).
 
@@ -30,7 +40,7 @@ Seleccionar un marcador conserva nombre/categoría y consulta `GET /api/places/:
 
 La regla provisional confirmada por el responsable local es: al menos 3 personas distintas en los últimos 30 minutos, último reporte de cada persona y nivel con más votos; empate o pocos reportes no producen un nivel. No requiere simultaneidad. El backend calcula la estimación; Flutter únicamente valida/representa el DTO, sus cifras y fechas. No equivale a aforo exacto ni actualización en tiempo real; se vuelve a consultar al seleccionar o actualizar. Los marcadores demo sin reportes devuelven ausencia de información, no niveles inventados.
 
-No se añade envío de reportes, filtros HU 3.6 ni detalle completo HU 3.3; esos trabajos permanecen separados. No hay dependencias, tema, router, modelo de lugar o política de sesión nuevos. Android está omitido por decisión del usuario, no validado. [Evidencia y pendientes del incremento](docs/ESTADO_ACTUAL.md).
+El incremento padre HU 3.2 no añadió envío de reportes, filtros ni detalle completo HU 3.3. Esta rama añade únicamente el filtro HU 3.6 descrito arriba; lo demás permanece separado. No hay dependencias, tema, router, modelo de lugar o política de sesión nuevos. Android está omitido por decisión del usuario, no validado. [Evidencia y pendientes del incremento](docs/ESTADO_ACTUAL.md).
 
 ## Requisitos
 

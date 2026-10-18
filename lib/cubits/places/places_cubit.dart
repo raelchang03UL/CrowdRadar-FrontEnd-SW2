@@ -1,11 +1,19 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../services/place_service.dart';
+import '../../models/saturation_model.dart';
 import '../../services/session_service.dart';
 import 'places_state.dart';
 
 class PlacesCubit extends Cubit<PlacesState> {
   final PlaceService _service;
   int _request = 0;
+  SaturationLevel? _nivelSaturacion;
+  SaturationLevel? get nivelSaturacion => _nivelSaturacion;
+  Future<void> filtrarPorSaturacion(SaturationLevel? nivel) async {
+    if (isClosed || !SessionService.isAuthenticated) return;
+    _nivelSaturacion = nivel;
+    await loadPlaces();
+  }
   String _categoria = '';
   String get categoria => _categoria;
   String _consulta = '';
@@ -19,6 +27,7 @@ class PlacesCubit extends Cubit<PlacesState> {
     _request++;
     _consulta = '';
     _categoria = '';
+    _nivelSaturacion = null;
     if (!isClosed) emit(PlacesInitial());
   }
 
@@ -32,10 +41,12 @@ class PlacesCubit extends Cubit<PlacesState> {
     }
     emit(PlacesLoading());
     try {
-      final result = _consulta.isNotEmpty && _categoria.isNotEmpty
-          ? await _service.queryPlaces(nombre: _consulta, categoria: _categoria)
+      final active = [_consulta.isNotEmpty, _categoria.isNotEmpty, _nivelSaturacion != null].where((value) => value).length;
+      final result = active > 1
+          ? await _service.queryPlaces(nombre: _consulta, categoria: _categoria, nivel: _nivelSaturacion)
           : _consulta.isNotEmpty ? await _service.searchPlaces(_consulta)
           : _categoria.isNotEmpty ? await _service.filterPlacesByCategory(_categoria)
+          : _nivelSaturacion != null ? await _service.getPlacesBySaturation(_nivelSaturacion!)
           : await _service.getPlaces();
       if (isClosed ||
           request != _request ||

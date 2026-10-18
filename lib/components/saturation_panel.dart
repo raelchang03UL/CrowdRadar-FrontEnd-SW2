@@ -66,12 +66,7 @@ class SaturationPanel extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    switch (data.level) {
-                      SaturationLevel.tranquilo => 'Tranquilo',
-                      SaturationLevel.moderado => 'Moderado',
-                      SaturationLevel.saturado => 'Saturado',
-                      null => 'Sin información suficiente',
-                    },
+                    data.level?.etiqueta ?? 'Sin información suficiente',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),

@@ -3,11 +3,14 @@ import 'package:http/http.dart' as http;
 import '../configs/api_config.dart';
 import '../configs/generic_response.dart';
 import '../models/place_model.dart';
+import '../models/saturation_model.dart';
 import 'session_service.dart';
 
 class PlaceService {
   static const loadError =
       'No pudimos cargar los lugares. Comprueba tu conexión y vuelve a intentarlo.';
+  static const filtroError = 'El nivel de saturación no es válido. Selecciona nuevamente el filtro.';
+  Future<GenericResponse<List<PlaceModel>>> getPlacesBySaturation(SaturationLevel nivel) => _getList(nivel: nivel);
   static const categoriesError = 'No pudimos cargar las categorías. Vuelve a intentarlo.';
   static const detailError =
       'No pudimos cargar la información del lugar. Comprueba tu conexión y vuelve a intentarlo.';
@@ -32,10 +35,10 @@ class PlaceService {
     return queryPlaces(categoria: categoria.trim());
   }
 
-  Future<GenericResponse<List<PlaceModel>>> queryPlaces({String nombre = '', String categoria = ''}) =>
-      _getList(nombre: nombre, categoria: categoria);
+  Future<GenericResponse<List<PlaceModel>>> queryPlaces({String nombre = '', String categoria = '', SaturationLevel? nivel}) =>
+      _getList(nombre: nombre, categoria: categoria, nivel: nivel);
 
-  Future<GenericResponse<List<PlaceModel>>> _getList({String? nombre, String? categoria}) async {
+  Future<GenericResponse<List<PlaceModel>>> _getList({String? nombre, String? categoria, SaturationLevel? nivel}) async {
     final generation = SessionService.generation;
     final token = SessionService.token;
     if (token == null || !SessionService.isAuthenticated) {
@@ -51,6 +54,7 @@ class PlaceService {
               queryParameters: {
                 if (nombre != null && nombre.isNotEmpty) 'nombre': nombre,
                 if (categoria != null && categoria.isNotEmpty) 'categoria': categoria,
+                if (nivel != null) 'nivel': nivel.valorApi,
               },
             ),
             headers: ApiConfig.authHeaders(token),
@@ -64,6 +68,12 @@ class PlaceService {
         );
       }
       if (response.statusCode != 200) {
+        if (response.statusCode == 400) {
+          final body = jsonDecode(utf8.decode(response.bodyBytes));
+          if (body is Map && body['code'] == 'SATURATION_FILTER_INVALID') {
+            return const GenericResponse(success: false, message: filtroError);
+          }
+        }
         return const GenericResponse(success: false, message: loadError);
       }
       final body = jsonDecode(utf8.decode(response.bodyBytes));
