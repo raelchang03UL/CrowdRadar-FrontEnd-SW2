@@ -1,25 +1,41 @@
 # Arquitectura frontend
 
-Corte local R01,17/10/2026. Una aplicación FlutterAndroid/Web,principalWebresponsive; conservaCubit,GoRouter,flutter_map ytemaMaterial3. Rama local no publicada,no incluyeexperimento visual de lacarpetaoriginal.
+Corte local del 18/10/2026. Flutter Android/Web; Web responsive es plataforma principal. Rama `feature/local-s03-validacion-analitica-20261017`, no publicada ni aceptada formalmente. Conserva Cubit, GoRouter, flutter_map, Material 3 y tema publicado; excluye el experimento visual de la carpeta original.
 
-## Fronteras reales
+## Responsabilidades e imports
 
-Pages/components→cubits→serviciosHTTP→API. Models sonDTO;configs contiene soloAPI_BASE_URL pública. No SQL,SMTP ni clavesprivilegiadas enFlutter. AppTheme/AppColors controlan identidad. No cambio de framework/gestor/carpetas porapariencia.
+Pages/components → cubits → servicios HTTP → API. Models son DTO y configs contiene API_BASE_URL pública y formateo horario. No hay SQL, SMTP ni claves privilegiadas en Flutter. AppTheme/AppColors conservan identidad; no hay reorganización masiva de carpetas.
 
-AuthCubit/SessionService/router conservanJWT yusuario solo enmemoria,generación de sesión yguardas. Login/registro/recuperación sonpúblicos; el restoprotegidoporrouter yJWTbackend. Recargar pierde sesión. Logout noprovoca revocación backend; cambio/reset sí invalidanversiones. Las respuestasdeotraoperación/sesión ycubitscerrados sedescartan.
+AuthCubit, SessionService y router conservan JWT/usuario en memoria, generación de sesión y guardas. Recargar pierde sesión; logout no revoca por sí mismo el JWT del backend. Un cambio/reset sí invalida versiones. El servidor sigue autorizando cada operación.
 
-PlacesCubit mantiene nombre/categoría/nivel,última solicitud ylimpieza porsesión. PlaceService combinaobjetodeconsulta,saneaerrores ytimeouts; detalleusaclaveporID para reconstruirCubit al cambiode ruta. SatService/Cubit consultan laestimación deAPI,sin calcularaforo encliente.
+PlacesCubit mantiene nombre/categoría/nivel, última solicitud y limpieza por sesión. PlaceService construye queries combinadas, timeout y mensajes seguros. Detalle conserva su clave por ID de Nick; las rutas nuevas de revisión/historial también llevan ValueKey por recurso. No se reutiliza estado de otro ID.
 
-ReportPlaceSheet reutiliza SaturationReportService deManu; solo presentación yestado delenvío. Bloquea doblepulsación ysalida durantepetición; limpiadatos al cambiarsesión ydescartarespuestatardía. Premioúnicamente delaAPI,no fallbackficticio. Perfil/historialdeManuusanlos endpoints propios; servidorautoriza yconservatransacciones.
+ReportPlaceSheet usa SaturationReportService de Manu. Bloquea doble envío y cierre durante la petición, limpia estado al cambiar sesión y descarta respuestas tardías. Solo muestra premio real enviado por API. Perfil e historial personal se reutilizan; IDs BIGINT viajan como texto y fechas se presentan explícitamente en Lima.
 
-## Patrones y decisiones
+## Incremento HU5–6
 
-Cubit esgestiónreactivadeestado/presentación,no GoFState automático. SessionService notifica medianteListenable/ValueNotifier (Observer delframework),sin afirmarSingletonGoF. Reutilizarcomponentes/contratos evitaHTTPenwidgets; no seintroducenGenericService,FactoryMethod oeventbus sinproblema demostrado.
+- ApiJsonClient centraliza transporte de los recorridos nuevos: Bearer, 15 segundos de timeout, generación y errores de vocabulario público. No decide permisos de negocio ni muestra cuerpos arbitrarios.
+- ReportReviewService decodifica CitizenReport; PlaceHistoryService verifica estructura antes de construir widgets. Sus servicios no conocen BuildContext.
+- RequestCubit comparte únicamente requisitos comprobados de carga/escritura: última solicitud, envío único, limpieza/logout y descarte tras dispose. Un 401 vigente borra sesión; uno antiguo no cierra una sesión posterior. No es GenericRepository.
+- ReportHubPage/ReportReviewPage muestran últimos 50 reportes, conteos, confiabilidad, elección definitiva y denuncia confirmada. El autor no tiene botones de participación. El servidor impone lo mismo.
+- PlaceHistoryPage muestra bloques, conteos de dos períodos y horarios basados en datos suficientes; fechas editables, máximo 31 días, Lima y advertencias explícitas. Sin aforos inventados ni medias de categorías.
+- Historial personal permite abrir el estado propio desde su detalle. PlaceDetailPage enlaza al historial del lugar. Formularios, scroll y navegación usan componentes existentes.
 
-Alternativa aformulario modalcontrolado eraStatefulBuilder quepodíacerrarsedurantepetición yperderconfirmación; elcomponentepropio administra montaje,sesión ylistener/dispose. Coste: controlar asincronía/teclado/scroll;8pruebasnuevasde carreras/errores/responsive.
+## Patrones y alternativas
 
-## Plataforma y evidencia
+| Estado / clasificación | Problema y participantes | Alternativa, beneficio/coste y pruebas |
+| --- | --- | --- |
+| Existente: presentación reactiva Cubit, no GoF State | Pages → Cubits → Services | FutureBuilder/estado local simplifica casos aislados, pero repetiría carreras. Se comparte RequestCubit solo donde los requisitos coinciden. Coste: estados/generaciones/suscripciones; tests de concurrencia, 401 y logout. |
+| Existente: Observer del framework | SessionService Listenable/ValueNotifier → router/cubits/listeners con dispose | Evita callbacks dispersos; coste de estado global estático y limpieza. No se afirma Singleton GoF ni se añade event bus. |
+| Local: adaptador de transporte/DTO, no Repository de DB | ApiJsonClient + servicios + modelos; HU5–6 | HTTP en widgets mezclaría presentación/errores. Centraliza timeout y traducción pública; cuesta validar contratos. Tests JSON incompleto/errores/BIGINT. No llamar Factory Method a fromJson/create por nombre. |
+| Local: componente de interacción | ReportPlaceSheet; HU4.1 | StatefulBuilder podía perder una petición al cerrar. Componente controlado conserva montaje/sesión; cuesta manejar teclado/scroll. Ocho pruebas de R01 y recorrido real. |
 
-431 aprobadas/2opt-inomitidas,análisis limpio;buildWeb yrecorridoIAB+API/PostgreSQLQA.360/390/1440, texto2x probados enwidgets;IAB390×844 y1440×900. No equiparar IAB aChrome normal ni aAndroid; Androidfinal/SMTP real pendientes. ReferrerWeb strict-origin-when-cross-origin conservaOSM sin filtrarquery/fragmentoderecuperación. No persistirJWT ni desactivarseguridaddelnavegador.
+DRY no sustituye permisos del servidor por guardas UI. SOLID se aplica con límites comprobables, no nuevas capas por apariencia. No se migraron framework, gestor, dependencias, Gradle ni locks.
 
-Contrato yUML editable canónicos enbackend docs/CONTRATO_API.md ydocs/modelos/consolidacion.puml. Evidencias fechadasidentifican elpar yloslímites;verESTADO_ACTUAL.
+## Evidencia y límites
+
+Flutter 3.41.9 / Dart 3.11.5: análisis limpio, 448 aprobadas y 2 opt-in omitidas; build Web final 58,7 s. 17 tests nuevos S3 incluyen 360/390/1440 y texto 2x, lista/revisión/análisis, carreras y errores. Recorridos IAB + API/PostgreSQL QA y capturas en ESTADO_ACTUAL.
+
+IAB no equivale a Chrome normal ni Android; Android final y SMTP real no se repitieron. No certificación WCAG. Referrer strict-origin-when-cross-origin conserva OSM sin enviar query/fragmento de recuperación entre orígenes. No persistir JWT ni desactivar seguridad del navegador.
+
+Contrato y UML editables canónicos en backend docs/CONTRATO_API.md y docs/modelos/consolidacion.puml. Preparación de nube no equivale a despliegue.

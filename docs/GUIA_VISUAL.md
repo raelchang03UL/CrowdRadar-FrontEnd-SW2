@@ -1,6 +1,6 @@
 # Guía visual — pulido sobrio
 
-Dirección propuesta el 07/10 y aplicada el 08/10/2026 en `feature/ui-flujos-ciudadano`, dependiente de HU 3.1 todavía sin integrar. Login, registro, perfil, edición y mapa comparten el tema; no incluye nuevos módulos. Validación automatizada y capturas de widgets, no aprobación manual de Chrome/Android.
+Corte vigente 18/10/2026: tema publicado ya integrado antes de esta tarea; incremento R01 + HU5–6 solo local. No se usa el rediseño rechazado. Pantallas nuevas conservan colores, tipografía y componentes existentes. Una mejora funcional no implica aprobación visual del equipo.
 
 ## Dirección
 
@@ -14,9 +14,17 @@ Dirección propuesta el 07/10 y aplicada el 08/10/2026 en `feature/ui-flujos-ciu
 
 Login/registro/recuperación/cambio: bloque de marca compacto, título y ayuda breve, formulario con ancho máximo legible; conservar campos durante carga/error, mostrar/ocultar contraseña, confirmación y foco/teclado adecuados. La ayuda al ciudadano debe hablar de la acción, no de servidores, SDK ni detalles de arquitectura; el diagnóstico técnico pertenece a documentación/logs privados.
 
-Perfil/edición: identidad y datos agrupados, anchos máximos 680/560 dp, cierre de sesión reconocible. La acción de contraseña se añadirá únicamente junto con su función real. Edición directa carga datos; guardar conserva formulario y errores públicos. No incluye gestión de roles.
+Perfil/edición: identidad y datos agrupados, anchos máximos 680/560 dp, cierre de sesión reconocible. La acción de contraseña ya existe junto a su función real. Edición directa carga datos; guardar conserva formulario y errores públicos. No incluye gestión de roles.
 
-Mapa: jerarquía entre título, contexto, mapa y selección. Mantener visible la advertencia de datos demostrativos y la atribución OpenStreetMap. Selección legible con botón de cerrar claro. No añadir buscador, filtros, tarjetas de saturación ni detalle completo como parte del pulido.
+Mapa: jerarquía entre título, contexto, mapa y selección. Mantener visible la advertencia de datos demostrativos y la atribución OpenStreetMap. Selección legible con botón de cerrar claro. Buscador, filtros, saturación y detalle proceden de sus HU funcionales, no de controles decorativos. Conservar avisos de insuficiencia y selección.
+
+## Recorridos locales añadidos
+
+- Reportar: selección clara, una acción pendiente, no cerrar durante envío, premio real y errores públicos.
+- Validar: lista legible y revisión con conteos, regla provisional y elección definitiva. Motivo de denuncia opcional con confirmación; sin ocultación automática. Texto no depende solo de color.
+- Historial: fecha/hora Lima explícita, controles de período, resumen categórico y mensajes distintos de ausencia/insuficiencia. Horarios históricos no son una predicción.
+- Anchos máximos y ListView/Wrap permiten móvil y texto ampliado; teclado probado al confirmar y en filtros de R01. No afirmar cobertura manual de todos los controles.
+- Evidencia actual en ESTADO_ACTUAL; pares antes/después del mapa R01 y nuevas capturas S3. Widgets probados a 360/390/1440 y texto 2x; IAB móvil y escritorio, no certificación WCAG ni Android final.
 
 ## Criterios de revisión
 

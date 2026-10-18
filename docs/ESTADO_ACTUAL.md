@@ -1,5 +1,19 @@
 # Estado actual
 
+## Corte vigente local — R01 + Sprint 3, 18/10/2026
+
+Rama `feature/local-s03-validacion-analitica-20261017`. Par funcional: backend `5f933eac9a0095fb802f5d95a65ea563d15df9b0` / frontend `a5e33ac9078cc882474a6d22961f9502f61c6ac0`. Documentación/capturas se añaden después sin alterar código. Solo local: no develop compartida, aceptación ni despliegue.
+
+- HU5: Validar ya no es placeholder. Lista de 50 reportes, confirmación/rechazo definitivos, conteos/confiabilidad provisional, estado propio y denuncia con motivo opcional/confirmación. Sin autovoto ni moderación automática.
+- HU6: detalle → historial del lugar → bloques Lima, comparación y horarios con suficiente historia. Fechas hasta 31 días; distingue ausencia, empate e insuficiencia; no fabrica aforo ni predicción.
+- Historial personal conserva IDs BIGINT como texto, fechas Lima y enlace al estado propio. Rutas nuevas reconstruyen estado al cambiar ID. Se conserva el tema publicado, no el experimento rechazado.
+- Flutter 3.41.9 / Dart 3.11.5: **analyze limpio; 448 aprobadas, 2 opt-in omitidas; build Web aprobado en 58,7 s**. Son 17 pruebas nuevas de S3 además de R01. Lista/revisión/análisis a 360×640, 390×844 y 1440×900 con texto 2x; carreras, doble escritura, JSON inválido, 401 vigente/antiguo y logout.
+- IAB real con API3033/PostgreSQL18 QA: login, lista, confirmar por teclado (conteos 3→4 y peso 7→9), denuncia persistida sin ocultar, reporte propio sin participación, historial 12–14/10 (72 bloques: 3 tranquilos/3 moderados/66 insuficientes), comparación con período sin datos y horario 10:00–11:00 con 3/3 días. Todas son observaciones SINTÉTICAS.
+- Vista móvil 390×844 sin recortes en horarios; API detenida deliberadamente devuelve error seguro con Reintentar. R01 conserva pares antes/después del mismo mapa a 390×844 y 1440×900.
+- Capturas nuevas: [evidencias S3](evidencias/sprint3_2026_10_18/README.md); R01: [antes/después](evidencias/consolidacion_2026_10_17/README.md). Las capturas no acreditan correo real ni todos los casos automatizados.
+
+Pendientes: Android final/manual, Chrome normal, SMTP real, las dos opt-in, aceptación humana/catálogo y exposición en nube. HU7/8 no implementadas; Favoritos permanece placeholder. No instalación ni cambios de Gradle/pubspec/locks. Capturas históricas inferiores no se reescriben.
+
 ## Corte local de consolidación Release 01 — 17/10/2026
 
 Rama `feature/local-r01-consolidacion-20261017`, no publicada; base Bffe9b19/Fdfdb753. Se reutilizaron los diez PR de Nick y las tres ramas independientes de Manu, preservando commits/autores. No se tocaron los árboles originales con borradores/experimento. No implica aceptación humana de17 HU.

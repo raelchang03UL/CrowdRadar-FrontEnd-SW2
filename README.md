@@ -1,8 +1,10 @@
 # CrowdRadar Frontend
 
-Incremento **solo local** del Release 01, 17/10/2026, rama `feature/local-r01-consolidacion-20261017`; NO publicado. Flutter Android/Web, principal Web responsive. Reúne detalle, búsqueda, categoría y saturación de Nick; reporte, karma e historial de Manu con correcciones de concurrencia/contrato. Conserva el tema publicado; no incorpora el experimento visual rechazado.
+Incremento **solo local** R01 + Sprint 3 del 18/10/2026; rama `feature/local-s03-validacion-analitica-20261017`, dependiente de R01 local. NO publicado, integrado en develop ni aceptado. Flutter Android/Web, principal Web responsive. Reutiliza los aportes de Nick/Manu sobre autenticación/SMTP/mapa de Diego.
 
-Autenticación, recuperación SMTP y mapa ya estaban integrados en develop. SMTP requiere configuración privada por PC; no instalar «Brevo» ni compartir contraseñas. Lee [CONTRIBUTING](CONTRIBUTING.md), [arquitectura](docs/ARQUITECTURA.md), [guía visual](docs/GUIA_VISUAL.md) y [pruebas/limitaciones](docs/ESTADO_ACTUAL.md). El contrato canónico está en backend.
+Lugares/filtros, reportes/karma/historial propio y, ahora, Validar con votos/confiabilidad/denuncias; detalle con historial horario/comparación/horarios suficientes. HU7/8 siguen fuera del alcance; Favoritos aún es placeholder. Tema publicado conservado; experimento visual rechazado excluido.
+
+Lee [CONTRIBUTING](CONTRIBUTING.md), [arquitectura](docs/ARQUITECTURA.md), [guía visual](docs/GUIA_VISUAL.md) y [pruebas](docs/ESTADO_ACTUAL.md). Contrato y reproducción QA canónicos en backend. SMTP requiere configuración privada, no instalar “Brevo” ni compartir contraseñas. Una clonación de GitHub todavía no obtiene este incremento local.
 
 ## Requisitos
 
