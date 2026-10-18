@@ -14,6 +14,22 @@ Se conserva la navegación y el tema existentes. No incluye búsqueda ni modific
 
 Las secciones siguientes conservan la evidencia histórica de otras tareas.
 
+## HU 3.5 — filtro por categoría local, 11/10/2026
+
+Rama `feature/hu-3-5-filtro-categoria`, desde `origin/develop` `dfdb75371d9c3a8ecdb7bc79cf8346988659f0ba`, para frontend #6. Backend compañero en la rama homónima desde `46267e7c273d889a85710e33f32ff7a839f52ec9`. Registro de validación local previo a publicación: entonces sin staging, commits, publicación ni modificaciones de Issues/Project. Consultar Git/PR para la publicación posterior; no implica integración.
+
+El mapa consulta categorías activas mediante `/api/places/categories`; elegir/cambiar usa `/api/places?categoria=...` y quitar restaura el listado. La categoría es literal y de hasta 80 caracteres Unicode. El selector y el mapa muestran carga, vacío, error y reintento; el reintento conserva la categoría. Cubits/servicio descartan solicitudes anteriores, logout, cambio de generación y vistas cerradas. No se añade HTTP en widgets, geolocalización, radio de cercanía, niveles ficticios ni controles de saturación.
+
+- Flutter 3.41.9 / Dart 3.11.5: `flutter analyze --no-pub` sin incidencias; `flutter test --no-pub` **254 aprobadas, 0 fallidas, 2 integraciones de autenticación opt-in omitidas** en este rerun. 28 casos nuevos de categoría además de los 226 existentes.
+- Widgets con mapa/MarkerLayer reales y teselas en memoria: seleccionar/cambiar/quitar, sin coincidencias, reintentos, selector abierto durante logout, categorías largas, 360/390/1440 dp y texto 2×. Los primeros ensayos detectaron un overflow del filtro y una opción larga fuera del viewport; se corrigió la disposición/etiqueta y se repitió la suite sin ocultar excepciones.
+- Backend compañero: 68/68 pruebas Node y 7 bloques PostgreSQL aislados aprobados, incluyendo catálogo/filtro ORM + HTTP sobre `crowdradar_hu31_test`; la consulta de sesión en ese runner usa un doble explícito. Fixtures revertidos y datos previos conservados. No equivale al recorrido completo del frontend con autenticación real.
+- `git diff --check` correcto; sin cambios en dependencias, lockfile, Gradle, router, tema global ni modelos compartidos.
+- Compilación Web final aprobada (99,0 s) con API local en `127.0.0.1:3002`. Recorrido interactivo en navegador integrado (IAB), app Flutter servida en `127.0.0.1:5502`: login con cuenta ficticia local y autenticación real PostgreSQL `crowdradar_dev`, 3 lugares demostrativos, catálogo Cultura/Parque/Plaza, selección Parque → 1 marcador, cambio Cultura → 1 marcador, quitar filtro → 3 marcadores y selección de lugar conservada. No se modificaron los lugares existentes ni se usaron credenciales reales del usuario; se creó una cuenta QA local identificable. Vacío/error y demás bordes se verificaron en pruebas automatizadas, no se atribuyen a este recorrido manual. IAB no equivale a Chrome normal. Android omitido expresamente por decisión del usuario; no declarado aprobado.
+
+Esta rama parte de `develop` y no incluye los incrementos separados HU 3.2/3.3/3.4. Reconciliar mapa/servicio/cubit y las queries de búsqueda/categoría al integrar esos incrementos; no descartar uno en favor del otro. Revisión humana/integración/aceptación pendientes. Se revisó el informe de Software I en la carpeta autorizada del Drive para mantener el alcance de la HU; no se modificó Drive ni se atribuyeron reglas de cálculo de saturación no definidas.
+
+Captura del recorrido IAB: [categoría Cultura aplicada](evidencias/hu_3_5/2026_10_11/cultura.jpg), sin credenciales ni datos personales.
+
 ## Corrección — error persistente en cambio de contraseña, 10/10/2026
 
 Rama `fix/hu-2-3-error-cambio-password` desde develop `cffd3d5` (HU 3.1, A, B y C ya integrados por #9, #11, #12 y #13). El recorrido Chrome del 10/10 mostró que, tras «La contraseña actual no es correcta.», el mensaje seguía visible mientras se corregían los campos y junto a errores de validación nuevos. Ahora editar cualquier campo (`Form.onChanged`) retira el error del envío anterior; carga, guardas de sesión y doble envío no cambian. `flutter analyze --no-pub` limpio; `flutter test --no-pub` 226 aprobadas/2 omitidas opt-in (la prueba de error corregible comprueba la retirada). Sin cambios de contrato ni dependencias.

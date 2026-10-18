@@ -8,6 +8,7 @@ import 'session_service.dart';
 class PlaceService {
   static const loadError =
       'No pudimos cargar los lugares. Comprueba tu conexión y vuelve a intentarlo.';
+  static const categoriesError = 'No pudimos cargar las categorías. Vuelve a intentarlo.';
   static const detailError =
       'No pudimos cargar la información del lugar. Comprueba tu conexión y vuelve a intentarlo.';
   static const invalidSearch = 'Busca por nombre usando hasta 160 caracteres.';
@@ -24,7 +25,17 @@ class PlaceService {
     return _getList(nombre: nombre);
   }
 
-  Future<GenericResponse<List<PlaceModel>>> _getList({String? nombre}) async {
+  Future<GenericResponse<List<PlaceModel>>> filterPlacesByCategory(String categoria) {
+    if (categoria.trim().runes.length > 80) {
+      return Future.value(const GenericResponse(success: false, message: 'Selecciona una categoría de hasta 80 caracteres.'));
+    }
+    return queryPlaces(categoria: categoria.trim());
+  }
+
+  Future<GenericResponse<List<PlaceModel>>> queryPlaces({String nombre = '', String categoria = ''}) =>
+      _getList(nombre: nombre, categoria: categoria);
+
+  Future<GenericResponse<List<PlaceModel>>> _getList({String? nombre, String? categoria}) async {
     final generation = SessionService.generation;
     final token = SessionService.token;
     if (token == null || !SessionService.isAuthenticated) {
@@ -37,7 +48,10 @@ class PlaceService {
       final response = await http
           .get(
             ApiConfig.uri(ApiConfig.places).replace(
-              queryParameters: nombre == null ? null : {'nombre': nombre},
+              queryParameters: {
+                if (nombre != null && nombre.isNotEmpty) 'nombre': nombre,
+                if (categoria != null && categoria.isNotEmpty) 'categoria': categoria,
+              },
             ),
             headers: ApiConfig.authHeaders(token),
           )
@@ -124,6 +138,59 @@ class PlaceService {
       return const GenericResponse(success: false, message: detailError);
     }
   }
+
+  Future<GenericResponse<List<String>>> getCategories() async {
+    final generacion = SessionService.generation;
+    final token = SessionService.token;
+    if (token == null || !SessionService.isAuthenticated) {
+      return const GenericResponse(
+        success: false,
+        message: 'Inicia sesión para ver las categorías.',
+      );
+    }
+    try {
+      final respuesta = await http
+          .get(
+            ApiConfig.uri('${ApiConfig.places}/categories'),
+            headers: ApiConfig.authHeaders(token),
+          )
+          .timeout(const Duration(seconds: 15));
+      if (generacion != SessionService.generation) return _sessionChanged();
+      if (respuesta.statusCode == 401) {
+        return const GenericResponse(
+          success: false,
+          message: 'Tu sesión no es válida. Vuelve a iniciar sesión.',
+        );
+      }
+      if (respuesta.statusCode != 200) {
+        return const GenericResponse(success: false, message: categoriesError);
+      }
+      final cuerpo = jsonDecode(utf8.decode(respuesta.bodyBytes));
+      if (cuerpo is! Map<String, dynamic> || cuerpo['data'] is! List) {
+        throw const FormatException('Categorías inválidas');
+      }
+      final categorias = (cuerpo['data'] as List)
+          .map((categoria) {
+            if (categoria is! String ||
+                categoria.trim().isEmpty ||
+                categoria != categoria.trim() ||
+                categoria.runes.length > 80) {
+              throw const FormatException('Categoría inválida');
+            }
+            return categoria;
+          })
+          .toSet()
+          .toList(growable: false);
+      return GenericResponse(
+        success: true,
+        data: List.unmodifiable(categorias),
+      );
+    } catch (_) {
+      if (generacion != SessionService.generation) return _sessionChanged();
+      return const GenericResponse(success: false, message: categoriesError);
+    }
+  }
+
 
   GenericResponse<T> _sessionChanged<T>() => const GenericResponse(
     success: false,

@@ -4,10 +4,13 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:go_router/go_router.dart';
 import '../../components/cr_bottom_nav.dart';
+import '../../components/selector_categoria.dart';
+import '../../cubits/places/categorias_cubit.dart';
 import '../../cubits/places/places_cubit.dart';
 import '../../cubits/places/places_state.dart';
 import '../../models/place_model.dart';
 import '../../services/place_service.dart';
+import '../../services/session_service.dart';
 import '../../theme/app_colors.dart';
 
 class MapPage extends StatelessWidget {
@@ -16,15 +19,38 @@ class MapPage extends StatelessWidget {
   const MapPage({super.key, this.service, this.tileProvider});
 
   @override
-  Widget build(BuildContext context) => BlocProvider(
-    create: (_) => PlacesCubit(service ?? PlaceService())..loadPlaces(),
-    child: _MapView(tileProvider: tileProvider),
-  );
+  Widget build(BuildContext context) {
+    final servicio = service ?? PlaceService();
+    return BlocProvider(
+      create: (_) => PlacesCubit(servicio)..loadPlaces(),
+      child: _MapView(service: servicio, tileProvider: tileProvider),
+    );
+  }
 }
 
 class _MapView extends StatelessWidget {
   final TileProvider? tileProvider;
-  const _MapView({this.tileProvider});
+  final PlaceService service;
+  const _MapView({required this.service, this.tileProvider});
+
+  Future<void> _seleccionarCategoria(BuildContext context) async {
+    final cubit = context.read<PlacesCubit>();
+    final generacion = SessionService.generation;
+    final categoria = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => BlocProvider(
+        create: (_) => CategoriasCubit(service)..loadCategories(),
+        child: SelectorCategoria(categoriaActual: cubit.categoria),
+      ),
+    );
+    if (!context.mounted ||
+        categoria == null ||
+        generacion != SessionService.generation) {
+      return;
+    }
+    await cubit.filterByCategory(categoria);
+  }
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -36,6 +62,10 @@ class _MapView extends StatelessWidget {
           tooltip: 'Buscar lugares',
           icon: const Icon(Icons.search),
           onPressed: () => context.push('/places/search'),
+
+          tooltip: 'Filtrar por categoría',
+          icon: const Icon(Icons.filter_list),
+          onPressed: () => _seleccionarCategoria(context),
         ),
         BlocBuilder<PlacesCubit, PlacesState>(
           builder: (context, state) => IconButton(
@@ -48,33 +78,70 @@ class _MapView extends StatelessWidget {
         ),
       ],
     ),
-    body: BlocBuilder<PlacesCubit, PlacesState>(
-      builder: (context, state) {
-        if (state is PlacesLoading) {
-          return const _MapStatus(message: 'Cargando lugares…', loading: true);
-        }
-        if (state is PlacesError) {
-          return _MapStatus(
-            message: state.message,
-            icon: Icons.cloud_off_outlined,
-            retry: context.read<PlacesCubit>().loadPlaces,
-          );
-        }
-        if (state is PlacesLoaded) {
-          if (state.places.isEmpty) {
-            return _MapStatus(
-              message: 'Aún no hay lugares disponibles.',
-              icon: Icons.map_outlined,
-              retry: context.read<PlacesCubit>().loadPlaces,
+    body: Column(
+      children: [
+        BlocBuilder<PlacesCubit, PlacesState>(
+          builder: (context, state) {
+            final cubit = context.read<PlacesCubit>();
+            if (cubit.categoria.isEmpty) return const SizedBox.shrink();
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Categoría: ${cubit.categoria}',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  TextButton(
+                    onPressed: () => cubit.filterByCategory(''),
+                    child: const Text('Quitar filtro'),
+                  ),
+                ],
+              ),
             );
-          }
-          return _PlacesMap(places: state.places, tileProvider: tileProvider);
-        }
-        return const _MapStatus(
-          message: 'Inicia sesión para ver los lugares.',
-          icon: Icons.lock_outline,
-        );
-      },
+          },
+        ),
+        Expanded(
+          child: BlocBuilder<PlacesCubit, PlacesState>(
+            builder: (context, state) {
+              if (state is PlacesLoading) {
+                return const _MapStatus(
+                  message: 'Cargando lugares…',
+                  loading: true,
+                );
+              }
+              if (state is PlacesError) {
+                return _MapStatus(
+                  message: state.message,
+                  icon: Icons.cloud_off_outlined,
+                  retry: context.read<PlacesCubit>().loadPlaces,
+                );
+              }
+              if (state is PlacesLoaded) {
+                if (state.places.isEmpty) {
+                  return _MapStatus(
+                    message: context.read<PlacesCubit>().categoria.isEmpty
+                        ? 'Aún no hay lugares disponibles.'
+                        : 'No hay lugares disponibles para esta categoría.',
+                    icon: Icons.map_outlined,
+                    retry: context.read<PlacesCubit>().loadPlaces,
+                  );
+                }
+                return _PlacesMap(
+                  places: state.places,
+                  tileProvider: tileProvider,
+                );
+              }
+              return const _MapStatus(
+                message: 'Inicia sesión para ver los lugares.',
+                icon: Icons.lock_outline,
+              );
+            },
+          ),
+        ),
+      ],
     ),
     bottomNavigationBar: const CrBottomNav(currentIndex: 0),
   );
