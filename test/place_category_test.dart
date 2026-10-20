@@ -365,6 +365,7 @@ void main() {
   }
 
   Future<void> elegir(WidgetTester tester, String categoria) async {
+    await tester.ensureVisible(find.byTooltip('Filtrar por categoría'));
     await tester.tap(find.byTooltip('Filtrar por categoría'));
     await tester.pumpAndSettle();
     await tester.tap(find.text(categoria));

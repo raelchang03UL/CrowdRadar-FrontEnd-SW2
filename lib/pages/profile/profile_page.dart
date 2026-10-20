@@ -9,6 +9,7 @@ import '../../cubits/profile/profile_state.dart';
 import '../../models/user_model.dart';
 import '../../services/user_service.dart';
 import '../../theme/app_colors.dart';
+import '../../components/citizen_points_card.dart';
 
 class ProfilePage extends StatelessWidget {
   final UserService? userService;
@@ -123,20 +124,7 @@ class _ProfileView extends StatelessWidget {
         ),
       ),
       const SizedBox(height: 24),
-      Card(
-        child: ListTile(
-          leading: const Icon(Icons.stars_outlined, color: AppColors.primary),
-          title: const Text('Karma'),
-          subtitle: const Text('Puntos obtenidos por tus reportes'),
-          trailing: Text(
-            '${user.karmaPoints}',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-      ),
+      CitizenPointsCard(points: user.karmaPoints),
       const SizedBox(height: 24),
       Text(
         'Datos de tu cuenta',
@@ -165,14 +153,6 @@ class _ProfileView extends StatelessWidget {
                 Icons.location_city_outlined,
                 'Distrito',
                 _value(user.distrito),
-              ),
-              const Divider(height: 1),
-              _ProfileDatum(Icons.badge_outlined, 'Rol', _value(user.rol)),
-              const Divider(height: 1),
-              _ProfileDatum(
-                Icons.verified_user_outlined,
-                'Estado',
-                _value(user.status),
               ),
             ],
           ),

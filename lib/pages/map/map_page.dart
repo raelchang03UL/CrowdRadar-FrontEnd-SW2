@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import '../../components/selector_categoria.dart';
 import '../../cubits/places/categorias_cubit.dart';
 import '../../components/cr_bottom_nav.dart';
+import '../../components/place_catalog.dart';
+import '../../components/place_map_controls.dart';
 import '../../components/report_place_sheet.dart';
 import '../../services/saturation_report_service.dart'
     show SaturationReportService;
@@ -102,24 +104,12 @@ class _MapView extends StatelessWidget {
       title: const Text('Lugares'),
       centerTitle: false,
       actions: [
-        IconButton(
-          tooltip: 'Buscar lugares',
-          icon: const Icon(Icons.search),
-          onPressed: () => context.push('/places/search'),
-        ),
-        IconButton(
-          tooltip: 'Filtrar por categoría',
-          icon: const Icon(Icons.category_outlined),
-          onPressed: () => _seleccionarCategoria(context),
-        ),
-        BlocBuilder<PlacesCubit, PlacesState>(
-          builder: (context, state) => IconButton(
-            tooltip: 'Filtrar por saturación',
-            icon: const Icon(Icons.filter_alt_outlined),
-            onPressed: SessionService.isAuthenticated
-                ? () => _elegirNivel(context)
-                : null,
-          ),
+        PopupMenuButton<String>(
+          tooltip: 'Más opciones de lugares',
+          onSelected: (_) => context.push('/places/search'),
+          itemBuilder: (_) => const [
+            PopupMenuItem(value: 'search', child: Text('Buscar en lista')),
+          ],
         ),
         BlocBuilder<PlacesCubit, PlacesState>(
           builder: (context, state) => IconButton(
@@ -139,65 +129,19 @@ class _MapView extends StatelessWidget {
         return LayoutBuilder(
           builder: (context, espacio) => Column(
             children: [
-              if (context.read<PlacesCubit>().categoria.isNotEmpty)
-                ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxHeight: espacio.maxHeight * 0.3,
-                  ),
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          'Categoría: ${context.read<PlacesCubit>().categoria}',
-                        ),
-                        TextButton(
-                          onPressed: () =>
-                              context.read<PlacesCubit>().filterByCategory(''),
-                          child: const Text('Quitar filtro'),
-                        ),
-                      ],
-                    ),
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: espacio.maxHeight * 0.38,
+                ),
+                child: SingleChildScrollView(
+                  key: const ValueKey('map-controls-scroll'),
+                  child: PlaceMapControls(
+                    cubit: context.read<PlacesCubit>(),
+                    category: () => _seleccionarCategoria(context),
+                    saturation: () => _elegirNivel(context),
                   ),
                 ),
-              if (nivel != null)
-                ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxHeight: espacio.maxHeight * 0.3,
-                  ),
-                  child: Container(
-                    width: double.infinity,
-                    color: AppColors.surface,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: SingleChildScrollView(
-                            child: Text(
-                              'Saturación: ${nivel.etiqueta}',
-                              key: const ValueKey('filtro-saturacion-activo'),
-                              style: Theme.of(context).textTheme.titleSmall,
-                            ),
-                          ),
-                        ),
-                        IconButton(
-                          tooltip: 'Quitar filtro de saturación',
-                          onPressed: () => context
-                              .read<PlacesCubit>()
-                              .filtrarPorSaturacion(null),
-                          icon: const Icon(Icons.close),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+              ),
               Expanded(child: contenido),
             ],
           ),
@@ -226,13 +170,15 @@ class _MapView extends StatelessWidget {
       if (state.places.isEmpty) {
         return _MapStatus(
           message:
-              context.read<PlacesCubit>().categoria.isNotEmpty && nivel != null
+              context.read<PlacesCubit>().consulta.isNotEmpty ||
+                  (context.read<PlacesCubit>().categoria.isNotEmpty &&
+                      nivel != null)
               ? 'No hay lugares que coincidan con los filtros.'
               : context.read<PlacesCubit>().categoria.isNotEmpty
               ? 'No hay lugares disponibles para esta categoría.'
               : nivel == null
               ? 'Aún no hay lugares disponibles.'
-              : 'No existen lugares cercanos que cumplan con ese criterio',
+              : 'No hay lugares que coincidan con ese nivel de saturación.',
           icon: Icons.map_outlined,
           retry: context.read<PlacesCubit>().loadPlaces,
         );
@@ -323,18 +269,63 @@ class _PlacesMap extends StatefulWidget {
 
 class _PlacesMapState extends State<_PlacesMap> {
   PlaceModel? _selected;
-  Future<void> _report(PlaceModel place) async {
+  final MapController _mapController = MapController();
+  bool _picking = false;
+  bool _reporting = false;
+  bool _catalogVisible = true;
+
+  Future<void> _choosePlace({
+    bool forReport = false,
+    List<PlaceModel>? candidates,
+  }) async {
+    if (_picking || _reporting || !SessionService.isAuthenticated) return;
+    _picking = true;
     final generation = SessionService.generation;
-    final sent = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      isDismissible: false,
-      enableDrag: false,
-      constraints: const BoxConstraints(maxWidth: 520),
-      builder: (_) =>
-          ReportPlaceSheet(place: place, service: widget.reportService),
-    );
+    PlaceModel? place;
+    try {
+      place = await showModalBottomSheet<PlaceModel>(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        constraints: const BoxConstraints(maxWidth: 560),
+        builder: (_) => PlacePickerSheet(
+          places: candidates ?? widget.places,
+          forReport: forReport,
+        ),
+      );
+    } finally {
+      _picking = false;
+    }
+    // Un selector abierto en una sesión anterior no puede iniciar un reporte.
+    if (!mounted ||
+        place == null ||
+        !SessionService.isAuthenticated ||
+        generation != SessionService.generation) {
+      return;
+    }
+    _select(place);
+    if (forReport) await _report(place);
+  }
+
+  Future<void> _report(PlaceModel place) async {
+    if (_reporting || !SessionService.isAuthenticated) return;
+    _reporting = true;
+    final generation = SessionService.generation;
+    bool? sent;
+    try {
+      sent = await showModalBottomSheet<bool>(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        isDismissible: false,
+        enableDrag: false,
+        constraints: const BoxConstraints(maxWidth: 520),
+        builder: (_) =>
+            ReportPlaceSheet(place: place, service: widget.reportService),
+      );
+    } finally {
+      _reporting = false;
+    }
     if (!mounted ||
         generation != SessionService.generation ||
         !SessionService.isAuthenticated ||
@@ -354,6 +345,7 @@ class _PlacesMapState extends State<_PlacesMap> {
 
   void _select(PlaceModel place) {
     setState(() => _selected = place);
+    _mapController.move(LatLng(place.latitud, place.longitud), 15);
     _saturationCubit.loadPlace(place.id);
   }
 
@@ -365,20 +357,46 @@ class _PlacesMapState extends State<_PlacesMap> {
   @override
   void dispose() {
     _saturationCubit.close();
+    _mapController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final points = widget.places
-        .map((p) => LatLng(p.latitud, p.longitud))
+    // Coincidencia exacta, no agrupación por proximidad ni desplazamiento de GPS.
+    final groups = <String, List<PlaceModel>>{};
+    for (final place in widget.places) {
+      (groups['${place.latitud},${place.longitud}'] ??= []).add(place);
+    }
+    final points = groups.values
+        .map((group) => LatLng(group.first.latitud, group.first.longitud))
         .toList();
     final demo = widget.places.any((p) => p.demostrativo);
+    // El tema de formularios ocupa todo el ancho; las acciones del mapa son
+    // compactas, pero conservan su tipografía, colores y formas compartidos.
+    final compactButton = ButtonStyle(
+      minimumSize: const WidgetStatePropertyAll(Size(0, 48)),
+      padding: const WidgetStatePropertyAll(
+        EdgeInsets.symmetric(horizontal: 12),
+      ),
+      textStyle: WidgetStatePropertyAll(Theme.of(context).textTheme.labelLarge),
+    );
+    final primaryAction = Theme.of(context).elevatedButtonTheme.style?.copyWith(
+      minimumSize: compactButton.minimumSize,
+      padding: compactButton.padding,
+      textStyle: compactButton.textStyle,
+    );
+    final secondaryAction = Theme.of(context).outlinedButtonTheme.style
+        ?.copyWith(
+          minimumSize: compactButton.minimumSize,
+          padding: compactButton.padding,
+          textStyle: compactButton.textStyle,
+        );
     return LayoutBuilder(
       builder: (context, espacio) => Column(
         children: [
           ConstrainedBox(
-            constraints: BoxConstraints(maxHeight: espacio.maxHeight * 0.35),
+            constraints: BoxConstraints(maxHeight: espacio.maxHeight * 0.45),
             child: SingleChildScrollView(
               child: Container(
                 width: double.infinity,
@@ -389,27 +407,76 @@ class _PlacesMapState extends State<_PlacesMap> {
                   ),
                 ),
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 16,
+                  horizontal: 16,
+                  vertical: 8,
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Wrap(
+                  spacing: 16,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    Text(
-                      '${widget.places.length} lugares disponibles',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
+                    SizedBox(
+                      width: (espacio.maxWidth - 48).clamp(0, 440),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.places.length == 1
+                                ? '1 lugar disponible'
+                                : '${widget.places.length} lugares disponibles',
+                            style: Theme.of(context).textTheme.titleSmall,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            demo
+                                ? 'Datos demostrativos · Sin monitoreo en tiempo real'
+                                : 'Reportes ciudadanos sobre lugares registrados.',
+                            style: const TextStyle(
+                              color: AppColors.textMuted,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      demo
-                          ? 'Datos demostrativos · Sin monitoreo en tiempo real'
-                          : 'Selecciona un marcador para consultar el lugar y su saturación.',
-                      style: const TextStyle(
-                        color: AppColors.textMuted,
-                        fontSize: 12,
-                      ),
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 8,
+                      children: [
+                        if (_selected == null)
+                          FilledButton.icon(
+                            key: const ValueKey('add-report'),
+                            style: primaryAction,
+                            onPressed: () => _choosePlace(forReport: true),
+                            icon: const Icon(Icons.add_location_alt_outlined),
+                            label: const Text('Agregar reporte'),
+                          ),
+                        if (espacio.maxWidth < 1100)
+                          OutlinedButton.icon(
+                            style: secondaryAction,
+                            onPressed: _choosePlace,
+                            icon: const Icon(Icons.format_list_bulleted),
+                            label: const Text('Ver lista'),
+                          ),
+                        if (espacio.maxWidth >= 1100)
+                          OutlinedButton.icon(
+                            key: const ValueKey('toggle-catalog'),
+                            style: secondaryAction,
+                            onPressed: () => setState(
+                              () => _catalogVisible = !_catalogVisible,
+                            ),
+                            icon: Icon(
+                              _catalogVisible
+                                  ? Icons.chevron_left
+                                  : Icons.view_sidebar_outlined,
+                            ),
+                            label: Text(
+                              _catalogVisible
+                                  ? 'Ocultar catálogo'
+                                  : 'Mostrar catálogo',
+                            ),
+                          ),
+                      ],
                     ),
                   ],
                 ),
@@ -417,193 +484,324 @@ class _PlacesMapState extends State<_PlacesMap> {
             ),
           ),
           Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) => Stack(
-                children: [
-                  FlutterMap(
-                    options: MapOptions(
-                      initialCenter: points.first,
-                      initialZoom: 14,
-                      initialCameraFit: points.length > 1
-                          ? CameraFit.bounds(
-                              bounds: LatLngBounds.fromPoints(points),
-                              padding: EdgeInsets.all(
-                                (constraints.maxHeight * 0.15).clamp(8, 60),
-                              ),
-                              maxZoom: 15,
-                            )
-                          : null,
-                      onTap: (_, _) => _clearSelection(),
-                    ),
-                    children: [
-                      TileLayer(
-                        urlTemplate:
-                            'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                        userAgentPackageName: 'com.example.crowdradar',
-                        tileProvider: widget.tileProvider,
-                      ),
-                      MarkerLayer(
-                        markers: widget.places
-                            .map(
-                              (place) => Marker(
-                                key: ValueKey('marker-${place.id}'),
-                                point: LatLng(place.latitud, place.longitud),
-                                width: 48,
-                                height: 48,
-                                alignment: Alignment.topCenter,
-                                child: IconButton(
-                                  key: ValueKey('select-place-${place.id}'),
-                                  tooltip: place.nombre,
-                                  padding: EdgeInsets.zero,
-                                  onPressed: () => _select(place),
-                                  icon: Icon(
-                                    Icons.location_on,
-                                    size: 44,
-                                    color: _selected?.id == place.id
-                                        ? AppColors.secondary
-                                        : AppColors.primary,
-                                  ),
-                                ),
-                              ),
-                            )
-                            .toList(growable: false),
-                      ),
-                    ],
-                  ),
-                  Positioned(
-                    left: 8,
-                    bottom: 4,
-                    right: 8,
-                    child: Align(
-                      alignment: Alignment.bottomLeft,
-                      child: ColoredBox(
-                        color: AppColors.surface,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 2,
-                          ),
-                          child: Text(
-                            '© OpenStreetMap contributors · openstreetmap.org/copyright',
-                            style: Theme.of(
-                              context,
-                            ).textTheme.labelSmall?.copyWith(fontSize: 9),
-                          ),
-                        ),
-                      ),
+            child: Row(
+              children: [
+                if (espacio.maxWidth >= 1100 && _catalogVisible)
+                  SizedBox(
+                    width: 300,
+                    child: PlaceCatalogPanel(
+                      places: widget.places,
+                      selectedId: _selected?.id,
+                      onSelect: _select,
                     ),
                   ),
-                  if (_selected case final place?)
-                    Positioned(
-                      left: 16,
-                      right: 16,
-                      bottom: 34,
-                      child: Align(
-                        alignment: Alignment.bottomCenter,
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            maxWidth: 480,
-                            maxHeight: (constraints.maxHeight * 0.45).clamp(
-                              0,
-                              480,
-                            ),
-                          ),
-                          child: Material(
-                            elevation: 2,
-                            color: AppColors.surface,
-                            borderRadius: BorderRadius.circular(12),
-                            child: SingleChildScrollView(
-                              key: const ValueKey(
-                                'saturation-selection-scroll',
-                              ),
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Icon(
-                                        Icons.place_outlined,
-                                        color: AppColors.primary,
+                Expanded(
+                  key: const ValueKey('places-map-stage'),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) => Stack(
+                      children: [
+                        FlutterMap(
+                          mapController: _mapController,
+                          options: MapOptions(
+                            initialCenter: points.first,
+                            initialZoom: 14,
+                            initialCameraFit: points.length > 1
+                                ? CameraFit.bounds(
+                                    bounds: LatLngBounds.fromPoints(points),
+                                    padding: EdgeInsets.all(
+                                      (constraints.maxHeight * 0.15).clamp(
+                                        8,
+                                        60,
                                       ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Text(
-                                              place.nombre,
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .titleSmall
-                                                  ?.copyWith(
-                                                    fontWeight: FontWeight.w700,
-                                                  ),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              '${place.categoria}${place.demostrativo ? ' · Demostrativo' : ''}',
-                                              style: const TextStyle(
-                                                color: AppColors.textMuted,
-                                                fontSize: 12,
-                                              ),
-                                            ),
-                                          ],
+                                    ),
+                                    maxZoom: 15,
+                                  )
+                                : null,
+                            onTap: (_, _) => _clearSelection(),
+                          ),
+                          children: [
+                            TileLayer(
+                              urlTemplate:
+                                  'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                              userAgentPackageName: 'com.example.crowdradar',
+                              tileProvider: widget.tileProvider,
+                            ),
+                            MarkerLayer(
+                              markers: groups.values
+                                  .map(
+                                    (group) => Marker(
+                                      key: ValueKey('marker-${group.first.id}'),
+                                      point: LatLng(
+                                        group.first.latitud,
+                                        group.first.longitud,
+                                      ),
+                                      width: 48,
+                                      height: 48,
+                                      alignment: Alignment.topCenter,
+                                      child: IconButton(
+                                        key: ValueKey(
+                                          'select-place-${group.first.id}',
+                                        ),
+                                        tooltip: group.length == 1
+                                            ? group.first.nombre
+                                            : '${group.length} lugares en este punto',
+                                        padding: EdgeInsets.zero,
+                                        onPressed: () => group.length == 1
+                                            ? _select(group.first)
+                                            : _choosePlace(candidates: group),
+                                        icon: Badge(
+                                          isLabelVisible: group.length > 1,
+                                          label: Text('${group.length}'),
+                                          child: Icon(
+                                            Icons.location_on,
+                                            size: 44,
+                                            color:
+                                                group.any(
+                                                  (place) =>
+                                                      _selected?.id == place.id,
+                                                )
+                                                ? AppColors.secondary
+                                                : AppColors.primary,
+                                          ),
                                         ),
                                       ),
-                                      IconButton(
-                                        tooltip: 'Cerrar identificación',
-                                        onPressed: _clearSelection,
-                                        icon: const Icon(Icons.close, size: 20),
-                                      ),
-                                    ],
-                                  ),
-                                  BlocBuilder<SaturationCubit, SaturationState>(
-                                    bloc: _saturationCubit,
-                                    builder: (context, state) => Column(
+                                    ),
+                                  )
+                                  .toList(growable: false),
+                            ),
+                          ],
+                        ),
+                        Positioned(
+                          top: 16,
+                          right: 16,
+                          child: Material(
+                            color: AppColors.surface,
+                            elevation: 2,
+                            borderRadius: BorderRadius.circular(12),
+                            child: IconButton(
+                              tooltip: 'Ver todos los lugares',
+                              icon: const Icon(Icons.fit_screen),
+                              onPressed: () {
+                                if (points.length == 1) {
+                                  _mapController.move(points.first, 14);
+                                } else {
+                                  _mapController.fitCamera(
+                                    CameraFit.bounds(
+                                      bounds: LatLngBounds.fromPoints(points),
+                                      padding: const EdgeInsets.all(48),
+                                      maxZoom: 15,
+                                    ),
+                                  );
+                                }
+                              },
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          left: 8,
+                          bottom: 4,
+                          right: 8,
+                          child: Align(
+                            alignment: Alignment.bottomLeft,
+                            child: ColoredBox(
+                              color: AppColors.surface,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                  vertical: 2,
+                                ),
+                                child: Text(
+                                  '© OpenStreetMap contributors · openstreetmap.org/copyright',
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.labelSmall?.copyWith(fontSize: 9),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (_selected case final place?)
+                          Positioned(
+                            left: 16,
+                            right: 16,
+                            bottom: 34,
+                            child: Align(
+                              alignment: Alignment.bottomCenter,
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  maxWidth: 480,
+                                  maxHeight:
+                                      (constraints.maxHeight *
+                                              (constraints.maxHeight < 400
+                                                  ? 0.85
+                                                  : 0.60))
+                                          .clamp(0, 480),
+                                ),
+                                child: Material(
+                                  elevation: 2,
+                                  color: AppColors.surface,
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: SingleChildScrollView(
+                                    key: const ValueKey(
+                                      'saturation-selection-scroll',
+                                    ),
+                                    padding: const EdgeInsets.all(16),
+                                    child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        TextButton(
-                                          onPressed: () => context.push(
-                                            '/places/${place.id}',
-                                          ),
-                                          child: const Text('Ver detalles'),
+                                        Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            const Icon(
+                                              Icons.place_outlined,
+                                              color: AppColors.primary,
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Text(
+                                                    place.nombre,
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .titleSmall
+                                                        ?.copyWith(
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                        ),
+                                                  ),
+                                                  const SizedBox(height: 4),
+                                                  Text(
+                                                    '${place.categoria}${place.demostrativo ? ' · Demostrativo' : ''}',
+                                                    style: const TextStyle(
+                                                      color:
+                                                          AppColors.textMuted,
+                                                      fontSize: 12,
+                                                    ),
+                                                  ),
+                                                  if (place.direccion ??
+                                                          place.referencia
+                                                      case final location?)
+                                                    Tooltip(
+                                                      message: location,
+                                                      child: Text(
+                                                        location,
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                        style: Theme.of(
+                                                          context,
+                                                        ).textTheme.bodySmall,
+                                                      ),
+                                                    ),
+                                                ],
+                                              ),
+                                            ),
+                                            IconButton(
+                                              tooltip: 'Cerrar identificación',
+                                              onPressed: _clearSelection,
+                                              icon: const Icon(
+                                                Icons.close,
+                                                size: 20,
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                        OutlinedButton.icon(
-                                          onPressed: () => _report(place),
-                                          icon: const Icon(
-                                            Icons.add_location_alt_outlined,
+                                        BlocBuilder<
+                                          SaturationCubit,
+                                          SaturationState
+                                        >(
+                                          bloc: _saturationCubit,
+                                          builder: (context, state) => Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Wrap(
+                                                spacing: 8,
+                                                runSpacing: 8,
+                                                children: [
+                                                  FilledButton.icon(
+                                                    style: primaryAction,
+                                                    onPressed: () =>
+                                                        _report(place),
+                                                    icon: const Icon(
+                                                      Icons
+                                                          .add_location_alt_outlined,
+                                                    ),
+                                                    label: const Text(
+                                                      'Reportar saturación',
+                                                    ),
+                                                  ),
+                                                  TextButton(
+                                                    onPressed: () =>
+                                                        context.push(
+                                                          '/places/${place.id}',
+                                                        ),
+                                                    child: const Text(
+                                                      'Ver detalles',
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              Wrap(
+                                                spacing: 8,
+                                                runSpacing: 8,
+                                                children: [
+                                                  TextButton(
+                                                    onPressed: () => context.push(
+                                                      '/places/${place.id}/history',
+                                                    ),
+                                                    child: const Text(
+                                                      'Historial del lugar',
+                                                    ),
+                                                  ),
+                                                  TextButton(
+                                                    onPressed: () =>
+                                                        context.push(
+                                                          '/profile/reports',
+                                                        ),
+                                                    child: const Text(
+                                                      'Mis reportes',
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              SaturationPanel(
+                                                compact: true,
+                                                location:
+                                                    place.direccion ??
+                                                    place.referencia,
+                                                key: ValueKey(
+                                                  'saturation-panel-${place.id}',
+                                                ),
+                                                state: state.placeId == place.id
+                                                    ? state
+                                                    : const SaturationState(),
+                                                retry: () => _saturationCubit
+                                                    .loadPlace(place.id),
+                                              ),
+                                            ],
                                           ),
-                                          label: const Text(
-                                            'Reportar saturación',
-                                          ),
-                                        ),
-                                        SaturationPanel(
-                                          state: state.placeId == place.id
-                                              ? state
-                                              : const SaturationState(),
-                                          retry: () => _saturationCubit
-                                              .loadPlace(place.id),
                                         ),
                                       ],
                                     ),
                                   ),
-                                ],
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ),
+                      ],
                     ),
-                ],
-              ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

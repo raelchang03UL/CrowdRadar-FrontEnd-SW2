@@ -14,6 +14,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:crowdradar/pages/places/place_detail_page.dart';
 import 'package:crowdradar/pages/places/place_search_page.dart';
+import 'package:crowdradar/components/place_catalog.dart';
+import 'package:crowdradar/components/report_place_sheet.dart';
 
 class _Service extends PlaceService {
   final Future<GenericResponse<List<PlaceModel>>> Function() load;
@@ -110,6 +112,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('select-place-1')));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Ver detalles'));
     await tester.tap(find.text('Ver detalles'));
     await tester.pumpAndSettle();
     expect(find.byType(PlaceDetailPage), findsOneWidget);
@@ -117,7 +120,9 @@ void main() {
     await tester.tap(find.byTooltip('Volver'));
     await tester.pumpAndSettle();
     expect(find.byType(MapPage), findsOneWidget);
-    await tester.tap(find.byTooltip('Buscar lugares'));
+    await tester.tap(find.byTooltip('Más opciones de lugares'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Buscar en lista'));
     await tester.pumpAndSettle();
     expect(find.byType(PlaceSearchPage), findsOneWidget);
     expect(tester.takeException(), isNull);
@@ -174,6 +179,122 @@ void main() {
     await tester.pump();
   }
 
+  testWidgets(
+    'agregar reporte es visible sin acertar un marcador y pide lugar',
+    (tester) async {
+      await mount(
+        tester,
+        _Service(
+          () async => const GenericResponse(success: true, data: places),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('add-report')).hitTestable(),
+        findsOneWidget,
+      );
+      await tester.tap(find.byKey(const ValueKey('add-report')));
+      await tester.pumpAndSettle();
+      expect(find.text('¿Dónde quieres reportar?'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('pick-place-2')));
+      await tester.pumpAndSettle();
+      expect(find.byType(ReportPlaceSheet), findsOneWidget);
+      expect(
+        tester.widget<ReportPlaceSheet>(find.byType(ReportPlaceSheet)).place.id,
+        2,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('selector permite buscar y cancelar sin crear reportes', (
+    tester,
+  ) async {
+    await mount(
+      tester,
+      _Service(() async => const GenericResponse(success: true, data: places)),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Ver lista'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.descendant(
+        of: find.byType(PlacePickerSheet),
+        matching: find.byType(TextField),
+      ),
+      'Lugar B',
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('pick-place-1')), findsNothing);
+    expect(find.byKey(const ValueKey('pick-place-2')), findsOneWidget);
+    await tester.enterText(
+      find.descendant(
+        of: find.byType(PlacePickerSheet),
+        matching: find.byType(TextField),
+      ),
+      'Sin coincidencia',
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('No hay coincidencias en este catálogo.'), findsOneWidget);
+    await tester.tap(find.byTooltip('Cerrar selector de lugares'));
+    await tester.pumpAndSettle();
+    expect(find.byType(ReportPlaceSheet), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('lugares con coordenadas iguales muestran contador y selector', (
+    tester,
+  ) async {
+    final samePoint = [
+      places.first,
+      PlaceModel(
+        id: 3,
+        nombre: 'Lugar C',
+        categoria: 'Plaza',
+        latitud: places.first.latitud,
+        longitud: places.first.longitud,
+        demostrativo: true,
+      ),
+    ];
+    await mount(
+      tester,
+      _Service(() async => GenericResponse(success: true, data: samePoint)),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<MarkerLayer>(find.byType(MarkerLayer)).markers.length,
+      1,
+    );
+    expect(find.byTooltip('2 lugares en este punto'), findsOneWidget);
+    await tester.tap(find.byTooltip('2 lugares en este punto'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('pick-place-3')));
+    await tester.pumpAndSettle();
+    expect(find.byType(PlacePickerSheet), findsNothing);
+    expect(find.text('Lugar C'), findsOneWidget);
+    expect(find.text('Reportar saturación'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('logout mientras se elige lugar impide abrir un reporte tardío', (
+    tester,
+  ) async {
+    await mount(
+      tester,
+      _Service(() async => const GenericResponse(success: true, data: places)),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('add-report')));
+    await tester.pumpAndSettle();
+    SessionService.clear();
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('pick-place-1')));
+    await tester.pumpAndSettle();
+    expect(find.byType(ReportPlaceSheet), findsNothing);
+    expect(find.byType(MarkerLayer), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('muestra carga mientras espera al backend', (tester) async {
     final response = Completer<GenericResponse<List<PlaceModel>>>();
     await mount(tester, _Service(() => response.future));
@@ -197,6 +318,62 @@ void main() {
     expect(find.text('Reintentar'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('doble activación de Agregar reporte abre un solo selector', (
+    tester,
+  ) async {
+    await mount(
+      tester,
+      _Service(() async => const GenericResponse(success: true, data: places)),
+    );
+    await tester.pumpAndSettle();
+    final action = tester
+        .widget<FilledButton>(find.byKey(const ValueKey('add-report')))
+        .onPressed!;
+    action();
+    action();
+    await tester.pumpAndSettle();
+    expect(find.byType(PlacePickerSheet), findsOneWidget);
+    await tester.tap(find.byTooltip('Cerrar selector de lugares'));
+    await tester.pumpAndSettle();
+    expect(find.byType(PlacePickerSheet), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  for (final width in [360.0, 390.0, 1440.0]) {
+    testWidgets('selector usable con texto 2x y teclado a ancho $width', (
+      tester,
+    ) async {
+      tester.view.physicalSize = Size(width, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.lightTheme,
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              textScaler: const TextScaler.linear(2),
+              viewInsets: const EdgeInsets.only(bottom: 300),
+            ),
+            child: child!,
+          ),
+          home: const Scaffold(body: PlacePickerSheet(places: places)),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byType(TextField));
+      await tester.enterText(find.byType(TextField), 'Lugar B');
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byKey(const ValueKey('pick-place-2')));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('pick-place-2')).hitTestable(),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    });
+  }
 
   testWidgets(
     'marcadores coinciden con backend y selección conserva identificación',

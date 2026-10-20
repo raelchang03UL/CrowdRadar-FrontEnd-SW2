@@ -6,7 +6,15 @@ import '../theme/app_colors.dart';
 class SaturationPanel extends StatelessWidget {
   final SaturationState state;
   final VoidCallback retry;
-  const SaturationPanel({super.key, required this.state, required this.retry});
+  final bool compact;
+  final String? location;
+  const SaturationPanel({
+    super.key,
+    required this.state,
+    required this.retry,
+    this.compact = false,
+    this.location,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -19,10 +27,11 @@ class SaturationPanel extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Divider(height: 24),
-          Text(
-            'Nivel de saturación',
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
+          if (!compact)
+            Text(
+              'Nivel de saturación',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
           const SizedBox(height: 8),
           if (state.status == SaturationStatus.loading)
             const Row(
@@ -72,43 +81,68 @@ class SaturationPanel extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (compact)
+                  IconButton(
+                    tooltip: 'Actualizar saturación',
+                    onPressed: retry,
+                    icon: const Icon(Icons.refresh),
+                  ),
               ],
             ),
-            const SizedBox(height: 8),
-            if (data.reason == SaturationReason.insufficientReports)
-              Text(
-                'Se necesitan al menos ${data.minimumReports} personas distintas con reportes vigentes.',
+            if (compact)
+              ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                title: const Text('Más información'),
+                children: [_details(data)],
+              )
+            else
+              _details(data),
+            if (!compact)
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)),
+                onPressed: retry,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Actualizar saturación'),
               ),
-            if (data.reason == SaturationReason.tie)
-              const Text('Los niveles más votados están empatados.'),
-            const SizedBox(height: 8),
-            Text(
-              'Estimación ciudadana · Reportes de los últimos ${data.windowMinutes} minutos.',
-              style: const TextStyle(color: AppColors.textMuted),
-            ),
-            Text(
-              '${data.reportCount} ${data.reportCount == 1 ? 'persona distinta' : 'personas distintas'} · Mínimo: ${data.minimumReports}.',
-              style: const TextStyle(color: AppColors.textMuted),
-            ),
-            const Text(
-              'No representa un aforo exacto. Se consulta al seleccionar o actualizar.',
-              style: TextStyle(color: AppColors.textMuted),
-            ),
-            const SizedBox(height: 8),
-            Text('Consultado: ${_localTime(data.evaluatedAt)}'),
-            if (data.updatedAt case final updatedAt?)
-              Text('Último reporte considerado: ${_localTime(updatedAt)}'),
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              onPressed: retry,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Actualizar saturación'),
-            ),
           ],
         ],
       ),
     );
   }
+
+  Widget _details(SaturationModel data) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      if (location case final value?) ...[
+        Text('Ubicación: $value'),
+        const SizedBox(height: 8),
+      ],
+      const SizedBox(height: 8),
+      if (data.reason == SaturationReason.insufficientReports)
+        Text(
+          'Se necesitan al menos ${data.minimumReports} personas distintas con reportes vigentes.',
+        ),
+      if (data.reason == SaturationReason.tie)
+        const Text('Los niveles más votados están empatados.'),
+      const SizedBox(height: 8),
+      Text(
+        'Estimación ciudadana · Reportes de los últimos ${data.windowMinutes} minutos.',
+        style: const TextStyle(color: AppColors.textMuted),
+      ),
+      Text(
+        '${data.reportCount} ${data.reportCount == 1 ? 'persona distinta' : 'personas distintas'} · Mínimo: ${data.minimumReports}.',
+        style: const TextStyle(color: AppColors.textMuted),
+      ),
+      const Text(
+        'No representa un aforo exacto. Se consulta al seleccionar o actualizar.',
+        style: TextStyle(color: AppColors.textMuted),
+      ),
+      const SizedBox(height: 8),
+      Text('Consultado: ${_localTime(data.evaluatedAt)}'),
+      if (data.updatedAt case final updatedAt?)
+        Text('Último reporte considerado: ${_localTime(updatedAt)}'),
+    ],
+  );
 
   String _localTime(DateTime utc) {
     final local = utc.toLocal();

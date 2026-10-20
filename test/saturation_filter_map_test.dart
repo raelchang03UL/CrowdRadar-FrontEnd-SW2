@@ -125,6 +125,7 @@ void main() {
   }
 
   Future<void> elegir(WidgetTester tester, SaturationLevel? nivel) async {
+    await tester.ensureVisible(find.byTooltip('Filtrar por saturación'));
     await tester.tap(find.byTooltip('Filtrar por saturación'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
@@ -221,6 +222,7 @@ void main() {
         const ValueKey('marker-3'),
       );
       expect(find.text('Saturación: Saturado'), findsOneWidget);
+      await tester.ensureVisible(find.byTooltip('Quitar filtro de saturación'));
       await tester.tap(find.byTooltip('Quitar filtro de saturación'));
       await tester.pumpAndSettle();
       expect(servicio.solicitudes.last, isNull);
@@ -243,7 +245,7 @@ void main() {
       await elegir(tester, SaturationLevel.moderado);
       await tester.pumpAndSettle();
       expect(
-        find.text('No existen lugares cercanos que cumplan con ese criterio'),
+        find.text('No hay lugares que coincidan con ese nivel de saturación.'),
         findsOneWidget,
       );
       expect(find.byType(MarkerLayer), findsNothing);
@@ -400,8 +402,8 @@ void main() {
     expect(find.text('Inicia sesión para ver los lugares.'), findsOneWidget);
     expect(
       tester
-          .widget<IconButton>(
-            find.widgetWithIcon(IconButton, Icons.filter_alt_outlined),
+          .widget<OutlinedButton>(
+            find.widgetWithText(OutlinedButton, 'Saturación'),
           )
           .onPressed,
       isNull,
@@ -420,6 +422,7 @@ void main() {
       tester.widget<MarkerLayer>(find.byType(MarkerLayer)).markers.single.key,
       const ValueKey('marker-3'),
     );
+    await tester.ensureVisible(find.byTooltip('Quitar filtro de saturación'));
     await tester.tap(find.byTooltip('Quitar filtro de saturación'));
     await tester.pumpAndSettle();
     expect(
@@ -519,7 +522,7 @@ void main() {
           if (!error) {
             expect(
               find.text(
-                'No existen lugares cercanos que cumplan con ese criterio',
+                'No hay lugares que coincidan con ese nivel de saturación.',
               ),
               findsOneWidget,
             );
@@ -527,6 +530,9 @@ void main() {
           await tester.ensureVisible(find.text('Reintentar'));
           await tester.tap(find.text('Reintentar'));
           await tester.pumpAndSettle();
+          await tester.ensureVisible(
+            find.byTooltip('Quitar filtro de saturación'),
+          );
           await tester.tap(find.byTooltip('Quitar filtro de saturación'));
           await tester.pumpAndSettle();
           expect(find.byType(MarkerLayer), findsOneWidget);

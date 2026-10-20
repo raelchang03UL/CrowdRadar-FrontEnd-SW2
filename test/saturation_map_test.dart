@@ -131,6 +131,13 @@ void main() {
       );
       expect(
         find.text('Estimación ciudadana · Reportes de los últimos 30 minutos.'),
+        findsNothing,
+      );
+      await reveal(tester, find.text('Más información'));
+      await tester.tap(find.text('Más información'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Estimación ciudadana · Reportes de los últimos 30 minutos.'),
         findsOneWidget,
       );
       expect(find.text('3 personas distintas · Mínimo: 3.'), findsOneWidget);
@@ -166,6 +173,9 @@ void main() {
         );
         await tester.pumpAndSettle();
         expect(find.text('Sin información suficiente'), findsOneWidget);
+        await reveal(tester, find.text('Más información'));
+        await tester.tap(find.text('Más información'));
+        await tester.pumpAndSettle();
         expect(
           find.text(
             count < 3
@@ -211,8 +221,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Tranquilo'), findsOneWidget);
     expect(calls, 2);
-    await reveal(tester, find.text('Actualizar saturación'));
-    await tester.tap(find.text('Actualizar saturación'));
+    await reveal(tester, find.byTooltip('Actualizar saturación'));
+    await tester.tap(find.byTooltip('Actualizar saturación'));
     await tester.pumpAndSettle();
     expect(calls, 3);
     expect(tester.takeException(), isNull);
@@ -302,9 +312,9 @@ void main() {
             textScale: 2,
           );
           await tester.pumpAndSettle();
-          final action = find.text(
-            error ? 'Reintentar saturación' : 'Actualizar saturación',
-          );
+          final action = error
+              ? find.text('Reintentar saturación')
+              : find.byTooltip('Actualizar saturación');
           await reveal(tester, action);
           await tester.tap(action);
           await tester.pumpAndSettle();
@@ -312,7 +322,10 @@ void main() {
           await reveal(tester, find.byTooltip('Cerrar identificación'));
           await tester.tap(find.byTooltip('Cerrar identificación'));
           await tester.pumpAndSettle();
-          expect(find.text('Lugar A'), findsNothing);
+          expect(
+            find.byKey(const ValueKey('saturation-selection-scroll')),
+            findsNothing,
+          );
           expect(tester.takeException(), isNull);
         },
       );
@@ -337,14 +350,17 @@ void main() {
         final bounds = tester.getRect(scroll);
         expect(bounds.top, greaterThanOrEqualTo(0));
         expect(bounds.bottom, lessThan(size.height));
-        await reveal(tester, find.text('Actualizar saturación'));
-        await tester.tap(find.text('Actualizar saturación'));
+        await reveal(tester, find.byTooltip('Actualizar saturación'));
+        await tester.tap(find.byTooltip('Actualizar saturación'));
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
         await reveal(tester, find.byTooltip('Cerrar identificación'));
         await tester.tap(find.byTooltip('Cerrar identificación'));
         await tester.pumpAndSettle();
-        expect(find.text('Lugar A'), findsNothing);
+        expect(
+          find.byKey(const ValueKey('saturation-selection-scroll')),
+          findsNothing,
+        );
         expect(tester.takeException(), isNull);
       });
     }

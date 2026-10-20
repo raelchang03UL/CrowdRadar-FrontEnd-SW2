@@ -89,14 +89,20 @@ class _HistorySummary extends StatelessWidget {
   Widget build(BuildContext context) => Row(
     children: [
       Expanded(
-        child: _SummaryItem(value: '${reports.length}', label: 'Reportes'),
+        child: _SummaryItem(
+          value: '${reports.length}',
+          label: reports.length == 1 ? 'Reporte' : 'Reportes',
+        ),
       ),
       const SizedBox(width: 8),
       Expanded(
         child: _SummaryItem(
           value:
               '${reports.where((report) => report.level == 'TRANQUILO').length}',
-          label: 'Tranquilos',
+          label:
+              reports.where((report) => report.level == 'TRANQUILO').length == 1
+              ? 'Tranquilo'
+              : 'Tranquilos',
           color: AppColors.success,
         ),
       ),
@@ -105,7 +111,10 @@ class _HistorySummary extends StatelessWidget {
         child: _SummaryItem(
           value:
               '${reports.where((report) => report.level == 'SATURADO').length}',
-          label: 'Saturados',
+          label:
+              reports.where((report) => report.level == 'SATURADO').length == 1
+              ? 'Saturado'
+              : 'Saturados',
           color: AppColors.warning,
         ),
       ),
