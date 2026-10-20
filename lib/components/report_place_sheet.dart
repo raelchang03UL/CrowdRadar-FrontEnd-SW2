@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../models/place_model.dart';
 import '../services/saturation_report_service.dart';
 import '../services/session_service.dart';
@@ -22,6 +23,7 @@ class _ReportPlaceSheetState extends State<ReportPlaceSheet> {
   SaturationLevel? _level;
   bool _sending = false;
   bool _sent = false;
+  bool _uncertain = false;
   String? _error;
   SaturationReportReward? _reward;
   bool _invalidSession = false;
@@ -38,6 +40,7 @@ class _ReportPlaceSheetState extends State<ReportPlaceSheet> {
       _invalidSession = true;
       _sending = false;
       _sent = false;
+      _uncertain = false;
       _reward = null;
       _level = null;
     });
@@ -52,6 +55,7 @@ class _ReportPlaceSheetState extends State<ReportPlaceSheet> {
   Future<void> _submit() async {
     if (_sending ||
         _sent ||
+        _uncertain ||
         _level == null ||
         !SessionService.isAuthenticated ||
         _generation != SessionService.generation) {
@@ -74,6 +78,9 @@ class _ReportPlaceSheetState extends State<ReportPlaceSheet> {
       setState(() {
         _sending = false;
         _sent = result.success;
+        _uncertain =
+            !result.success &&
+            result.error != SaturationReportService.cooldownCode;
         _reward = result.success ? result.data : null;
         _error = result.success ? null : result.message;
       });
@@ -83,9 +90,20 @@ class _ReportPlaceSheetState extends State<ReportPlaceSheet> {
       }
       setState(() {
         _sending = false;
-        _error = SaturationReportService.genericError;
+        _uncertain = true;
+        _error = SaturationReportService.uncertainError;
       });
     }
+  }
+
+  void _openHistory() {
+    if (_generation != SessionService.generation ||
+        !SessionService.isAuthenticated) {
+      return;
+    }
+    final router = GoRouter.of(context);
+    Navigator.pop(context, _sent);
+    router.push('/profile/reports');
   }
 
   @override
@@ -104,7 +122,11 @@ class _ReportPlaceSheetState extends State<ReportPlaceSheet> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              _sent ? 'Reporte enviado' : '¿Cómo está este lugar?',
+              _sent
+                  ? 'Reporte enviado'
+                  : _uncertain
+                  ? 'Revisa el resultado'
+                  : '¿Cómo está este lugar?',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
@@ -129,6 +151,24 @@ class _ReportPlaceSheetState extends State<ReportPlaceSheet> {
               FilledButton(
                 onPressed: () => Navigator.pop(context, true),
                 child: const Text('Listo'),
+              ),
+              TextButton(
+                onPressed: _openHistory,
+                child: const Text('Mis reportes'),
+              ),
+            ] else if (_uncertain) ...[
+              Semantics(
+                liveRegion: true,
+                child: const Text(SaturationReportService.uncertainError),
+              ),
+              const SizedBox(height: 24),
+              FilledButton(
+                onPressed: _openHistory,
+                child: const Text('Mis reportes'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cerrar'),
               ),
             ] else ...[
               const Text(

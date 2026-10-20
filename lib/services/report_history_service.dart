@@ -28,7 +28,11 @@ class ReportHistoryService {
             headers: ApiConfig.authHeaders(token),
           )
           .timeout(const Duration(seconds: 15));
-      if (generation != SessionService.generation || response.statusCode == 401) {
+      if (generation != SessionService.generation) {
+        return const GenericResponse(success: false, message: sessionError);
+      }
+      if (response.statusCode == 401) {
+        SessionService.rejectIfCurrent(token: token, generation: generation);
         return const GenericResponse(success: false, message: sessionError);
       }
       if (response.statusCode != 200) {
@@ -39,7 +43,10 @@ class ReportHistoryService {
         return const GenericResponse(success: false, message: invalidResponse);
       }
       final reports = (decoded['data'] as List)
-          .map((item) => SaturationReportModel.fromJson(item as Map<String, dynamic>))
+          .map(
+            (item) =>
+                SaturationReportModel.fromJson(item as Map<String, dynamic>),
+          )
           .toList();
       return GenericResponse(success: true, data: reports);
     } on FormatException {

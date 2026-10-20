@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:go_router/go_router.dart';
 
 class _Delivery extends SaturationReportService {
   final pending = Completer<GenericResponse<SaturationReportReward>>();
@@ -187,7 +188,7 @@ void main() {
     },
   );
   testWidgets(
-    'excepción conserva formulario y permite reintentar sin filtrar detalles',
+    'excepción muestra incertidumbre sin permitir reenviar ni filtrar detalles',
     (tester) async {
       final service = _Delivery();
       await open(tester, service);
@@ -197,14 +198,13 @@ void main() {
       await tester.pump();
       service.pending.completeError(StateError('private exception'));
       await tester.pumpAndSettle();
-      expect(find.text(SaturationReportService.genericError), findsOneWidget);
+      expect(find.text(SaturationReportService.uncertainError), findsOneWidget);
       expect(find.textContaining('private'), findsNothing);
-      expect(
-        tester
-            .widget<TextButton>(find.widgetWithText(TextButton, 'Cancelar'))
-            .onPressed,
-        isNotNull,
-      );
+      expect(find.text('Enviar reporte'), findsNothing);
+      expect(find.text('Reporte enviado'), findsNothing);
+      expect(find.text('Mis reportes'), findsOneWidget);
+      expect(find.text('Cerrar'), findsOneWidget);
+      expect(service.calls, 1);
     },
   );
   for (final size in [
@@ -221,5 +221,61 @@ void main() {
       expect(find.text('Enviar reporte'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
+  }
+
+  for (final success in [true, false]) {
+    testWidgets(
+      'historial personal accesible desde resultado success=$success',
+      (tester) async {
+        final service = _Delivery();
+        final router = GoRouter(
+          routes: [
+            GoRoute(
+              path: '/',
+              builder: (context, _) => Scaffold(
+                body: TextButton(
+                  onPressed: () => showModalBottomSheet<bool>(
+                    context: context,
+                    isScrollControlled: true,
+                    isDismissible: false,
+                    enableDrag: false,
+                    builder: (_) =>
+                        ReportPlaceSheet(place: _place, service: service),
+                  ),
+                  child: const Text('Abrir'),
+                ),
+              ),
+            ),
+            GoRoute(
+              path: '/profile/reports',
+              builder: (_, _) =>
+                  const Scaffold(body: Text('Historial personal QA')),
+            ),
+          ],
+        );
+        addTearDown(router.dispose);
+        await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+        await tester.tap(find.text('Abrir'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Tranquilo'));
+        await tester.pump();
+        await tester.tap(find.text('Enviar reporte'));
+        await tester.pump();
+        service.pending.complete(
+          GenericResponse(
+            success: success,
+            error: success ? null : 'REPORT_UNCERTAIN',
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(service.calls, 1);
+        if (!success) expect(find.text('Enviar reporte'), findsNothing);
+        await tester.ensureVisible(find.text('Mis reportes'));
+        await tester.tap(find.text('Mis reportes'));
+        await tester.pumpAndSettle();
+        expect(find.text('Historial personal QA'), findsOneWidget);
+        expect(service.calls, 1);
+      },
+    );
   }
 }

@@ -81,6 +81,7 @@ class PlaceService {
           .timeout(const Duration(seconds: 15));
       if (generation != SessionService.generation) return _sessionChanged();
       if (response.statusCode == 401) {
+        SessionService.rejectIfCurrent(token: token, generation: generation);
         return const GenericResponse(
           success: false,
           message: 'Tu sesión no es válida. Vuelve a iniciar sesión.',
@@ -138,6 +139,7 @@ class PlaceService {
           .timeout(const Duration(seconds: 15));
       if (generation != SessionService.generation) return _sessionChanged();
       if (response.statusCode == 401) {
+        SessionService.rejectIfCurrent(token: token, generation: generation);
         return const GenericResponse(
           success: false,
           message: 'Tu sesión no es válida. Vuelve a iniciar sesión.',
@@ -186,6 +188,7 @@ class PlaceService {
           .timeout(const Duration(seconds: 15));
       if (generacion != SessionService.generation) return _sessionChanged();
       if (respuesta.statusCode == 401) {
+        SessionService.rejectIfCurrent(token: token, generation: generacion);
         return const GenericResponse(
           success: false,
           message: 'Tu sesión no es válida. Vuelve a iniciar sesión.',

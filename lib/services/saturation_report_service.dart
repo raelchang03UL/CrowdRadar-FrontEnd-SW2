@@ -38,9 +38,12 @@ class SaturationReportService {
   static const sessionError =
       'Tu sesión no está disponible. Vuelve a iniciar sesión.';
   static const cooldownError =
-      'Ya registraste un reporte para este lugar. Inténtalo más tarde.';
-  static const genericError =
-      'No pudimos enviar el reporte. Inténtalo de nuevo.';
+      'Este intento no registró otro reporte ni añadió puntos porque ya tienes un reporte reciente para este lugar.';
+  static const cooldownCode = 'REPORT_COOLDOWN';
+  static const uncertainCode = 'REPORT_UNCERTAIN';
+  static const uncertainError =
+      'No pudimos confirmar si el reporte se guardó. Revisa Mis reportes antes de volver a enviarlo.';
+  static const genericError = uncertainError;
 
   Future<GenericResponse<SaturationReportReward>> createReport({
     required int placeId,
@@ -69,34 +72,43 @@ class SaturationReportService {
         );
       }
       if (response.statusCode == 401) {
+        SessionService.rejectIfCurrent(token: token, generation: generation);
         return const GenericResponse<SaturationReportReward>(
           success: false,
           message: sessionError,
         );
       }
+      // Un fallo de transporte/servidor no demuestra que la transacción falló.
+      // El código de negocio, no solo el HTTP 409, confirma el cooldown.
+      final body = jsonDecode(utf8.decode(response.bodyBytes));
       if (response.statusCode == 409) {
-        return const GenericResponse<SaturationReportReward>(
-          success: false,
-          message: cooldownError,
-        );
+        if (body is Map<String, dynamic> && body['code'] == cooldownCode) {
+          return const GenericResponse<SaturationReportReward>(
+            success: false,
+            message: cooldownError,
+            error: cooldownCode,
+          );
+        }
+        return _uncertain;
       }
       if (response.statusCode != 201) {
-        return const GenericResponse<SaturationReportReward>(
-          success: false,
-          message: genericError,
-        );
+        return _uncertain;
       }
-      final body = jsonDecode(utf8.decode(response.bodyBytes));
       final data = body is Map<String, dynamic> ? body['data'] : null;
-      if (body is! Map<String, dynamic> || body['message'] is! String) {
+      if (body is! Map<String, dynamic> ||
+          body['message'] is! String ||
+          (body['message'] as String).trim().isEmpty ||
+          data is! Map<String, dynamic> ||
+          !RegExp(r'^[1-9]\d*$').hasMatch('${data['id']}') ||
+          (data.containsKey('placeId') && data['placeId'] != placeId) ||
+          (data.containsKey('level') && data['level'] != level.wireValue)) {
         throw const FormatException('Respuesta de reporte inválida');
       }
       return GenericResponse(
         success: true,
-        message: body['message'] as String,
+        message: 'Reporte enviado correctamente.',
         data:
-            data is Map<String, dynamic> &&
-                data['pointsAwarded'] is int &&
+            data['pointsAwarded'] is int &&
                 (data['pointsAwarded'] as int) >= 0 &&
                 data['karmaPoints'] is int &&
                 (data['karmaPoints'] as int) >= 0
@@ -110,10 +122,13 @@ class SaturationReportService {
       if (generation != SessionService.generation) {
         return const GenericResponse(success: false, message: sessionError);
       }
-      return const GenericResponse<SaturationReportReward>(
-        success: false,
-        message: genericError,
-      );
+      return _uncertain;
     }
   }
+
+  static const _uncertain = GenericResponse<SaturationReportReward>(
+    success: false,
+    message: uncertainError,
+    error: uncertainCode,
+  );
 }

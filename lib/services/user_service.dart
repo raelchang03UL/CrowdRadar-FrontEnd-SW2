@@ -35,6 +35,7 @@ class UserService {
         return const GenericResponse(success: false, message: sessionError);
       }
       if (response.statusCode == 401) {
+        SessionService.rejectIfCurrent(token: token, generation: generation);
         return const GenericResponse(success: false, message: sessionError);
       }
       if (response.statusCode != 200) {
@@ -89,6 +90,7 @@ class UserService {
         return const GenericResponse(success: false, message: sessionError);
       }
       if (response.statusCode == 401) {
+        SessionService.rejectIfCurrent(token: token, generation: generation);
         return const GenericResponse(success: false, message: sessionError);
       }
       if (response.statusCode == 404) {

@@ -38,7 +38,9 @@ GoRouter createAppRouter({
         state.uri.path == '/forgot-password' ||
         state.uri.path == '/reset-password';
     if (!SessionService.isAuthenticated && !isPublic) {
-      return '/login';
+      return SessionService.wasRejected
+          ? '/login?notice=sessionExpired'
+          : '/login';
     }
     return null;
   },
