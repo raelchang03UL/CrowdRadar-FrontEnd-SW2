@@ -1,6 +1,36 @@
 # Guía visual — pulido sobrio
 
-Corte vigente 18/10/2026: tema publicado ya integrado antes de esta tarea; incremento R01 + HU5–6 solo local. No se usa el rediseño rechazado. Pantallas nuevas conservan colores, tipografía y componentes existentes. Una mejora funcional no implica aprobación visual del equipo.
+## Cierre19/10 — sin rediseño adicional
+
+Se conserva C2:I1/I2/mapa/catalogo/perfil. Solo navegación F11 corregida; [evidencia final versionada](CIERRE_WEB_R01_S03.md). Publicación no equivale a aceptación visual ni integración. Cortes inferiores fechados son antecedentes, no instrucciones para repetir otro pulido.
+
+## Catálogo y perfil ciudadano — 19/10/2026
+
+Extensión acotada de I3, no otro tema: catálogo300dp desde1100dp con control textual Ocultar/Mostrar catálogo; mapa de identidad estable conserva selección/filtros/cámara. Móvil conserva Ver lista y ficha expandible. Acciones esenciales siempre fuera de Más información; ubicación breve con texto completo dentro del desplegable, sin direcciones inventadas. Búsqueda principal única; acceso a ruta anterior desde Más opciones. Contadores en singular/plural.
+
+Perfil: tarjeta de puntos con saldo real y explicación de0inicial/10por reporte aceptado/no premio extra por cooldown. Sin niveles/beneficios nuevos. Oculta Rol/Estado solo visualmente; teléfono/distrito y funciones permanecen, sin controles de privilegios en formularios. Composición Column/Wrap para texto2×, no valores largos en trailing.
+
+Comparación controlada y resultados en ESTADO_ACTUAL/informe local. En360×640 la ficha abierta ocupa gran parte del mapa; cerrar recupera área y la información secundaria usa scroll, no se reduce el texto. Texto200% se verificó en widgets, no manual/lector/Android. Validación visual humana pendiente; no certificación WCAG.
+
+## Recorrido local I1–I3 — 19/10/2026
+
+Objetivo: encontrar un lugar registrado, entender su estado, reportar y consultar el resultado, sin convertir el mapa en un dashboard. Se conservan tema, logo, colores y rutas. Implementación en el candidato, no en el experimento original ni en develop.
+
+- Campo Buscar por nombre + Buscar/Enter; desde 1000 dp útiles, ancho de búsqueda 640 dp con filtros al lado. En móvil se apilan con Wrap; categoría y saturación llevan texto visible y selección removible. Se conserva la lógica AND de PlacesCubit y la lupa del buscador previo.
+- Catálogo lateral de 300 dp desde 1100 dp; Ver lista reutiliza el selector en móvil. Marcadores superpuestos conservan contador/selector; ningún desplazamiento ficticio de lugares ni GPS del usuario.
+- Ficha con nombre/categoría, Reportar saturación, Ver detalles, Historial del lugar y Mis reportes; estado textual y actualización. Más información despliega explicación, ventana, conteos y fechas reales. En áreas de mapa bajas se permite hasta 85 % de altura (60 % en las demás, máximo 480 dp), con scroll interno; los controles superiores también desplazan con texto ampliado/teclado. No se reduce la escala del texto para ocultar problemas.
+- Éxito, cooldown confirmado e incertidumbre son estados distintos. Incertidumbre no ofrece otro envío: conduce a Mis reportes o Cerrar. Solo se muestra karma de API. Sesión rechazada vuelve a login con aviso; error de red conserva la sesión.
+- Referencias consultadas como documentación: Flutter adaptativo, W3C texto 200 %/teclado y checklist comunitario Flutter Design Taste. NN/g no pudo recuperarse en esta ejecución (timeout); no se atribuye una revisión completada de esa página. Sin skills/scripts externos instalados, nuevo tema, degradados ni datos decorativos. No certificación WCAG.
+
+Resultados y capturas antes/después en ESTADO_ACTUAL y `../../../../tmp/cierre-ux-20261019`. Las capturas del 18/10 inferiores son históricas, no el build final de I3. Aceptación visual humana y Android final siguen separados.
+
+## Revisión del acceso a reportes, 18/10/2026
+
+En `fix/mapa-reportes-ux-20261018`, el mapa ofrece Agregar reporte antes de seleccionar un marcador, selector buscable de lugares y catálogo lateral desde 1100 dp. Las acciones reutilizan el tema con medidas compactas; no cambian la identidad global ni el experimento anterior. Marcadores con coordenadas exactamente iguales muestran contador y permiten elegir: no se separan posiciones ficticiamente ni se promete agrupación por proximidad.
+
+Se aplicaron como referencia [Flutter Design Taste](https://github.com/WellDunDun/skills/tree/main/skills/flutter-design-taste) y las [guías adaptativas oficiales](https://docs.flutter.dev/ui/adaptive-responsive/best-practices): acción principal reconocible, componentes pequeños, estados reales y comprobación con texto ampliado/teclado. No se instaló una skill global ni otra dependencia. La mejora sigue necesitando aceptación visual humana.
+
+Corte histórico 18/10/2026: tema publicado ya integrado; incremento R01+HU5–6 entonces local. Experimento rechazado excluido; pantallas conservan colores/tipografía/componentes. Una mejora funcional no implica aprobación visual.
 
 ## Dirección
 

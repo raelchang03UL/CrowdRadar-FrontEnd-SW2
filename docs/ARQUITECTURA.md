@@ -1,5 +1,23 @@
 # Arquitectura frontend
 
+## Cierre de revisión — 19/10/2026
+
+Rama integration/cierre-web-r01-s03-20261019; publicación acreditada por PR, no integración/aceptación/despliegue. F11 consulta GoRouterState.uri.path antes de ignorar el índice activo: sección y subruta no son equivalentes. No cambia router ni Favoritos;7regresiones y suite final en CIERRE_WEB_R01_S03. I1/I2/C2 conservados. Snapshots tmp inferiores son procedencia histórica opcional; evidencia esencial ahora versionada y enlazada desde el cierre.
+
+## Extensión de presentación sobre F3 — 19/10/2026
+
+Visibilidad de catálogo en estado local de PlacesMap; ValueKey estable del Expanded conserva FlutterMapState al retirar la columna. PlacesCubit sigue siendo único dueño de consultas/filtros; la selección por ID permanece en PlacesMap, sincronizada con lista/marcadores/ficha. No HTTP/SQL en widgets. SaturationPanel recibe ubicación opcional del PlaceModel API y reutiliza el desplegable. CitizenPointsCard extrae solo presentación de saldo/política para probar0/1/saldo real y texto ampliado sin cargar toda la página; no calcula premios ni modifica UserModel/roles. Alternativa: mantener un ListTile con trailing largo, descartada por legibilidad a2×. Coste pequeño: un widget reutilizable y parámetros explícitos, sin capas/patrones GoF ni carpetas reorganizadas. Tests y límites actuales en ESTADO_ACTUAL. I1/I2,servicios,router,SMTP y reglas de negocio intactos.
+
+## Incrementos locales I1–I3 — 19/10/2026
+
+Se conserva el par candidato B`eeff38b`/F`18cec26`, más los estados de trabajo inventariados. No implica publicación, integración ni aceptación. Diffs por incremento y huellas completas en `../../../../tmp/cierre-ux-20261019/F0` a `F3`; ESTADO_ACTUAL controla las pruebas vigentes. El corte del 18/10 inferior es antecedente.
+
+- I1: `SessionService.rejectIfCurrent` comprueba token/generación antes de invalidar una sesión rechazada. Los servicios protegidos llaman esa única comprobación; GoRouter observa la sesión y decide la navegación con aviso. No hay BuildContext en servicios, otro gestor de sesión, persistencia ni revocación backend. 503/desconexión no equivalen a 401. El login conserva su tratamiento de credenciales incorrectas.
+- I2: se reutiliza `GenericResponse<SaturationReportReward>` con códigos de resultado, sin cambiar API. `409 + REPORT_COOLDOWN` confirma el rechazo; transporte/respuestas no verificables producen `REPORT_UNCERTAIN`. Un 201 requiere mensaje e ID positivos válidos y correspondencia de lugar/nivel si se incluyen; una recompensa inválida/ausente no genera puntos en UI. El formulario conserva envío único y guardas, bloquea reenvío desde incertidumbre y permite revisar `/profile/reports`. HTTP no es garantía de entrega exactamente una vez: no se añade idempotencia de servidor ni reintentos automáticos.
+- I3: `PlaceMapControls` extrae solo el controlador del campo y composición adaptable. `PlacesCubit` sigue siendo dueño de nombre/categoría/nivel AND, última petición y limpieza por sesión; no se crea un segundo buscador. La ruta de búsqueda original se conserva. Catálogo/selector/marcadores usan ID y coordenadas reales. La consulta nueva retira la selección anterior; escribir sin consultar no recentra. `SaturationPanel.compact` reutiliza el mismo DTO y oculta solo explicación/conteos/fechas en Más información; detalle mantiene la presentación completa. Acciones de reportar, detalle e historiales quedan fuera del desplegable.
+
+Son composición de widgets, coordinación Observer del framework y límites de transporte/presentación existentes, no nuevos patrones GoF. Alternativas descartadas: navegar desde cada servicio, migrar toda la capa HTTP, otro buscador local incompatible o un tema nuevo. Reducirían poco estas brechas y ampliarían el riesgo. Costes conservados: estado estático de sesión, scroll en pantallas bajas/texto ampliado y verificación de respuestas. Pruebas de sesión, transporte, navegación, ID y disposición mantienen esos límites verificables; no se reorganizan carpetas.
+
 Corte local del 18/10/2026. Flutter Android/Web; Web responsive es plataforma principal. Rama `feature/local-s03-validacion-analitica-20261017`, no publicada ni aceptada formalmente. Conserva Cubit, GoRouter, flutter_map, Material 3 y tema publicado; excluye el experimento visual de la carpeta original.
 
 ## Responsabilidades e imports
