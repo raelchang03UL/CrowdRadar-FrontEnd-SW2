@@ -70,9 +70,10 @@ class _PlaceHistoryState extends State<PlaceHistoryPage> {
           onFieldSubmitted: (_) => _consult(),
         ),
       );
-  void _consult() {
+  void _consult({int? mode}) {
     if (_form.currentState?.validate() ?? false) {
       FocusScope.of(context).unfocus();
+      if (mode != null) setState(() => _mode = mode);
       _cubit.load();
     }
   }
@@ -192,10 +193,7 @@ class _PlaceHistoryState extends State<PlaceHistoryPage> {
                             selected: _mode == i,
                             onSelected: state.loading
                                 ? null
-                                : (_) {
-                                    setState(() => _mode = i);
-                                    _consult();
-                                  },
+                                : (_) => _consult(mode: i),
                           ),
                       ],
                     ),

@@ -1,5 +1,15 @@
 # Cierre Web R01/S3 — evidencia frontend
 
+## Corrección solicitada por N1c19 — 21/10/2026
+
+Sobre frontend `e87c090c785f2b45ad6c0698f64133544ea3666d`, `PlaceHistoryPage` valida el formulario antes de cambiar de modo. Una fecha inválida conserva Historial y sus datos, muestra el mensaje de validación y no consulta al servicio. Corregirla permite consultar Comparar/Horarios normalmente. No se reescriben servicios, cubits o modelos ni se altera el diseño.
+
+Regresión reproducible: `flutter test --no-pub test/place_history_mode_test.dart`. Primero carga Historial válido y prueba Desde A vacía/malformada hacia Comparar/Horarios, además de la consulta correcta posterior al error. Antes del arreglo: **4 TypeError** por interpretar los datos anteriores como Map/List de otro modo; **3/7** casos aprobados. Después: **7/7**, mensaje visible, cero consultas inválidas, modo/datos coherentes y sin TypeError. Incluye carga pendiente y respuestas antiguas exitosas/SESSION_INVALID que no restauran datos ni afectan otra sesión.
+
+Validación funcional final: `flutter analyze --no-pub` sin problemas; `flutter test --no-pub` **569 aprobadas, 2 opt-in omitidas, cero fallidas**; `flutter build web --no-pub --dart-define=API_BASE_URL=http://127.0.0.1:3053` correcto en 41,0 s, con salida absoluta nueva fuera del repositorio; `git diff --check` correcto. No instalaciones, SQL nuevo, correo real ni comprobación Android/navegador nueva. Las dos opt-in no se repitieron en este paquete; no atribuirles los resultados históricos inferiores.
+
+El [backend compañero](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/pull/39) corrige únicamente el aislamiento SMTP de QA. Los nuevos SHA del par y resultados se registran en las conversaciones de revisión de ambos PR. **Changes requested** sigue pendiente de revisión de Nick sobre los heads actuales; publicación no implica merge, aceptación ni despliegue.
+
 ## Verificación de aceptación Web — 20/10/2026
 
 Par funcional B`5d467ca66adb7a9dc26d2d0e13b87c957258e69d` / F`1ef1b9b7312bd8d57d508c10888427bb2cb1d005`. Documentación posterior sin cambios funcionales;par publicado en [F#21](https://github.com/raelchang03UL/CrowdRadar-FrontEnd-SW2/pull/21) y [B#39](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/pull/39). Pendiente revisión ajena/merge;ningún develop,Release oSprintse declara aceptado automáticamente.
