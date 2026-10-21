@@ -1,5 +1,21 @@
 # Cierre Web R01/S3 — evidencia frontend
 
+## Verificación de aceptación Web — 20/10/2026
+
+Par funcional B`5d467ca66adb7a9dc26d2d0e13b87c957258e69d` / F`1ef1b9b7312bd8d57d508c10888427bb2cb1d005`. Documentación posterior sin cambios funcionales;par publicado en [F#21](https://github.com/raelchang03UL/CrowdRadar-FrontEnd-SW2/pull/21) y [B#39](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/pull/39). Pendiente revisión ajena/merge;ningún develop,Release oSprintse declara aceptado automáticamente.
+
+562pruebas generales aprobadas y2opt-in excluidas por defecto,pero ejecutadas aparte:1/1cambio de contraseña en3053 y1/1recuperación en3031,widgetsVM+HTTP/PostgreSQL real. Perfil explícito `cierre-20261019`;hijo de recuperación confirma base/procedencia y usa correoRAM porIPC. No recepción SMTP nueva. La espera inicial del smoke apuntaba a un título bajo el viewport;se ajustó a identidadQA conservando aserciones de clave incorrecta,cambio,JWPrevio401,logout ylogin nuevo. Repetición1/1. Análisis limpio;Web58s/API3053;diff-check correcto. [QA/correo histórico/plan nube backend](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/blob/integration/cierre-web-r01-s03-20261019/docs/CIERRE_WEB_R01_S03.md).
+
+RecorridoIAB5553 con cuenta sintética propia y PostgreSQLcierre real:alta/login,buscarQAParque/seleccionar,reporteMODERADO+10,historial→perfil,ciclo inverso yMapa,voto ajeno definitivo,denuncia persistida sin ocultar/permitir duplicados,actualizar estado,historia12–14oct(72bloques/6suficientes),comparación yhorario10:00/3días,logout y acceso directo protegido. Capturas nuevas:
+
+- [Reporte confirmado](evidencias/aceptacion_web_2026_10_20/01-reporte.png).
+- [Participación y denuncia persistidas](evidencias/aceptacion_web_2026_10_20/03-validacion-denuncia.png).
+- [Horario histórico con datos suficientes](evidencias/aceptacion_web_2026_10_20/05-horarios.png).
+
+Capturas sin credenciales;datos sintéticos,no negocio real. La detección de respuestas antiguas/doble envío/200% corresponde a widgets,distinguir de navegador/SQL. Sin cambios del tema ni Favoritos. Aceptación global pendiente de revisión/merge y decisiones de dirección/cercanía;Android/Chrome normal/lector/manual200%sin ejecutar. HU7/8no implementadas.
+
+## Evidencia histórica de publicación — 19/10/2026
+
 19/10/2026. Rama `integration/cierre-web-r01-s03-20261019`; publicación/par final acreditados por PR, no integración/aceptación/despliegue.
 
 ## Versión y procedencia

@@ -1,5 +1,15 @@
 # Estado actual
 
+## Vigente: verificación Web de aceptación — 20/10/2026
+
+Par funcional B`5d467ca66adb7a9dc26d2d0e13b87c957258e69d` / F`1ef1b9b7312bd8d57d508c10888427bb2cb1d005`,documentación posterior sin cambios funcionales. PR39backend/21frontend requieren revisión ajena antes de merge. No equivale a develop actualizado ni aceptación del conjunto.
+
+Analyze sin problemas;562pruebas generales y2opt-in ejecutadas aparte1/1cadauna;Web58s/API3053. Opt-inscon destinos/puertos fijos y procedencia declarada del hijo recovery,conservando sus aserciones. El smoke primero esperó un título fuera del viewport;se corrigió la espera a identidadQA y scroll a la acción:1/1final.
+
+PostgreSQLR01fresh/legacy6/6,S3fresh7/7+legacy7/7,recovery6bloques. Únicamente2basesnuevasde cierre autorizadas;demo/históricas/QAanteriores intactas. CorreoRAM,no recepción nueva;SMTPDiego16/10evidencia histórica aplicable al código sin cambios.
+
+Recorrido5553:alta/login,buscar/seleccionar,reporte+10,historial→perfil,ciclo inverso,voto/denuncia ajenos,estado persistido,historia/comparación/horario10:00/3días,logout/rutas. Capturas en CIERRE_WEB_R01_S03. Aceptación global pendiente de revisión/merge y decisiones dirección(HU3.3)/«cercanos»(3.5/3.6). HU1.1/2.1uniforme ratificado;no contador nuevo. HU7/8/Favoritos fuera;Android/Chrome normal/manual200%/lector no ejecutados. Sin rediseño en este cierre. Cortes inferiores históricos.
+
 ## Vigente: cierre Web para revisión — 19/10/2026
 
 Rama `integration/cierre-web-r01-s03-20261019`, desde `18cec26` más F3/C2/F11. Publicación/par exacto acreditados por PR; no integración en develop,aceptación ni despliegue. [Resumen verificable/capturas](CIERRE_WEB_R01_S03.md).

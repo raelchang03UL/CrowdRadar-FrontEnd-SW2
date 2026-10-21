@@ -1,5 +1,7 @@
 # CrowdRadar Frontend
 
+Corte20/10/2026:verificación de aceptación Web en PR#21 y backend#39,pendiente de revisión ajena/merge. Las2integracionesopt-in ya ejecutadas contra PostgreSQLaislado;procedimiento en CONFIGURACION_LOCALbackend,perfilcierre/API3053/Web5553. Demo3043/5543conservada. [Resultados actuales](docs/CIERRE_WEB_R01_S03.md). HU7/8siguen pendientes.
+
 ## Revisión Web R01/S3 y demo local — 19/10/2026
 
 Rama `integration/cierre-web-r01-s03-20261019`, desde `18cec26` más pendientes F3/C2/F11. La publicación se acredita por el PR y su par exacto; **no implica integración en develop, aceptación ni despliegue**. Flutter Android/Web; Web es la plataforma comprobada en este cierre. [Resultados y procedencia](docs/CIERRE_WEB_R01_S03.md).
