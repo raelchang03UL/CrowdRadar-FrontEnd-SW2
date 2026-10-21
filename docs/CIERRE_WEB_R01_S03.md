@@ -12,7 +12,7 @@ RecorridoIAB5553 con cuenta sintética propia y PostgreSQLcierre real:alta/login
 - [Participación y denuncia persistidas](evidencias/aceptacion_web_2026_10_20/03-validacion-denuncia.png).
 - [Horario histórico con datos suficientes](evidencias/aceptacion_web_2026_10_20/05-horarios.png).
 
-Capturas sin credenciales;datos sintéticos,no negocio real. La detección de respuestas antiguas/doble envío/200% corresponde a widgets,distinguir de navegador/SQL. Sin cambios del tema ni Favoritos. Aceptación global pendiente de revisión/merge y decisiones de dirección/cercanía;Android/Chrome normal/lector/manual200%sin ejecutar. HU7/8no implementadas.
+Capturas sin credenciales;datos sintéticos,no negocio real. Respuestas antiguas/doble envío/200% corresponden a widgets,distinguir de navegador/SQL. Rael aprobó dirección ausente explícita y catálogo disponible sinGPS/radio20/10;criterios reconciliados sin cambiar implementación. Aceptación global pendiente de revisión ajena,merge ysmoke develop. Sin cambios del tema/Favoritos/HU7/8;Android/Chrome normal/lector/manual200%sin ejecutar.
 
 ## Evidencia histórica de publicación — 19/10/2026
 

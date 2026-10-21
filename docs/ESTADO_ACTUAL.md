@@ -8,7 +8,7 @@ Analyze sin problemas;562pruebas generales y2opt-in ejecutadas aparte1/1cadauna;
 
 PostgreSQLR01fresh/legacy6/6,S3fresh7/7+legacy7/7,recovery6bloques. Únicamente2basesnuevasde cierre autorizadas;demo/históricas/QAanteriores intactas. CorreoRAM,no recepción nueva;SMTPDiego16/10evidencia histórica aplicable al código sin cambios.
 
-Recorrido5553:alta/login,buscar/seleccionar,reporte+10,historial→perfil,ciclo inverso,voto/denuncia ajenos,estado persistido,historia/comparación/horario10:00/3días,logout/rutas. Capturas en CIERRE_WEB_R01_S03. Aceptación global pendiente de revisión/merge y decisiones dirección(HU3.3)/«cercanos»(3.5/3.6). HU1.1/2.1uniforme ratificado;no contador nuevo. HU7/8/Favoritos fuera;Android/Chrome normal/manual200%/lector no ejecutados. Sin rediseño en este cierre. Cortes inferiores históricos.
+Recorrido5553:alta/login,buscar/seleccionar,reporte+10,historial→perfil,ciclo inverso,voto/denuncia ajenos,estado persistido,historia/comparación/horario10:00/3días,logout/rutas. Capturas en CIERRE_WEB_R01_S03. Rael aprobó dirección ausente explícitaHU3.3 y«cercanos»como catálogo disponible sinGPS/radioHU3.5/3.6;HU1.1/2.1uniforme ratificado. Aceptación global pendiente de revisión ajena,merge ysmoke develop. Sin contador nuevo,HU7/8/Favoritos ni rediseño. Android/Chrome normal/manual200%/lector no ejecutados. Cortes inferiores históricos.
 
 ## Vigente: cierre Web para revisión — 19/10/2026
 
