@@ -1,15 +1,17 @@
 # Cómo contribuir a CrowdRadar
 
+Revisión19/10: el cierre se prepara en `integration/cierre-web-r01-s03-20261019` de ambos repositorios; consultar README/CIERRE_WEB_R01_S03 y el PR compañero. Los enlaces base-equipo inferiores son históricos. La rama publicada no cambia develop ni es autorización de merge/tareas nuevas. Cada integrante usa DB/secretos propios siguiendo CATALOGO_DEMO_LOCAL backend, sin carpetas tmp ajenas.
+
 Somos siete integrantes activos. Cada persona usa su clon, su cuenta Git y una rama por tarea; responde por el código que produzca con ayuda de IA.
 
 ## Lectura inicial
 
 1. [Reglas de este repositorio](AGENTS.md).
 2. [Arquitectura frontend](docs/ARQUITECTURA.md), [guía visual](docs/GUIA_VISUAL.md) y [estado técnico](docs/ESTADO_ACTUAL.md).
-3. Guías canónicas en backend: [coordinación](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/blob/develop/docs/COORDINACION_EQUIPO.md), [contrato API](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/blob/develop/docs/CONTRATO_API.md) y [configuración](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/blob/develop/docs/CONFIGURACION_LOCAL.md).
+3. En el clon backend hermano, leer `docs/INICIO_EQUIPO.md` (entrada y prompt para IA), `docs/COORDINACION_EQUIPO.md`, `docs/CONTRATO_API.md` y `docs/CONFIGURACION_LOCAL.md`. Leer la rama backend que corresponde al frontend revisado. Tras integrar ambos, las guías canónicas estarán en `develop`: [coordinación](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/blob/develop/docs/COORDINACION_EQUIPO.md), [contrato API](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/blob/develop/docs/CONTRATO_API.md) y [configuración](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/blob/develop/docs/CONFIGURACION_LOCAL.md).
 4. Issue aprobado en el [Project](https://github.com/users/raelchang03UL/projects/1).
 
-**Vigencia de los enlaces:** las guías se introducen en `feature/hu-3-1-mapa-lugares`. Los enlaces a `develop` serán utilizables después de integrar el PR backend. Mientras esté pendiente, consultar [coordinación en la rama de revisión](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/blob/feature/hu-3-1-mapa-lugares/docs/COORDINACION_EQUIPO.md) y [contrato en esa rama](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/blob/feature/hu-3-1-mapa-lugares/docs/CONTRATO_API.md), o leer ambos archivos en el clon backend hermano de la misma rama. No afirmar que clonar `develop` incorpora trabajo con PR aún abierto.
+**Vigencia de los enlaces:** las primeras guías se introdujeron en HU 3.1, pero el contrato cambió después con B/C. Para incorporarse/revisar el conjunto publicado con las guías nuevas, usar `integration/base-equipo` en ambos clones y consultar [inicio](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/blob/integration/base-equipo/docs/INICIO_EQUIPO.md), [coordinación](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/blob/integration/base-equipo/docs/COORDINACION_EQUIPO.md) y [contrato](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/blob/integration/base-equipo/docs/CONTRATO_API.md), o leerlos en el clon backend hermano. Esa rama es una instantánea de revisión, no una base aprobada para iniciar funcionalidades nuevas. Tras integrar el par, volver a `develop` como base diaria. No afirmar que clonar `develop` incorpora trabajo con PR aún abierto ni usar el contrato HU 3.1 para implementar recuperación.
 
 El contexto maestro/AGENTS de la carpeta padre no se descarga al clonar. Las guías versionables de ambos repositorios son el punto de entrada compartido.
 
