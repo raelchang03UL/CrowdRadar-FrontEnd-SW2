@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../components/cr_bottom_nav.dart';
 import '../../services/favorito_service.dart';
+import '../../services/session_service.dart'; // O auth_service.dart según tu proyecto
 import '../../theme/app_colors.dart';
 
 class FavoritosPage extends StatefulWidget {
-  final int idUsuario;
-  const FavoritosPage({super.key, this.idUsuario = 1}); // ID por defecto para pruebas
+  const FavoritosPage({super.key});
 
   @override
   State<FavoritosPage> createState() => _FavoritosPageState();
@@ -13,23 +13,44 @@ class FavoritosPage extends StatefulWidget {
 
 class _FavoritosPageState extends State<FavoritosPage> {
   final FavoritoService _favoritoService = FavoritoService();
-  bool _alertasActivadas = true;
-  List<dynamic> _favoritos = [];
+  final SessionService _sessionService = SessionService();
+
+  List<dynamic>? _favoritos; // null representa estado de error/no cargado, [] representa lista vacía
   bool _isLoading = true;
+  String? _token;
 
   @override
   void initState() {
     super.initState();
-    _cargarFavoritos();
+    _inicializarYCargar();
+  }
+
+  Future<void> _inicializarYCargar() async {
+    setState(() => _isLoading = true);
+    _token = await _sessionService.getToken(); // Obtiene el token de la sesión activa
+    
+    if (_token != null && _token!.isNotEmpty) {
+      await _cargarFavoritos();
+    } else {
+      setState(() {
+        _favoritos = null;
+        _isLoading = false;
+      });
+    }
   }
 
   Future<void> _cargarFavoritos() async {
+    if (_token == null) return;
     setState(() => _isLoading = true);
-    final lista = await _favoritoService.obtenerFavoritos(widget.idUsuario);
-    setState(() {
-      _favoritos = lista;
-      _isLoading = false;
-    });
+
+    final resultado = await _favoritoService.obtenerFavoritos(_token!);
+
+    if (mounted) {
+      setState(() {
+        _favoritos = resultado;
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -41,92 +62,49 @@ class _FavoritosPageState extends State<FavoritosPage> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                // HU 8.3: Switch de Alertas
-                Container(
-                  margin: const EdgeInsets.all(16),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.border, width: 1),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Alertas de saturación',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.text,
+          : _favoritos == null
+              ? _ErrorState(onRetry: _cargarFavoritos)
+              : _favoritos!.isEmpty
+                  ? const _EmptyState(
+                      icon: Icons.favorite_border,
+                      title: 'Sin favoritos todavía',
+                      subtitle: 'Los lugares que marques como favoritos van a aparecer acá.',
+                    )
+                  : RefreshIndicator(
+                      onRefresh: _cargarFavoritos,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: _favoritos!.length,
+                        itemBuilder: (context, index) {
+                          final item = _favoritos![index];
+                          final idLugar = item['id_lugar'] ?? item['id'] ?? 0;
+
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            color: AppColors.surface,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              side: const BorderSide(color: AppColors.border),
+                            ),
+                            child: ListTile(
+                              leading: const Icon(Icons.place, color: AppColors.secondary),
+                              title: Text(
+                                item['nombre'] ?? 'Lugar Favorito',
+                                style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.text),
+                              ),
+                              subtitle: Text(
+                                item['categoria'] ?? 'Sin categoría',
+                                style: const TextStyle(color: AppColors.textMuted),
+                              ),
+                              trailing: IconButton(
+                                icon: const Icon(Icons.favorite, color: Colors.red),
+                                onPressed: () => _confirmarEliminar(idLugar),
                               ),
                             ),
-                            Text(
-                              'Notificar cambios en mis lugares',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: AppColors.textMuted,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Switch(
-                        value: _alertasActivadas,
-                        onChanged: (val) async {
-                          setState(() => _alertasActivadas = val);
-                          await _favoritoService.cambiarAlertas(widget.idUsuario, val);
+                          );
                         },
                       ),
-                    ],
-                  ),
-                ),
-                // HU 8.2 & HU 8.4: Lista o Estado Vacío
-                Expanded(
-                  child: _favoritos.isEmpty
-                      ? const _MockEmptyState(
-                          icon: Icons.favorite_border,
-                          title: 'Sin favoritos todavía',
-                          subtitle: 'Los lugares que marques como favoritos van a aparecer acá.',
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          itemCount: _favoritos.length,
-                          itemBuilder: (context, index) {
-                            final item = _favoritos[index];
-                            return Card(
-                              margin: const EdgeInsets.only(bottom: 12),
-                              color: AppColors.surface,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                side: const BorderSide(color: AppColors.border),
-                              ),
-                              child: ListTile(
-                                leading: const Icon(Icons.place, color: AppColors.secondary),
-                                title: Text(
-                                  item['nombre'] ?? 'Lugar Favorito',
-                                  style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.text),
-                                ),
-                                subtitle: Text(
-                                  item['categoria'] ?? 'Sin categoría',
-                                  style: const TextStyle(color: AppColors.textMuted),
-                                ),
-                                trailing: IconButton(
-                                  icon: const Icon(Icons.favorite, color: Colors.red),
-                                  onPressed: () => _confirmarEliminar(item['id_lugar'] ?? 0),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                ),
-              ],
-            ),
+                    ),
       bottomNavigationBar: const CrBottomNav(currentIndex: 2),
     );
   }
@@ -136,7 +114,7 @@ class _FavoritosPageState extends State<FavoritosPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('¿Eliminar de favoritos?'),
-        content: const Text('Dejarás de recibir alertas de este lugar.'),
+        content: const Text('Este lugar se quitará de tu lista guardada.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -146,8 +124,18 @@ class _FavoritosPageState extends State<FavoritosPage> {
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () async {
               Navigator.pop(ctx);
-              await _favoritoService.eliminarFavorito(widget.idUsuario, idLugar);
-              _cargarFavoritos();
+              if (_token != null) {
+                final exito = await _favoritoService.eliminarFavorito(_token!, idLugar);
+                if (exito) {
+                  _cargarFavoritos();
+                } else {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('No se pudo eliminar el favorito. Intenta de nuevo.')),
+                    );
+                  }
+                }
+              }
             },
             child: const Text('Eliminar', style: TextStyle(color: Colors.white)),
           ),
@@ -157,12 +145,12 @@ class _FavoritosPageState extends State<FavoritosPage> {
   }
 }
 
-class _MockEmptyState extends StatelessWidget {
+class _EmptyState extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
 
-  const _MockEmptyState({
+  const _EmptyState({
     required this.icon,
     required this.title,
     required this.subtitle,
@@ -204,6 +192,44 @@ class _MockEmptyState extends StatelessWidget {
                 color: AppColors.textMuted,
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ErrorState extends StatelessWidget {
+  final VoidCallback onRetry;
+
+  const _ErrorState({required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 56, color: Colors.amber),
+            const SizedBox(height: 16),
+            const Text(
+              'No se pudieron cargar tus favoritos',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.text),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Verifica tu conexión a internet o la sesión del servidor.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.textMuted),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Reintentar'),
+            )
           ],
         ),
       ),
