@@ -21,6 +21,11 @@ import '../pages/profile/change_password_page.dart';
 import '../pages/reports/report_history_page.dart';
 import '../pages/reports/report_review_page.dart';
 import '../pages/places/place_history_page.dart';
+import '../pages/admin/admin_users_page.dart';
+import '../pages/admin/admin_user_detail_page.dart';
+import '../services/admin_user_service.dart';
+import '../pages/admin/admin_reports_page.dart';
+import '../pages/admin/admin_report_detail_page.dart';
 
 final appRouter = createAppRouter();
 
@@ -28,6 +33,7 @@ GoRouter createAppRouter({
   String initialLocation = '/login',
   RecoveryService? recoveryService,
   PlaceService? placeService,
+  AdminUserService? adminUserService,
 }) => GoRouter(
   initialLocation: initialLocation,
   refreshListenable: SessionService.changes,
@@ -42,9 +48,41 @@ GoRouter createAppRouter({
           ? '/login?notice=sessionExpired'
           : '/login';
     }
+    if ((state.uri.path == '/admin' || state.uri.path.startsWith('/admin/')) &&
+        SessionService.currentUser?.rol != 'ADMIN') {
+      return '/profile';
+    }
     return null;
   },
   routes: [
+    GoRoute(
+      path: '/admin/reports',
+      builder: (context, state) => AdminReportsPage(
+        key: ValueKey(state.uri.toString()),
+        authorId: state.uri.queryParameters.containsKey('authorId')
+            ? int.tryParse(state.uri.queryParameters['authorId']!) ?? 0
+            : null,
+      ),
+    ),
+    GoRoute(
+      path: '/admin/reports/:id',
+      builder: (context, state) => AdminReportDetailPage(
+        key: ValueKey(state.uri.path),
+        id: state.pathParameters['id'] ?? '',
+      ),
+    ),
+    GoRoute(
+      path: '/admin/users',
+      builder: (context, state) => AdminUsersPage(service: adminUserService),
+    ),
+    GoRoute(
+      path: '/admin/users/:id',
+      builder: (context, state) => AdminUserDetailPage(
+        key: ValueKey(state.uri.path),
+        id: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
+        service: adminUserService,
+      ),
+    ),
     GoRoute(
       path: '/login',
       builder: (context, state) => LoginPage(

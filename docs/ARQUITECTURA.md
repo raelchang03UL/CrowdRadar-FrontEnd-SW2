@@ -1,5 +1,25 @@
 # Arquitectura frontend
 
+## Revisión administrativa HU7.1 — 28/10/2026
+
+AdminReportsPage/AdminReportDetailPage → cubits derivados de RequestCubit → AdminReportService → ApiJsonClient. Modelos separados validan resumen, detalle, agrupaciones, cursor e historial. Las pantallas presentan información y confirmaciones; no calculan permisos efectivos ni hacen HTTP. El router conserva el guard ADMIN y el backend revalida al actor para cada operación.
+
+La decisión envía revisión y total leídos. Guardado pendiente impide doble envío y salida; un409 o una respuesta incierta ocultan acciones obsoletas y piden actualizar. Al decidir se reinicia el cursor del historial. Cambiar sesión invalida respuestas y cierra la confirmación. Estado Pendiente puede coexistir con decisiones anteriores porque una denuncia nueva reabre la revisión; no representa pérdida del historial.
+
+El historial propio reutiliza su modelo y tarjeta con isPublic, y CitizenReport permite removedFromPublic solo para una consulta propia. Etiquetas y explicación aclaran el retiro conservando evidencia y puntos. Cambios aditivos en las rutas existentes, sin reemplazar ApiJsonClient, RequestCubit, tema, dependencias ni locks. Migraciones008/009 del backend son prerrequisito. La visualización de Sites permanece independiente del código local real.
+
+## Confirmación e historial administrativo — 28/10/2026
+
+AdminUserDetailPage conserva RequestCubit para leer/guardar; AdminAccountPanel y AdminAccountDialog contienen presentación y confirmación. AdminHistoryCubit reutiliza RequestCubit y guarda solo el cursor de la página actual. AdminUserService valida la revisión/estado/ID del resultado y el orden/cursor del historial, sin lógica de permisos visual que sustituya al servidor. AdminAccountAction mantiene ID BIGINT textual; fechas mediante limaDate existente.
+
+La revisión forma parte de la clave del panel para renovar el historial tras cada transición; regresar a la lista recarga sus datos y conserva filtros. La acción pendiente bloquea envío y vuelta; una respuesta no verificable exige leer antes de decidir de nuevo. La confirmación se cierra al cambiar sesión. No se modifican ApiJsonClient ni RequestCubit compartidos, tema, dependencias o rutas ciudadanas. El backend exige migración008 y conserva la autorización real. Ver ESTADO_ACTUAL para pruebas de widgets, PostgreSQL y recorrido Web independientes.
+
+## Consulta de usuarios HU7.2 — 27/10/2026
+
+Incremento local: AdminUsersPage → AdminUsersCubit/RequestCubit → AdminUserService → ApiJsonClient → rutas administrativas reales. AdminUserDetailPage reutiliza RequestCubit para la lectura por ID. AdminUser valida el DTO; el servicio exige que ID/paginación correspondan a lo solicitado y descarta respuestas incoherentes. No hay datos administrativos simulados en producción ni dependencias nuevas.
+
+Perfil muestra Administrar usuarios únicamente al cargar una cuenta ADMIN. El router restringe ambas páginas; la autorización efectiva sigue en el backend. La búsqueda se ejecuta con Buscar/Enter, combina estado y texto, reinicia página y presenta solo el último resultado vigente. Lista y detalle son rutas separadas; volver conserva filtros y listado. Los estados cargando/vacío/error y la limpieza al cambiar sesión reutilizan las guardas del proyecto. Material 3, AppTheme y AppColors se conservan, con disposición adaptable y scroll. Suspensión, reactivación y auditoría aún no se habilitan en este incremento.
+
 ## Cierre de revisión — 19/10/2026
 
 Rama integration/cierre-web-r01-s03-20261019; publicación acreditada por PR, no integración/aceptación/despliegue. F11 consulta GoRouterState.uri.path antes de ignorar el índice activo: sección y subruta no son equivalentes. No cambia router ni Favoritos;7regresiones y suite final en CIERRE_WEB_R01_S03. I1/I2/C2 conservados. Snapshots tmp inferiores son procedencia histórica opcional; evidencia esencial ahora versionada y enlazada desde el cierre.

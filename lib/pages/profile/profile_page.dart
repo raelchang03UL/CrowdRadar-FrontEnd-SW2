@@ -159,6 +159,20 @@ class _ProfileView extends StatelessWidget {
         ),
       ),
       const SizedBox(height: 24),
+      if (user.rol == 'ADMIN') ...[
+        OutlinedButton.icon(
+          icon: const Icon(Icons.admin_panel_settings_outlined),
+          label: const Text('Administrar usuarios'),
+          onPressed: () => context.push('/admin/users'),
+        ),
+        const SizedBox(height: 16),
+        OutlinedButton.icon(
+          icon: const Icon(Icons.fact_check_outlined),
+          label: const Text('Revisar reportes denunciados'),
+          onPressed: () => context.push('/admin/reports'),
+        ),
+        const SizedBox(height: 16),
+      ],
       ElevatedButton.icon(
         icon: const Icon(Icons.edit_outlined),
         label: const Text('Editar perfil'),

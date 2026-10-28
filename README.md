@@ -1,5 +1,9 @@
 # CrowdRadar Frontend
 
+## Candidato HU7 para revisión — 28/10/2026
+
+Esta rama incorpora Perfil ADMIN → Administrar usuarios y Revisar reportes denunciados, con búsqueda, acciones confirmadas e historiales persistidos. Necesita el backend HU7 y sus migraciones explícitas008/009. [Recorridos y evidencia](docs/CIERRE_HU7.md); contrato canónico en el backend compañero. Publicación, revisión e integración son pasos separados; el par exacto se acredita en Git/PR. Los cortes inferiores son históricos y no describen el alcance HU7 de esta rama.
+
 Corte20/10/2026:verificación de aceptación Web en PR#21 y backend#39,pendiente de revisión ajena/merge. Las2integracionesopt-in ya ejecutadas contra PostgreSQLaislado;procedimiento en CONFIGURACION_LOCALbackend,perfilcierre/API3053/Web5553. Demo3043/5543conservada. [Resultados actuales](docs/CIERRE_WEB_R01_S03.md). HU7/8siguen pendientes.
 
 ## Revisión Web R01/S3 y demo local — 19/10/2026
