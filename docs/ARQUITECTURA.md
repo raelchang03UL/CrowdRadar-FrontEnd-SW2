@@ -1,24 +1,18 @@
 # Arquitectura frontend
 
-## Revisión administrativa HU7.1 — 28/10/2026
+## Moderación HU7 — 28/10/2026
 
-AdminReportsPage/AdminReportDetailPage → cubits derivados de RequestCubit → AdminReportService → ApiJsonClient. Modelos separados validan resumen, detalle, agrupaciones, cursor e historial. Las pantallas presentan información y confirmaciones; no calculan permisos efectivos ni hacen HTTP. El router conserva el guard ADMIN y el backend revalida al actor para cada operación.
+Páginas/diálogos administrativos → cubits derivados de RequestCubit → AdminUserService o AdminReportService → ApiJsonClient. Modelos validan DTO, agrupaciones, revisiones, orden y cursores. El router restringe ADMIN; la autorización efectiva pertenece al backend. No hay HTTP en widgets ni datos simulados para reemplazar endpoints.
 
-La decisión envía revisión y total leídos. Guardado pendiente impide doble envío y salida; un409 o una respuesta incierta ocultan acciones obsoletas y piden actualizar. Al decidir se reinicia el cursor del historial. Cambiar sesión invalida respuestas y cierra la confirmación. Estado Pendiente puede coexistir con decisiones anteriores porque una denuncia nueva reabre la revisión; no representa pérdida del historial.
+Los listados conservan filtros al volver del detalle y descartan respuestas antiguas. Confirmación se cierra al cambiar sesión; envío pendiente impide doble acción y salida. Una respuesta incierta o conflicto exige actualizar. Historial se renueva tras cada decisión, con fechas Lima e IDs BIGINT como texto. Pendiente puede coexistir con decisiones anteriores porque una denuncia nueva reabre revisión.
 
-El historial propio reutiliza su modelo y tarjeta con isPublic, y CitizenReport permite removedFromPublic solo para una consulta propia. Etiquetas y explicación aclaran el retiro conservando evidencia y puntos. Cambios aditivos en las rutas existentes, sin reemplazar ApiJsonClient, RequestCubit, tema, dependencias ni locks. Migraciones008/009 del backend son prerrequisito. La visualización de Sites permanece independiente del código local real.
+Historial propio añade visibilidad y CitizenReport permite la señal de retiro solo en consulta propia. El login reconoce403 ACCOUNT_SUSPENDED con texto público fijo; no almacena sesión y mantiene el formulario.401 conserva error genérico; otros403 no exponen detalles internos. Se reutilizan tema, sesión y componentes; sin dependencias o locks nuevos. Backend HU7 con008/009 es prerrequisito.
 
-## Confirmación e historial administrativo — 28/10/2026
+[Recorrido/evidencia](CIERRE_HU7.md) y [estado](ESTADO_ACTUAL.md). Android y lectores de pantalla siguen pendientes.
 
-AdminUserDetailPage conserva RequestCubit para leer/guardar; AdminAccountPanel y AdminAccountDialog contienen presentación y confirmación. AdminHistoryCubit reutiliza RequestCubit y guarda solo el cursor de la página actual. AdminUserService valida la revisión/estado/ID del resultado y el orden/cursor del historial, sin lógica de permisos visual que sustituya al servidor. AdminAccountAction mantiene ID BIGINT textual; fechas mediante limaDate existente.
+## Antecedentes anteriores a HU7
 
-La revisión forma parte de la clave del panel para renovar el historial tras cada transición; regresar a la lista recarga sus datos y conserva filtros. La acción pendiente bloquea envío y vuelta; una respuesta no verificable exige leer antes de decidir de nuevo. La confirmación se cierra al cambiar sesión. No se modifican ApiJsonClient ni RequestCubit compartidos, tema, dependencias o rutas ciudadanas. El backend exige migración008 y conserva la autorización real. Ver ESTADO_ACTUAL para pruebas de widgets, PostgreSQL y recorrido Web independientes.
-
-## Consulta de usuarios HU7.2 — 27/10/2026
-
-Incremento local: AdminUsersPage → AdminUsersCubit/RequestCubit → AdminUserService → ApiJsonClient → rutas administrativas reales. AdminUserDetailPage reutiliza RequestCubit para la lectura por ID. AdminUser valida el DTO; el servicio exige que ID/paginación correspondan a lo solicitado y descarta respuestas incoherentes. No hay datos administrativos simulados en producción ni dependencias nuevas.
-
-Perfil muestra Administrar usuarios únicamente al cargar una cuenta ADMIN. El router restringe ambas páginas; la autorización efectiva sigue en el backend. La búsqueda se ejecuta con Buscar/Enter, combina estado y texto, reinicia página y presenta solo el último resultado vigente. Lista y detalle son rutas separadas; volver conserva filtros y listado. Los estados cargando/vacío/error y la limpieza al cambiar sesión reutilizan las guardas del proyecto. Material 3, AppTheme y AppColors se conservan, con disposición adaptable y scroll. Suspensión, reactivación y auditoría aún no se habilitan en este incremento.
+Los cortes inferiores conservan su fecha y alcance originales. El estado vigente de HU7 es el resumen superior; sus iteraciones previas se conservan en Git.
 
 ## Cierre de revisión — 19/10/2026
 

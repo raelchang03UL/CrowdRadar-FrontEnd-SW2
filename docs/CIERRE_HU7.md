@@ -12,9 +12,11 @@ Nicolás Kou / kowisprox, 28/10/2026. Candidato HU7 sobre frontend711384d/backen
 
 En envío pendiente se bloquean salida y doble acción. Un409 o respuesta incierta requiere actualizar; no hay reenvío automático. Cambiar sesión cierra confirmación y descarta respuestas antiguas. Tema, dependencias y locks se conservan.
 
+El login informa suspensión únicamente con clave válida:403 ACCOUNT_SUSPENDED produce un mensaje público fijo, sin sesión y conservando formulario. Clave incorrecta/correo inexistente mantiene el error genérico; otros403 o cuerpos inválidos no exponen mensajes del servidor. Este ajuste cumple el aviso del tercer criterio de HU7.3.
+
 ## Pruebas
 
-Flutter3.41.9/Dart3.11.5: análisis sin problemas;612 aprobadas, cero fallidas y las mismas dos opt-in anteriores omitidas; Web release compilada en34,1s para API3067. Widgets de administración cubren360/390/1440 y texto1×/2×. Backend198/198 y18 bloques SQL/HTTP reales en su única base HU7 aislada; no se atribuyen a Android ni a CI de GitHub.
+Flutter3.41.9/Dart3.11.5: análisis sin problemas;615 aprobadas, cero fallidas y las mismas dos opt-in anteriores omitidas. Widgets de administración cubren360/390/1440 y texto1×/2×. Los tres casos nuevos cubren mensaje de suspensión, errores desconocidos y pantalla sin crear sesión. Backend200/200 y18 bloques SQL/HTTP reales nuevamente aprobados en su única base HU7 aislada; no se atribuyen a Android ni a CI de GitHub.
 
 Recorrido IAB real: Web5567/API3067/PostgreSQL5447. Solo cuentas ficticias, sin correo real. Capturas de esta versión:
 
@@ -26,8 +28,10 @@ Recorrido IAB real: Web5567/API3067/PostgreSQL5447. Solo cuentas ficticias, sin 
 
 ![Historial de conservación y retiro](evidencias/hu7_2026_10_28/reporte-retirado-historial-final.png)
 
-## Límites para la revisión
+![Aviso de suspensión con contraseña válida](evidencias/hu7_2026_10_28/login-cuenta-suspendida.png)
 
-El tercer criterio heredado de HU7.3 pide un aviso explícito de suspensión al iniciar sesión. El backend conserva el mensaje uniforme de autenticación acordado anteriormente; el bloqueo sí está comprobado, pero esa redacción literal requiere alineación con equipo/JP. No se cierra la historia automáticamente.
+El aviso se comprobó en la Web release corregida (30,4s), con la cuenta ficticia Ana de la base HU7, sin emitir sesión. Las capturas administrativas anteriores documentan los mismos flujos conservados.
+
+## Límites para la revisión
 
 Android, lector de pantalla, revisión ajena e integración del par siguen pendientes. La visualización de Sites es el boceto previo. No se añade HU8/Favoritos, despliegue remoto ni persistencia del JWT. El cliente requiere el backend HU7 con migraciones008/009 aplicadas; una compilación anterior no prueba estas pantallas.
