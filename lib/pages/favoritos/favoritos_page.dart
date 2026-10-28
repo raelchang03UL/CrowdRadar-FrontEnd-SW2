@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../components/cr_bottom_nav.dart';
 import '../../services/favorito_service.dart';
-import '../../services/session_service.dart'; // O auth_service.dart según tu proyecto
+import '../../services/session_service.dart';
 import '../../theme/app_colors.dart';
 
 class FavoritosPage extends StatefulWidget {
@@ -13,9 +13,8 @@ class FavoritosPage extends StatefulWidget {
 
 class _FavoritosPageState extends State<FavoritosPage> {
   final FavoritoService _favoritoService = FavoritoService();
-  final SessionService _sessionService = SessionService();
 
-  List<dynamic>? _favoritos; // null representa estado de error/no cargado, [] representa lista vacía
+  List<dynamic>? _favoritos;
   bool _isLoading = true;
   String? _token;
 
@@ -27,7 +26,8 @@ class _FavoritosPageState extends State<FavoritosPage> {
 
   Future<void> _inicializarYCargar() async {
     setState(() => _isLoading = true);
-    _token = await _sessionService.getToken(); // Obtiene el token de la sesión activa
+    // Usamos el getter directo 'SessionService.token' del proyecto
+    _token = SessionService.token; 
     
     if (_token != null && _token!.isNotEmpty) {
       await _cargarFavoritos();
@@ -131,7 +131,7 @@ class _FavoritosPageState extends State<FavoritosPage> {
                 } else {
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('No se pudo eliminar el favorito. Intenta de nuevo.')),
+                      const SnackBar(content: Text('No se pudo eliminar el favorito.')),
                     );
                   }
                 }
