@@ -1,5 +1,20 @@
 # Estado actual
 
+## HU7 para revisión — 28/10/2026
+
+Rama feature/hu-7-moderacion-kou; Nicolás Kou / kowisprox. [Frontend23](https://github.com/raelchang03UL/CrowdRadar-FrontEnd-SW2/pull/23), compañero [backend42](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/pull/42). Par vigente: heads de ambos PR. Publicado para revisión; pendiente revisión ajena e integración.
+
+- Perfil ADMIN → Administrar usuarios / Revisar reportes denunciados. Lista y detalle separados, búsqueda literal y filtros, confirmaciones, historiales con fecha Lima y paginación. Suspensión con motivo; reactivación con observación opcional.
+- Reportes: total antes de motivos agrupados, incluido Sin motivo; conservar/retirar con motivo. Nueva denuncia reabre Pendiente sin perder historial. Retiro conserva consulta privada del autor y puntos; el backend excluye información y cálculos públicos.
+- Login reconoce403 ACCOUNT_SUSPENDED y presenta un mensaje público fijo sin iniciar sesión. El backend exige contraseña válida antes de informar suspensión.401 mantiene el mensaje genérico;403 desconocidos o malformados no exponen cuerpos del servidor.
+- Se conservan tema, dependencias, locks, RequestCubit/ApiJsonClient y guardas de sesión. Doble envío/salida bloqueados durante guardado; conflicto o respuesta incierta exige actualizar sin reenvío automático.
+- Flutter3.41.9/Dart3.11.5:615 aprobadas, cero fallidas, dos opt-in anteriores omitidas; análisis limpio. Backend200/200 y18 bloques SQL/HTTP HU7 reales. Los tres casos nuevos verifican mensaje de suspensión, errores desconocidos y pantalla sin sesión.
+- [Recorrido y capturas](CIERRE_HU7.md). Requiere backend HU7 y migraciones008/009. Android, lectores de pantalla y aceptación del equipo pendientes. Sites conserva el boceto previo.
+
+## Antecedentes anteriores a HU7
+
+Los cortes inferiores conservan su fecha y alcance originales. El estado vigente de HU7 es el resumen superior; sus iteraciones previas se conservan en Git.
+
 ## Vigente: verificación Web de aceptación — 20/10/2026
 
 Par funcional B`5d467ca66adb7a9dc26d2d0e13b87c957258e69d` / F`1ef1b9b7312bd8d57d508c10888427bb2cb1d005`,documentación posterior sin cambios funcionales. PR39backend/21frontend requieren revisión ajena antes de merge. No equivale a develop actualizado ni aceptación del conjunto.

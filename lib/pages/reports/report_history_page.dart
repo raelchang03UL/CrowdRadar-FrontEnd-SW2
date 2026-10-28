@@ -207,7 +207,16 @@ class _ReportCard extends StatelessWidget {
             const SizedBox(height: 7),
             Row(
               children: [
-                _StatusChip(label: 'Registrado', color: AppColors.success),
+                Flexible(
+                  child: _StatusChip(
+                    label: report.isPublic
+                        ? 'Registrado'
+                        : 'Retirado de la vista pública',
+                    color: report.isPublic
+                        ? AppColors.success
+                        : AppColors.danger,
+                  ),
+                ),
                 const Spacer(),
                 Icon(Icons.chevron_right, size: 18, color: AppColors.textMuted),
               ],
@@ -315,6 +324,13 @@ class _ReportDetails extends StatelessWidget {
             report.levelLabel,
           ),
           const SizedBox(height: 16),
+          if (!report.isPublic)
+            const Padding(
+              padding: EdgeInsets.only(bottom: 16),
+              child: Text(
+                'Retirado de la vista pública. Se conserva en tu historial y mantiene el karma que ya se otorgó.',
+              ),
+            ),
           OutlinedButton.icon(
             onPressed: () {
               final router = GoRouter.of(context);

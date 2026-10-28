@@ -209,6 +209,13 @@ class _ReportReview extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text('${report.level} · ${limaDate(report.createdAt)} (Lima)'),
                 const SizedBox(height: 24),
+                if (report.removedFromPublic)
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 16),
+                    child: Text(
+                      'Retirado de la vista pública. Puedes consultar su evidencia como autor; no participa en los cálculos públicos.',
+                    ),
+                  ),
                 Text(
                   'Estado de validación',
                   style: Theme.of(context).textTheme.titleLarge,

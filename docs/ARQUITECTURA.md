@@ -1,5 +1,19 @@
 # Arquitectura frontend
 
+## Moderación HU7 — 28/10/2026
+
+Páginas/diálogos administrativos → cubits derivados de RequestCubit → AdminUserService o AdminReportService → ApiJsonClient. Modelos validan DTO, agrupaciones, revisiones, orden y cursores. El router restringe ADMIN; la autorización efectiva pertenece al backend. No hay HTTP en widgets ni datos simulados para reemplazar endpoints.
+
+Los listados conservan filtros al volver del detalle y descartan respuestas antiguas. Confirmación se cierra al cambiar sesión; envío pendiente impide doble acción y salida. Una respuesta incierta o conflicto exige actualizar. Historial se renueva tras cada decisión, con fechas Lima e IDs BIGINT como texto. Pendiente puede coexistir con decisiones anteriores porque una denuncia nueva reabre revisión.
+
+Historial propio añade visibilidad y CitizenReport permite la señal de retiro solo en consulta propia. El login reconoce403 ACCOUNT_SUSPENDED con texto público fijo; no almacena sesión y mantiene el formulario.401 conserva error genérico; otros403 no exponen detalles internos. Se reutilizan tema, sesión y componentes; sin dependencias o locks nuevos. Backend HU7 con008/009 es prerrequisito.
+
+[Recorrido/evidencia](CIERRE_HU7.md) y [estado](ESTADO_ACTUAL.md). Android y lectores de pantalla siguen pendientes.
+
+## Antecedentes anteriores a HU7
+
+Los cortes inferiores conservan su fecha y alcance originales. El estado vigente de HU7 es el resumen superior; sus iteraciones previas se conservan en Git.
+
 ## Cierre de revisión — 19/10/2026
 
 Rama integration/cierre-web-r01-s03-20261019; publicación acreditada por PR, no integración/aceptación/despliegue. F11 consulta GoRouterState.uri.path antes de ignorar el índice activo: sección y subruta no son equivalentes. No cambia router ni Favoritos;7regresiones y suite final en CIERRE_WEB_R01_S03. I1/I2/C2 conservados. Snapshots tmp inferiores son procedencia histórica opcional; evidencia esencial ahora versionada y enlazada desde el cierre.

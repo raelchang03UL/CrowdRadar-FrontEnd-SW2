@@ -154,6 +154,111 @@ void main() {
     },
   );
 
+  test(
+    'login reconoce suspensión y usa un mensaje público sin crear sesión',
+    () async {
+      await http.runWithClient(
+        () async {
+          final result = await AuthService().login(
+            'unit@example.test',
+            'synthetic-password',
+          );
+          expect(result.success, false);
+          expect(result.error, 'ACCOUNT_SUSPENDED');
+          expect(
+            result.message,
+            'Tu cuenta está suspendida. Un administrador debe reactivarla para que puedas volver a ingresar.',
+          );
+          expect(SessionService.isAuthenticated, false);
+        },
+        () => MockClient(
+          (_) async => http.Response(
+            jsonEncode({
+              'code': 'ACCOUNT_SUSPENDED',
+              'message': 'internal SQL detail must not be displayed',
+            }),
+            403,
+          ),
+        ),
+      );
+    },
+  );
+
+  test('login no confunde errores desconocidos con suspensión', () async {
+    for (final response in [
+      http.Response(jsonEncode({'code': 'ACCOUNT_SUSPENDED'}), 401),
+      http.Response(
+        jsonEncode({'code': 'OTHER', 'message': 'private detail'}),
+        403,
+      ),
+      http.Response('invalid private detail', 403),
+    ]) {
+      await http.runWithClient(() async {
+        final result = await AuthService().login(
+          'unit@example.test',
+          'synthetic-password',
+        );
+        expect(result.success, false);
+        expect(result.error, isNot('ACCOUNT_SUSPENDED'));
+        expect(
+          result.message,
+          response.statusCode == 401
+              ? 'Correo o contraseña incorrectos.'
+              : AuthService.serverError,
+        );
+        expect(SessionService.isAuthenticated, false);
+      }, () => MockClient((_) async => response));
+    }
+  });
+
+  testWidgets(
+    'login muestra suspensión conservando el formulario y sin ingresar',
+    (tester) async {
+      await http.runWithClient(
+        () async {
+          await tester.pumpWidget(
+            MaterialApp(
+              theme: AppTheme.lightTheme,
+              home: BlocProvider(
+                create: (_) => AuthCubit(),
+                child: const LoginPage(),
+              ),
+            ),
+          );
+          await tester.enterText(
+            find.byType(TextFormField).at(0),
+            'unit@example.test',
+          );
+          await tester.enterText(
+            find.byType(TextFormField).at(1),
+            'synthetic-password',
+          );
+          await tester.ensureVisible(
+            find.widgetWithText(ElevatedButton, 'Iniciar sesión'),
+          );
+          await tester.tap(
+            find.widgetWithText(ElevatedButton, 'Iniciar sesión'),
+          );
+          await tester.pumpAndSettle();
+          expect(
+            find.text(
+              'Tu cuenta está suspendida. Un administrador debe reactivarla para que puedas volver a ingresar.',
+            ),
+            findsOneWidget,
+          );
+          expect(find.text('unit@example.test'), findsOneWidget);
+          expect(SessionService.isAuthenticated, false);
+          expect(tester.takeException(), isNull);
+          await tester.pumpWidget(const SizedBox.shrink());
+        },
+        () => MockClient(
+          (_) async =>
+              http.Response(jsonEncode({'code': 'ACCOUNT_SUSPENDED'}), 403),
+        ),
+      );
+    },
+  );
+
   for (final registering in [false, true]) {
     testWidgets(
       '${registering ? 'registro' : 'login'} mantiene formulario, bloquea doble envío y muestra error estable',

@@ -4,6 +4,7 @@ class SaturationReportModel {
   final String level;
   final int placeId;
   final String placeName;
+  final bool isPublic;
 
   const SaturationReportModel({
     required this.id,
@@ -11,6 +12,7 @@ class SaturationReportModel {
     required this.level,
     required this.placeId,
     required this.placeName,
+    this.isPublic = true,
   });
 
   factory SaturationReportModel.fromJson(Map<String, dynamic> json) {
@@ -26,7 +28,8 @@ class SaturationReportModel {
         !const ['TRANQUILO', 'MODERADO', 'SATURADO'].contains(level) ||
         placeId is! int ||
         placeName is! String ||
-        placeName.trim().isEmpty) {
+        placeName.trim().isEmpty ||
+        (json.containsKey('isPublic') && json['isPublic'] is! bool)) {
       throw const FormatException('Información de reporte inválida');
     }
     return SaturationReportModel(
@@ -35,6 +38,7 @@ class SaturationReportModel {
       level: level as String,
       placeId: placeId,
       placeName: placeName,
+      isPublic: json['isPublic'] as bool? ?? true,
     );
   }
 

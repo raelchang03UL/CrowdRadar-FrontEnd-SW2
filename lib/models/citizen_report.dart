@@ -3,6 +3,7 @@ class CitizenReport {
   final int placeId, confirmations, rejections, confirmWeight, totalWeight;
   final DateTime createdAt;
   final bool isOwn, alreadyDenounced;
+  final bool removedFromPublic;
   final String? ownDecision, reliability;
   const CitizenReport({
     required this.id,
@@ -18,6 +19,7 @@ class CitizenReport {
     required this.alreadyDenounced,
     this.ownDecision,
     this.reliability,
+    this.removedFromPublic = false,
   });
   factory CitizenReport.fromJson(Map<String, dynamic> data) {
     final confidence = data['reliability'] as Map<String, dynamic>;
@@ -34,7 +36,10 @@ class CitizenReport {
     }
     if (!['TRANQUILO', 'MODERADO', 'SATURADO'].contains(data['level']) ||
         ![null, 'ALTO', 'MEDIO', 'BAJO'].contains(confidence['level']) ||
-        ![null, 'CONFIRM', 'REJECT'].contains(data['ownDecision'])) {
+        ![null, 'CONFIRM', 'REJECT'].contains(data['ownDecision']) ||
+        (data.containsKey('removedFromPublic') &&
+            data['removedFromPublic'] is! bool) ||
+        (data['removedFromPublic'] == true && data['isOwn'] != true)) {
       throw const FormatException('Nivel inválido');
     }
     return CitizenReport(
@@ -51,6 +56,7 @@ class CitizenReport {
       alreadyDenounced: data['alreadyDenounced'] as bool,
       ownDecision: data['ownDecision'] as String?,
       reliability: confidence['level'] as String?,
+      removedFromPublic: data['removedFromPublic'] as bool? ?? false,
     );
   }
 }
