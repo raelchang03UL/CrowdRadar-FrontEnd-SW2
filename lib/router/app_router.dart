@@ -1,8 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../models/user_model.dart';
-import '../models/place_model.dart';
 import '../services/session_service.dart';
 import '../services/recovery_service.dart';
 
@@ -11,7 +9,6 @@ import '../pages/register/register_page.dart';
 import '../pages/login/forgot_password_page.dart';
 import '../pages/login/reset_password_page.dart';
 import '../pages/map/map_page.dart';
-import '../pages/places/place_detail_page.dart';
 import '../pages/validar/validar_page.dart';
 import '../pages/favoritos/favoritos_page.dart';
 import '../pages/profile/profile_page.dart';
@@ -69,22 +66,6 @@ GoRouter createAppRouter({
     GoRoute(
       path: '/favoritos',
       builder: (context, state) => const FavoritosPage(),
-    ),
-    GoRoute(
-      path: '/places/:id',
-      builder: (context, state) {
-        final place = state.extra;
-        if (place is PlaceModel &&
-            place.id.toString() == state.pathParameters['id']) {
-          return PlaceDetailPage(place: place);
-        }
-        return Scaffold(
-          appBar: AppBar(title: const Text('Información del lugar')),
-          body: const Center(
-            child: Text('No se pudo cargar la información del lugar.'),
-          ),
-        );
-      },
     ),
     GoRoute(path: '/profile', builder: (context, state) => const ProfilePage()),
     GoRoute(
