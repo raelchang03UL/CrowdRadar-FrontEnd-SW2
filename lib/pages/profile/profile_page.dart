@@ -9,6 +9,7 @@ import '../../cubits/profile/profile_state.dart';
 import '../../models/user_model.dart';
 import '../../services/user_service.dart';
 import '../../theme/app_colors.dart';
+import '../../components/citizen_points_card.dart';
 
 class ProfilePage extends StatelessWidget {
   final UserService? userService;
@@ -123,6 +124,8 @@ class _ProfileView extends StatelessWidget {
         ),
       ),
       const SizedBox(height: 24),
+      CitizenPointsCard(points: user.karmaPoints),
+      const SizedBox(height: 24),
       Text(
         'Datos de tu cuenta',
         style: Theme.of(context).textTheme.titleMedium,
@@ -151,14 +154,6 @@ class _ProfileView extends StatelessWidget {
                 'Distrito',
                 _value(user.distrito),
               ),
-              const Divider(height: 1),
-              _ProfileDatum(Icons.badge_outlined, 'Rol', _value(user.rol)),
-              const Divider(height: 1),
-              _ProfileDatum(
-                Icons.verified_user_outlined,
-                'Estado',
-                _value(user.status),
-              ),
             ],
           ),
         ),
@@ -171,6 +166,12 @@ class _ProfileView extends StatelessWidget {
           await context.push('/profile/edit', extra: user.toJson());
           if (context.mounted) context.read<ProfileCubit>().loadProfile();
         },
+      ),
+      const SizedBox(height: 16),
+      OutlinedButton.icon(
+        icon: const Icon(Icons.history),
+        label: const Text('Historial de reportes'),
+        onPressed: () => context.push('/profile/reports'),
       ),
       const SizedBox(height: 16),
       OutlinedButton.icon(
