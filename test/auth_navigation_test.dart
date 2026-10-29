@@ -16,6 +16,7 @@ void main() {
     '/map',
     '/validar',
     '/favoritos',
+    '/places/1',
     '/profile',
     '/profile/edit',
   ];

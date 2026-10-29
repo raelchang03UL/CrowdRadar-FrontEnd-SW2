@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../components/cr_bottom_nav.dart';
 import '../../cubits/favorites/favorites_cubit.dart';
@@ -38,7 +39,8 @@ class FavoritosPage extends StatelessWidget {
               return const _FavoritesMessage(
                 icon: Icons.favorite_border,
                 title: 'Sin favoritos todavía',
-                subtitle: 'Los lugares que marques como favoritos van a aparecer acá.',
+                subtitle:
+                    'Los lugares que marques como favoritos van a aparecer acá.',
               );
             }
             return ListView.separated(
@@ -49,6 +51,7 @@ class FavoritosPage extends StatelessWidget {
                 final place = state.places[index];
                 return Card(
                   child: ListTile(
+                    key: ValueKey('favorite-place-${place.id}'),
                     leading: const Icon(
                       Icons.favorite,
                       color: AppColors.secondary,
@@ -57,6 +60,9 @@ class FavoritosPage extends StatelessWidget {
                     subtitle: Text(
                       '${place.categoria}${place.demostrativo ? ' · Demostrativo' : ''}',
                     ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () =>
+                        context.push('/places/${place.id}', extra: place),
                   ),
                 );
               },
