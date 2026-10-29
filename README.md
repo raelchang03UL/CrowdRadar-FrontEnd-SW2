@@ -1,6 +1,6 @@
 # CrowdRadar Frontend
 
-Aplicación Flutter Android y Web para registro, inicio de sesión, perfil y mapa de lugares. El soporte Web ejecuta la misma aplicación y servicios; no hay un frontend HTML paralelo.
+Aplicación Flutter Android y Web para registro, inicio de sesión, perfil, mapa de lugares y recepción móvil de alertas push de saturación. El soporte Web ejecuta la misma aplicación y servicios; no hay un frontend HTML paralelo.
 
 **Origen funcional de esta instantánea:** HU 2.1–2.2 publicada en `feature/hu-2-1-2-recuperacion`, desde HU 2.3 frontend `1e62c754682f3abe2b166b178d44b7e6e7d1fad0`; backend compañero misma rama desde `97e607ed22b48561bed30a4e821099f76360210d`. HU 2.3 parte del pulido `0361ae1`, y ambos dependen de HU 3.1 pendiente de merge. Clonar `develop` no incorpora estos incrementos; publicación no equivale a integración.
 
@@ -32,7 +32,7 @@ flutter build apk --debug
 flutter run -d emulator-5554 --dart-define=API_BASE_URL=http://10.0.2.2:3000
 ```
 
-`10.0.2.2` permite que el emulador Android acceda al `localhost` de la PC. Para un dispositivo físico, reemplaza la URL por la IP de la PC en la misma red, por ejemplo:
+`10.0.2.2` permite que el emulador Android acceda al `localhost` de la PC. Para habilitar push, añade los dart-defines de Firebase que se describen en HU 8.3. Para un dispositivo físico, reemplaza la URL por la IP de la PC en la misma red, por ejemplo:
 
 ```powershell
 flutter run --dart-define=API_BASE_URL=http://192.168.1.20:3000
@@ -66,6 +66,12 @@ Login → Recuperar contraseña (`/forgot-password`, pública). El mensaje no di
 **Envío real pendiente:** el equipo todavía no eligió proveedor/remitente. El backend normal devuelve indisponibilidad uniforme, no afirma haber enviado un correo. No hay cuenta ni clave predeterminada, consola con enlaces ni modo de correo falso habilitable por entorno. El transporte capturado pertenece exclusivamente a pruebas; no demuestra entrega real y no completa HU 2.1/Sprint 2. No publiques un enlace/token real, historial de navegación o captura que lo contenga.
 
 Esta rama requiere la migración 003 y el [contrato C compañero](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/blob/feature/hu-2-1-2-recuperacion/docs/CONTRATO_API.md). Chrome/Android del estado final siguen pendientes de recorrido manual. No hay deep links Android verificados: el enlace Web no acredita apertura automática de la app nativa.
+
+## HU 8.3 — alertas de saturación
+
+En Android/iOS, al iniciar sesión la app solicita permiso push a Firebase y registra el token FCM junto con la sesión. Al cerrar sesión lo desregistra; al tocar una alerta abre `/places/{id}` y consulta el detalle protegido en el backend. La recepción requiere configurar Firebase en la app mediante `FIREBASE_API_KEY`, `FIREBASE_MESSAGING_SENDER_ID`, `FIREBASE_PROJECT_ID` y el ID de app de la plataforma (`FIREBASE_ANDROID_APP_ID` o `FIREBASE_IOS_APP_ID`) con `--dart-define`. El proyecto móvil también debe habilitar FCM/APNs según la plataforma. Web push no está habilitado.
+
+Consulta el README backend para configurar `FCM_PROJECT_ID`, credenciales de servicio fuera del repositorio y el secreto de la fuente interna que reporta cambios. Sin opciones Firebase válidas, la app sigue funcionando pero no registra el dispositivo para alertas.
 
 Archivos principales:
 

@@ -2,6 +2,7 @@ class PlaceModel {
   final int id;
   final String nombre;
   final String categoria;
+  final String? referencia;
   final double latitud;
   final double longitud;
   final bool demostrativo;
@@ -10,6 +11,7 @@ class PlaceModel {
     required this.id,
     required this.nombre,
     required this.categoria,
+    this.referencia,
     required this.latitud,
     required this.longitud,
     required this.demostrativo,
@@ -19,6 +21,11 @@ class PlaceModel {
     final id = json['id'];
     final nombre = json['nombre'];
     final categoria = json['categoria'];
+    final referencia = switch (json['referencia']) {
+      null => null,
+      String value => value,
+      _ => throw const FormatException('Referencia de lugar inválida'),
+    };
     final latitud = json['latitud'];
     final longitud = json['longitud'];
     final demostrativo = json['demostrativo'];
@@ -42,6 +49,7 @@ class PlaceModel {
       id: id,
       nombre: nombre,
       categoria: categoria,
+      referencia: referencia,
       latitud: latitud.toDouble(),
       longitud: longitud.toDouble(),
       demostrativo: demostrativo,

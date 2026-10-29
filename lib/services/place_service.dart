@@ -6,6 +6,8 @@ import '../models/place_model.dart';
 import 'session_service.dart';
 
 class PlaceService {
+  const PlaceService();
+
   static const loadError =
       'No pudimos cargar los lugares. Comprueba tu conexión y vuelve a intentarlo.';
 
@@ -50,6 +52,63 @@ class PlaceService {
       return GenericResponse(success: true, data: List.unmodifiable(places));
     } catch (_) {
       if (generation != SessionService.generation) return _sessionChanged();
+      return const GenericResponse(success: false, message: loadError);
+    }
+  }
+
+  Future<GenericResponse<PlaceModel>> getPlace(int id) async {
+    final generation = SessionService.generation;
+    final token = SessionService.token;
+    if (token == null || !SessionService.isAuthenticated) {
+      return const GenericResponse(
+        success: false,
+        message: 'Inicia sesión para ver la información del lugar.',
+      );
+    }
+    try {
+      final response = await http
+          .get(
+            ApiConfig.uri('${ApiConfig.places}/$id'),
+            headers: ApiConfig.authHeaders(token),
+          )
+          .timeout(const Duration(seconds: 15));
+      if (generation != SessionService.generation) {
+        return const GenericResponse(
+          success: false,
+          message: 'La sesión cambió durante la solicitud.',
+        );
+      }
+      if (response.statusCode == 401) {
+        return const GenericResponse(
+          success: false,
+          message: 'Tu sesión no es válida. Vuelve a iniciar sesión.',
+        );
+      }
+      if (response.statusCode == 404) {
+        return const GenericResponse(
+          success: false,
+          message: 'No encontramos ese lugar.',
+        );
+      }
+      if (response.statusCode != 200) {
+        return const GenericResponse(success: false, message: loadError);
+      }
+      final body = jsonDecode(utf8.decode(response.bodyBytes));
+      if (body is! Map<String, dynamic> ||
+          body['data'] is! Map<String, dynamic>) {
+        throw const FormatException('Respuesta de lugar inválida');
+      }
+      return GenericResponse(
+        success: true,
+        data: PlaceModel.fromJson(body['data'] as Map<String, dynamic>),
+      );
+    } catch (_) {
+      if (generation != SessionService.generation) {
+        return const GenericResponse(
+          success: false,
+          message: 'La sesión cambió durante la solicitud.',
+        );
+      }
       return const GenericResponse(success: false, message: loadError);
     }
   }

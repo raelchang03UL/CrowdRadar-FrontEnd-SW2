@@ -12,6 +12,7 @@ class ApiConfig {
   static const String resetPassword = '/api/auth/password/reset';
   static const String profile = '/api/users/profile';
   static const String places = '/api/places';
+  static const String notificationDevices = '/api/notifications/devices';
 
   static Uri uri(String path) => Uri.parse('$baseUrl$path');
 

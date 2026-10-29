@@ -19,6 +19,8 @@ main.dart / MaterialApp.router
 
 `PlacesCubit` controla carga/vacío/error/datos y descarta solicitudes antiguas; `PlaceService` usa JWT y timeout; `MapPage` representa lugares mediante flutter_map/OpenStreetMap. Los datos actuales son ilustrativos y se identifican como demostrativos. Seleccionar un marcador no implementa detalle completo ni saturación.
 
+`PushNotificationService` inicializa FCM solo en plataformas móviles configuradas, registra/desregistra el token vinculado a la sesión y abre el detalle protegido del lugar al seleccionar una alerta. La ruta consulta el detalle al backend; no confía en datos parciales del payload. En Web no se solicita ni registra token push.
+
 `PasswordService` traduce el contrato de cambio a resultados públicos sin mutar sesión. `PasswordChangeCubit` controla envío único y generación/token; solo una respuesta perteneciente a la sesión vigente puede cerrarla. La página protegida conserva formulario/errores durante la solicitud; después de éxito exige nuevo login. La invalidación efectiva de todos los JWT anteriores la hace el backend con `users.sessionVersion`, no el widget. No se persisten contraseñas/JWT ni se interpreta un mensaje arbitrario de API como aviso de login.
 
 Recuperación mantiene la misma separación páginas → cubits → servicio. La validación del enlace precede al formulario, pero no lo consume: backend vuelve a verificarlo atómicamente al guardar. Tokens no se muestran como texto ni se guardan en almacenamiento; el éxito retira el enlace de la ruta y exige login normal. Web define `no-referrer`; el enlace usa query del fragmento `#/`, no una consulta enviada al servidor HTTP. Una captura exclusiva de pruebas no es un proveedor de correo ni validación de entrega.
