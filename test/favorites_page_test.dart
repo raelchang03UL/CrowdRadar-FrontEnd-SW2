@@ -1,12 +1,18 @@
+import 'dart:convert';
+
 import 'package:crowdradar/configs/generic_response.dart';
 import 'package:crowdradar/models/place_model.dart';
 import 'package:crowdradar/models/user_model.dart';
 import 'package:crowdradar/pages/favoritos/favoritos_page.dart';
+import 'package:crowdradar/pages/places/place_detail_page.dart';
+import 'package:crowdradar/router/app_router.dart';
 import 'package:crowdradar/services/place_service.dart';
 import 'package:crowdradar/services/session_service.dart';
 import 'package:crowdradar/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 
 class _FavoritesService extends PlaceService {
   final Future<GenericResponse<List<PlaceModel>>> Function() load;
@@ -22,6 +28,7 @@ void main() {
     id: 1,
     nombre: 'Parque Central',
     categoria: 'Parque',
+    referencia: 'Junto a la plaza principal',
     latitud: -12.0464,
     longitud: -77.0428,
     demostrativo: false,
@@ -59,6 +66,57 @@ void main() {
     expect(find.text('Parque'), findsOneWidget);
     expect(find.byIcon(Icons.favorite), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('abre la información del favorito seleccionado', (tester) async {
+    final router = createAppRouter(initialLocation: '/favoritos');
+    addTearDown(router.dispose);
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await http.runWithClient(
+      () async {
+        await tester.pumpWidget(
+          MaterialApp.router(theme: AppTheme.lightTheme, routerConfig: router),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('favorite-place-1')));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(PlaceDetailPage), findsOneWidget);
+        expect(find.text('Parque Central'), findsOneWidget);
+        expect(find.text('Categoría'), findsOneWidget);
+        expect(find.text('Referencia'), findsOneWidget);
+        expect(find.text('Junto a la plaza principal'), findsOneWidget);
+        expect(find.text('Coordenadas'), findsOneWidget);
+        expect(find.text('-12.0464, -77.0428'), findsOneWidget);
+        expect(find.text('En tus favoritos'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+      () => MockClient((request) async {
+        expect(request.method, 'GET');
+        expect(request.url.path, '/api/places/favorites');
+        return http.Response(
+          jsonEncode({
+            'data': [
+              {
+                'id': place.id,
+                'nombre': place.nombre,
+                'categoria': place.categoria,
+                'referencia': place.referencia,
+                'latitud': place.latitud,
+                'longitud': place.longitud,
+                'demostrativo': place.demostrativo,
+                'esFavorito': place.esFavorito,
+              },
+            ],
+          }),
+          200,
+        );
+      }),
+    );
   });
 
   testWidgets('muestra el estado vacío cuando no hay favoritos', (
