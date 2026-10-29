@@ -1,33 +1,19 @@
 # CrowdRadar Frontend
 
-Corte20/10/2026:verificación de aceptación Web en PR#21 y backend#39,pendiente de revisión ajena/merge. Las2integracionesopt-in ya ejecutadas contra PostgreSQLaislado;procedimiento en CONFIGURACION_LOCALbackend,perfilcierre/API3053/Web5553. Demo3043/5543conservada. [Resultados actuales](docs/CIERRE_WEB_R01_S03.md). HU7/8siguen pendientes.
+Aplicación Flutter Android y Web para registro, inicio de sesión, perfil y mapa de lugares. El soporte Web ejecuta la misma aplicación y servicios; no hay un frontend HTML paralelo.
 
-## Revisión Web R01/S3 y demo local — 19/10/2026
+**Origen funcional de esta instantánea:** HU 2.1–2.2 publicada en `feature/hu-2-1-2-recuperacion`, desde HU 2.3 frontend `1e62c754682f3abe2b166b178d44b7e6e7d1fad0`; backend compañero misma rama desde `97e607ed22b48561bed30a4e821099f76360210d`. HU 2.3 parte del pulido `0361ae1`, y ambos dependen de HU 3.1 pendiente de merge. Clonar `develop` no incorpora estos incrementos; publicación no equivale a integración.
 
-Rama `integration/cierre-web-r01-s03-20261019`, desde `18cec26` más pendientes F3/C2/F11. La publicación se acredita por el PR y su par exacto; **no implica integración en develop, aceptación ni despliegue**. Flutter Android/Web; Web es la plataforma comprobada en este cierre. [Resultados y procedencia](docs/CIERRE_WEB_R01_S03.md).
+Para colaborar con el equipo y usar IA sobre el código, empieza por [AGENTS.md](AGENTS.md) y [CONTRIBUTING.md](CONTRIBUTING.md). Después, lee `docs/INICIO_EQUIPO.md` en el clon backend hermano: explica el arranque sin historial de chats e incluye un prompt sin tarea asignada. Consulta [arquitectura](docs/ARQUITECTURA.md) y [guía visual](docs/GUIA_VISUAL.md); CONTRIBUTING enlaza coordinación y contrato canónico backend. `develop` reúne los aportes integrados de los siete; una rama publicada con PR abierto sigue pendiente de incorporación a esa base.
 
-Con backend demo3043 iniciado según el [procedimiento canónico](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/blob/integration/cierre-web-r01-s03-20261019/docs/CATALOGO_DEMO_LOCAL.md), ejecutar desde la raíz de tu clon frontend:
-
-```powershell
-flutter pub get --enforce-lockfile
-$demoBuild = Join-Path (Get-Location).Path ("build/demo-web-" + (Get-Date -Format 'yyyyMMdd-HHmmss'))
-flutter build web --no-pub --dart-define=API_BASE_URL=http://127.0.0.1:3043 --output="$demoBuild"
-node tool/serve_demo_web.mjs "$demoBuild"
-```
-
-Abrir http://127.0.0.1:5543/#/login. Cinco lugares reales/observaciones demostrativas, **sin monitoreo en tiempo real**. Crear cuenta sintética propia; sin usuarios/contraseñas predeterminados. SMTP demo deshabilitado. JWT en memoria: recargar exige login. Salida absoluta nueva para evitar fallo de shaders con ruta relativa y no reemplazar evidencias. build/ ignorado; servidor solo loopback, no producción. No iniciar dos servidores en5543 ni detener uno ajeno. No se instalaron paquetes en el cierre; pub get con lock es un paso para otra PC.
-
-Incluye I1(sesión vigente/antigua),I2(reporte confirmado/cooldown/incertidumbre),I3/C2(catálogo plegable,selección ID,filtros AND,perfil/puntos) y F11(Historial→Perfil). Conserva aportes/autoría de Nick/Manu/Diego, tema y OSM; no usa el experimento visual rechazado.
-
-Lugares/filtros, reportes/karma/historial propio y, ahora, Validar con votos/confiabilidad/denuncias; detalle con historial horario/comparación/horarios suficientes. HU7/8 siguen fuera del alcance; Favoritos aún es placeholder. Tema publicado conservado; experimento visual rechazado excluido.
-
-Lee [CONTRIBUTING](CONTRIBUTING.md), [arquitectura](docs/ARQUITECTURA.md), [guía visual](docs/GUIA_VISUAL.md) y [pruebas](docs/ESTADO_ACTUAL.md). Clonar la rama de integración publicada descarga el candidato, no los datos/secretos/SDK. Clonar develop obtiene solo lo integrado allí. SMTP real requiere otro entorno y autorización, no instalar “Brevo” ni compartir contraseñas.
+**Descarga actual del equipo:** usar `integration/base-equipo` en ambos repositorios para leer, ejecutar y revisar los avances con las guías nuevas. Es una instantánea pendiente de integración, no la base aprobada para iniciar funcionalidades. La guía de inicio backend contiene ambos comandos de clonación; tras aprobar/integrar el par, las tareas nuevas parten de `develop` actualizado.
 
 ## Requisitos
 
 - Flutter 3.41.9 estable (Dart 3.11.5), coincidente con `.metadata` y compatible con `pubspec.lock`.
-- Para Web: navegador compatible y backend CrowdRadar en ejecución; no se necesita Android SDK.
-- Solo para Android: Android SDK y emulador/dispositivo; Java 21, Platform 36 / Build-Tools 36 según la compilación histórica comprobada. No es requisito para ejecutar Web.
+- Android Studio o Android SDK y un emulador Android configurado.
+- Java 21 y Android SDK Platform 36 / Build-Tools 36 para la compilación comprobada.
+- Backend CrowdRadar en ejecución.
 
 Comprueba el entorno antes de ejecutar:
 
@@ -77,7 +63,7 @@ Antes de arrancar esta versión backend, ejecuta allí `npm run db:migrate`: añ
 
 Login → Recuperar contraseña (`/forgot-password`, pública). El mensaje no distingue cuentas existentes/inexistentes. El enlace abre `/#/reset-password?token=…`; el token se valida antes de mostrar el formulario y se consume una sola vez al guardar. Después exige login nuevo, sin inicio automático, e invalida sesiones anteriores en backend.
 
-**Correo:** adaptador SMTP/Brevo integrado; sin configuración privada la API responde503 uniforme. Transporte en memoria solo para pruebas. No publicar enlaces, tokens ni claves. Recepción real de esta PC no ejecutada.
+**Envío real pendiente:** el equipo todavía no eligió proveedor/remitente. El backend normal devuelve indisponibilidad uniforme, no afirma haber enviado un correo. No hay cuenta ni clave predeterminada, consola con enlaces ni modo de correo falso habilitable por entorno. El transporte capturado pertenece exclusivamente a pruebas; no demuestra entrega real y no completa HU 2.1/Sprint 2. No publiques un enlace/token real, historial de navegación o captura que lo contenga.
 
 Esta rama requiere la migración 003 y el [contrato C compañero](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/blob/feature/hu-2-1-2-recuperacion/docs/CONTRATO_API.md). Chrome/Android del estado final siguen pendientes de recorrido manual. No hay deep links Android verificados: el enlace Web no acredita apertura automática de la app nativa.
 
@@ -91,9 +77,9 @@ Archivos principales:
 - `lib/services/user_service.dart`
 - `lib/configs/api_config.dart`
 
-## Antecedente HU3.1 — 07/10/2026 (no describe el alcance final)
+## HU 3.1 — mapa de lugares (incremento de revisión)
 
-La HU3.1 original mostraba nombre/categoría. El candidato actual añade detalle,búsqueda,filtros,consulta de saturación,reportes e historiales; no leer las limitaciones de ese incremento aislado como funciones ausentes hoy. Conserva flutter_map,OSM y guardas de sesión.
+El mapa consulta `GET /api/places` con JWT y muestra un marcador por coordenada recibida, sin marcador fijo. Ofrece carga, vacío, error comprensible y reintento; seleccionar un marcador identifica nombre/categoría, no abre detalles completos. Conserva `flutter_map`, OpenStreetMap y las guardas HU 2.4.
 
 En el backend de esta misma rama, configura `.env` para `crowdradar_dev` y ejecuta:
 
@@ -114,7 +100,7 @@ flutter run -d emulator-5554 --no-pub --dart-define=API_BASE_URL=http://10.0.2.2
 
 En una clonación nueva ejecuta antes `flutter pub get` con el lockfile existente. No se añadieron ni actualizaron dependencias. Validación Web del 07/10/2026: análisis correcto y **69/69 pruebas**. El recorrido Android anterior del mismo día comprobó mapa/selección/error/reintento; no se reejecutó Android tras las últimas mejoras de formularios. Detalle en [ESTADO_ACTUAL.md](docs/ESTADO_ACTUAL.md).
 
-## Configuración histórica Web3000/5500 (alternativa, no demo3043/5543)
+## Web local en Chrome
 
 Con PostgreSQL y backend en `http://localhost:3000`, abre una segunda terminal:
 
@@ -134,7 +120,7 @@ flutter test --no-pub
 flutter build web --no-pub --dart-define=API_BASE_URL=http://localhost:3000
 ```
 
-`build/web` está ignorado. La sesión solo vive en memoria: recargar una ruta protegida vuelve a login. Entradas públicas: `/#/login`, `/#/register`, `/#/forgot-password` y `/#/reset-password` (esta última exige enlace vigente). Esos resultados corresponden a la base histórica indicada; usar la entrada demo superior para revisar el candidato actual sin conflictos de puertos.
+`build/web` está ignorado. La sesión solo vive en memoria: recargar una ruta protegida vuelve a login. Entradas públicas: `/#/login`, `/#/register`, `/#/forgot-password` y `/#/reset-password` (esta última exige enlace vigente). HU 3.1 y los incrementos posteriores están en ramas de revisión; una clonación de `develop` todavía no los contiene.
 
 ## Pruebas anteriores
 
@@ -146,4 +132,4 @@ La revisión del 06/10/2026 conserva ese trabajo y añade `test/session_async_te
 
 ## Alcance
 
-El candidato reúne autenticación/perfil,recuperación/cambio,detalle/búsqueda/filtros AND de lugares,saturación,reportes/karma/historial propio,HU5(validación/confiabilidad/estado/denuncia) y HU6(historial/comparación/horarios suficientes). Favoritos sigue placeholder; HU7/8,geolocalización,nuevas reglas y nube fuera. SMTP real/Android/2opt-in/QA integral desde cero y aceptación humana pendientes. Rama publicada y PR no son merge ni aceptación. Ver [estado técnico](docs/ESTADO_ACTUAL.md).
+La base entregada corresponde al Sprint 1 y `develop` incluye HU 2.4. Ramas dependientes incorporan HU 3.1, pulido, HU 2.3, partes verificables de HU 2.1–2.2 y HU 8.1 de favoritos; el envío real de correo sigue pendiente. No incluyen saturación, búsqueda, filtros, reportes, geolocalización ni detalles completos. HU 3.2 y HU 3.3 no están terminadas. Publicación no equivale a integración ni aprobación manual de plataformas; ver [estado técnico](docs/ESTADO_ACTUAL.md).

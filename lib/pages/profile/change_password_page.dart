@@ -99,8 +99,6 @@ class _ChangePasswordViewState extends State<_ChangePasswordView> {
                     ScrollViewKeyboardDismissBehavior.onDrag,
                 child: Form(
                   key: _form,
-                  onChanged: () =>
-                      context.read<PasswordChangeCubit>().clearError(),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [

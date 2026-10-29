@@ -16,11 +16,7 @@ class CrBottomNav extends StatelessWidget {
   ];
 
   void _onTap(BuildContext context, int index) {
-    // Una sección activa puede mostrar una subruta (p. ej., Mis reportes).
-    if (index == currentIndex &&
-        GoRouterState.of(context).uri.path == _routes[index]) {
-      return;
-    }
+    if (index == currentIndex) return;
     context.go(_routes[index]);
   }
 

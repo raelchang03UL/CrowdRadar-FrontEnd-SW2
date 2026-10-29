@@ -1,7 +1,5 @@
 # Cómo contribuir a CrowdRadar
 
-Revisión19/10: el cierre se prepara en `integration/cierre-web-r01-s03-20261019` de ambos repositorios; consultar README/CIERRE_WEB_R01_S03 y el PR compañero. Los enlaces base-equipo inferiores son históricos. La rama publicada no cambia develop ni es autorización de merge/tareas nuevas. Cada integrante usa DB/secretos propios siguiendo CATALOGO_DEMO_LOCAL backend, sin carpetas tmp ajenas.
-
 Somos siete integrantes activos. Cada persona usa su clon, su cuenta Git y una rama por tarea; responde por el código que produzca con ayuda de IA.
 
 ## Lectura inicial

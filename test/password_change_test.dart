@@ -330,17 +330,6 @@ void main() {
       expect(find.text('La contraseña actual no es correcta.'), findsOneWidget);
       expect(tester.widget<ElevatedButton>(save).onPressed, isNotNull);
       expect(SessionService.isAuthenticated, true);
-      // Corregir cualquier campo retira el error anterior, que ya no describe lo escrito.
-      await tester.enterText(find.byType(TextFormField).first, '$_current-x');
-      await tester.pump();
-      expect(find.text('La contraseña actual no es correcta.'), findsNothing);
-      expect(
-        tester
-            .widget<TextFormField>(find.byType(TextFormField).at(1))
-            .controller!
-            .text,
-        _next,
-      );
       expect(tester.takeException(), isNull);
     },
   );

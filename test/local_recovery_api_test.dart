@@ -25,9 +25,6 @@ import 'package:http/io_client.dart';
 // Abuse counters use a per-child namespace with unchanged limits/SQL; the
 // dedicated backend DB runner verifies production rate-limit behaviour.
 // Neither this test nor its child proves real email/browser/Android delivery.
-// Closure QA sets CROWDRADAR_QA_RUN=cierre-20261019 and the private
-// CROWDRADAR_QA_ENV_FILE. The child must attest the fresh closure database.
-// This mode does not migrate or use the historical auth_test database.
 // PowerShell (run after the backend isolated-DB tests, never concurrently):
 // $env:CROWDRADAR_RECOVERY_INTEGRATION='1'
 // flutter test --no-pub test/local_recovery_api_test.dart --dart-define=API_BASE_URL=http://127.0.0.1:3031
@@ -91,10 +88,6 @@ class _RecoveryHarness {
       );
 
   static Future<_RecoveryHarness> start() async {
-    final qaRun = Platform.environment['CROWDRADAR_QA_RUN'];
-    if (qaRun != null && qaRun != 'cierre-20261019') {
-      throw StateError('Perfil QA no autorizado.');
-    }
     final backend = Directory.fromUri(
       Directory.current.uri.resolve('../CrowdRadar-Backend/'),
     );
@@ -117,10 +110,7 @@ class _RecoveryHarness {
       final ready = await harness._read('ready');
       if (ready['port'] != 3031 ||
           ready['isolatedDatabase'] != true ||
-          ready['memoryDelivery'] != true ||
-          (qaRun == 'cierre-20261019' &&
-              (ready['qaRun'] != qaRun ||
-                  ready['database'] != 'crowdradar_cierre_fresh_20261019'))) {
+          ready['memoryDelivery'] != true) {
         throw StateError('El proceso de pruebas no confirmó el aislamiento.');
       }
       return harness;

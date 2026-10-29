@@ -29,13 +29,6 @@ class PasswordChangeCubit extends Cubit<PasswordChangeState> {
       _service = service ?? PasswordService(),
       super(PasswordChangeInitial());
 
-  // Editar un campo invalida el error del último envío: deja de describir lo escrito.
-  void clearError() {
-    if (!isClosed && state is PasswordChangeError) {
-      emit(PasswordChangeInitial());
-    }
-  }
-
   Future<void> changePassword({
     required String currentPassword,
     required String newPassword,

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:crowdradar/cubits/places/places_cubit.dart';
 import 'package:crowdradar/cubits/places/places_state.dart';
 import 'package:crowdradar/models/place_model.dart';
@@ -17,6 +18,7 @@ const placeJson = {
   'latitud': -12.0464,
   'longitud': -77.0428,
   'demostrativo': true,
+  'esFavorito': false,
 };
 
 void main() {
@@ -63,6 +65,63 @@ void main() {
       expect(result.data, isEmpty);
     }, http.Response('{"data":[]}', 200));
   });
+
+  test('consulta favoritos del usuario autenticado', () async {
+    await http.runWithClient(
+      () async {
+        final result = await PlaceService().getFavorites();
+        expect(result.success, isTrue, reason: result.message);
+        expect(result.data!.single.esFavorito, isTrue);
+      },
+      () => MockClient((request) async {
+        expect(request.method, 'GET');
+        expect(request.url.path, '/api/places/favorites');
+        expect(request.headers['Authorization'], 'Bearer test-token');
+        return http.Response(
+          jsonEncode({
+            'data': [
+              {...placeJson, 'esFavorito': true},
+            ],
+          }),
+          200,
+        );
+      }),
+    );
+  });
+
+  test(
+    'marca como favorito y conserva el mensaje de duplicado del backend',
+    () async {
+      var calls = 0;
+      await http.runWithClient(
+        () async {
+          final service = PlaceService();
+          final added = await service.addFavorite(1);
+          expect(added.success, isTrue, reason: added.message);
+          expect(added.data, isTrue);
+          final duplicate = await service.addFavorite(1);
+          expect(duplicate.success, isFalse);
+          expect(duplicate.error, PlaceService.favoriteAlreadyExists);
+          expect(duplicate.message, 'Este lugar ya pertenece a tus favoritos.');
+        },
+        () => MockClient((request) async {
+          expect(request.method, 'POST');
+          expect(request.url.path, '/api/places/1/favorite');
+          expect(request.headers['Authorization'], 'Bearer test-token');
+          if (calls++ == 0) {
+            return http.Response(
+              '{"message":"Lugar agregado a tus favoritos.","data":{"placeId":1,"esFavorito":true}}',
+              201,
+            );
+          }
+          return http.Response(
+            '{"message":"Este lugar ya pertenece a tus favoritos.","code":"FAVORITE_ALREADY_EXISTS"}',
+            409,
+          );
+        }),
+      );
+    },
+  );
 
   test('sin sesión no se hace ninguna petición', () async {
     SessionService.clear();

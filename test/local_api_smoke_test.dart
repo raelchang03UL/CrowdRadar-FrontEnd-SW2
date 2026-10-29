@@ -19,10 +19,8 @@ import 'package:http/io_client.dart';
 
 // Opt-in: rendered Flutter widgets in the VM, real HTTP and PostgreSQL behind
 // the local API. This is not a browser/Android run or an email-delivery test.
-// Closure QA: CROWDRADAR_QA_RUN=cierre-20261019 selects only 127.0.0.1:3053.
-// Start the guarded sibling QA runner and verify its database provenance first.
-// The historical mode remains localhost:3000; it is not used for closure QA.
-// Leaves one identifiable qa.hu23.* account, never alters existing users,
+// Verify that the server uses crowdradar_dev before enabling the test. It
+// leaves one identifiable qa.hu23.* account, never alters existing users,
 // and keeps its random passwords and JWT only in memory (no captures/logs).
 // PowerShell:
 // $env:CROWDRADAR_API_INTEGRATION='1'
@@ -49,17 +47,11 @@ class _LocalOnlyClient extends http.BaseClient {
   void close() => _inner.close();
 }
 
-bool _isLocalApi(Uri uri) {
-  final qaRun = Platform.environment['CROWDRADAR_QA_RUN'];
-  if (qaRun != null && qaRun != 'cierre-20261019') return false;
-  final closure = qaRun == 'cierre-20261019';
-  return uri.scheme == 'http' &&
-      (closure
-          ? uri.host == '127.0.0.1'
-          : const {'localhost', '127.0.0.1', '::1'}.contains(uri.host)) &&
-      uri.port == (closure ? 3053 : 3000) &&
-      uri.userInfo.isEmpty;
-}
+bool _isLocalApi(Uri uri) =>
+    uri.scheme == 'http' &&
+    const {'localhost', '127.0.0.1', '::1'}.contains(uri.host) &&
+    uri.port == 3000 &&
+    uri.userInfo.isEmpty;
 
 String _randomValue() {
   final random = Random.secure();
@@ -112,8 +104,7 @@ void main() {
             !base.hasFragment,
         isTrue,
         reason:
-            'Cierre: API_BASE_URL=http://127.0.0.1:3053 con perfil '
-            'cierre-20261019; modo histórico localhost:3000. Sin redirecciones.',
+            'Configura API_BASE_URL=http://localhost:3000; no destinos remotos.',
       );
       tester.view.physicalSize = const Size(390, 844);
       tester.view.devicePixelRatio = 1;
@@ -175,9 +166,7 @@ void main() {
         );
         await _waitUntil(
           tester,
-          // The responsive profile keeps account details below the fold.
-          // Wait for this QA user's identity, then scroll to the action.
-          () => find.text('QA IntegracionHU23').evaluate().isNotEmpty,
+          () => find.text('Datos de tu cuenta').evaluate().isNotEmpty,
           'El perfil real no cargó los datos de la cuenta QA.',
         );
         final changeAction = find.text('Cambiar contraseña');
