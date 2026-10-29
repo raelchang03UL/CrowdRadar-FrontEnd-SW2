@@ -5,6 +5,7 @@ class PlaceModel {
   final double latitud;
   final double longitud;
   final bool demostrativo;
+  final bool esFavorito;
 
   const PlaceModel({
     required this.id,
@@ -13,6 +14,7 @@ class PlaceModel {
     required this.latitud,
     required this.longitud,
     required this.demostrativo,
+    this.esFavorito = false,
   });
 
   factory PlaceModel.fromJson(Map<String, dynamic> json) {
@@ -22,6 +24,7 @@ class PlaceModel {
     final latitud = json['latitud'];
     final longitud = json['longitud'];
     final demostrativo = json['demostrativo'];
+    final esFavorito = json['esFavorito'];
     if (id is! int ||
         nombre is! String ||
         nombre.trim().isEmpty ||
@@ -35,7 +38,8 @@ class PlaceModel {
         !longitud.isFinite ||
         longitud < -180 ||
         longitud > 180 ||
-        demostrativo is! bool) {
+        demostrativo is! bool ||
+        esFavorito is! bool) {
       throw const FormatException('Información de lugar inválida');
     }
     return PlaceModel(
@@ -45,6 +49,17 @@ class PlaceModel {
       latitud: latitud.toDouble(),
       longitud: longitud.toDouble(),
       demostrativo: demostrativo,
+      esFavorito: esFavorito,
     );
   }
+
+  PlaceModel copyWith({bool? esFavorito}) => PlaceModel(
+    id: id,
+    nombre: nombre,
+    categoria: categoria,
+    latitud: latitud,
+    longitud: longitud,
+    demostrativo: demostrativo,
+    esFavorito: esFavorito ?? this.esFavorito,
+  );
 }

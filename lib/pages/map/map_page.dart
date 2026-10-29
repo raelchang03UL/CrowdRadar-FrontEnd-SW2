@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+
 import '../../components/cr_bottom_nav.dart';
 import '../../cubits/places/places_cubit.dart';
 import '../../cubits/places/places_state.dart';
@@ -135,6 +136,37 @@ class _PlacesMap extends StatefulWidget {
 
 class _PlacesMapState extends State<_PlacesMap> {
   PlaceModel? _selected;
+  final Set<int> _pendingFavorites = {};
+
+  @override
+  void didUpdateWidget(covariant _PlacesMap oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final selectedId = _selected?.id;
+    if (selectedId != null) {
+      PlaceModel? selected;
+      for (final place in widget.places) {
+        if (place.id == selectedId) {
+          selected = place;
+          break;
+        }
+      }
+      _selected = selected;
+    }
+  }
+
+  Future<void> _addFavorite(PlaceModel place) async {
+    if (_pendingFavorites.contains(place.id)) return;
+    setState(() => _pendingFavorites.add(place.id));
+    final result = await context.read<PlacesCubit>().addFavorite(place.id);
+    if (!mounted) return;
+    setState(() => _pendingFavorites.remove(place.id));
+    final message = result.message.isNotEmpty
+        ? result.message
+        : 'No se pudo guardar el favorito. Inténtalo de nuevo.';
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -292,7 +324,33 @@ class _PlacesMapState extends State<_PlacesMap> {
                                         fontSize: 12,
                                       ),
                                     ),
+                                    if (place.esFavorito) ...[
+                                      const SizedBox(height: 4),
+                                      const Text(
+                                        'En tus favoritos',
+                                        style: TextStyle(
+                                          color: AppColors.secondary,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
                                   ],
+                                ),
+                              ),
+                              IconButton(
+                                key: ValueKey('favorite-place-${place.id}'),
+                                tooltip: place.esFavorito
+                                    ? 'Ya pertenece a tus favoritos'
+                                    : 'Agregar a favoritos',
+                                onPressed: _pendingFavorites.contains(place.id)
+                                    ? null
+                                    : () => _addFavorite(place),
+                                icon: Icon(
+                                  place.esFavorito
+                                      ? Icons.favorite
+                                      : Icons.favorite_border,
+                                  color: AppColors.secondary,
                                 ),
                               ),
                               IconButton(

@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:crowdradar/configs/generic_response.dart';
 import 'package:crowdradar/models/place_model.dart';
 import 'package:crowdradar/models/user_model.dart';
@@ -12,9 +13,15 @@ import 'package:flutter_test/flutter_test.dart';
 
 class _Service extends PlaceService {
   final Future<GenericResponse<List<PlaceModel>>> Function() load;
-  _Service(this.load);
+  final Future<GenericResponse<bool>> Function(int)? favorite;
+  _Service(this.load, {this.favorite});
   @override
   Future<GenericResponse<List<PlaceModel>>> getPlaces() => load();
+
+  @override
+  Future<GenericResponse<bool>> addFavorite(int placeId) =>
+      favorite?.call(placeId) ??
+      Future.value(const GenericResponse(success: false, message: 'Error'));
 }
 
 // Solo sustituye la red de teselas: se renderizan FlutterMap y MarkerLayer reales.
@@ -114,9 +121,8 @@ void main() {
       await tester.tap(find.byTooltip('Cerrar identificación'));
       await tester.pumpAndSettle();
       expect(find.text('Lugar A'), findsNothing);
-      final center = MapCamera.of(
-        tester.element(find.byType(MarkerLayer)),
-      ).center;
+      final center = MapCamera.of(tester.element(find.byType(MarkerLayer)))
+          .center;
       await tester.drag(find.byType(FlutterMap), const Offset(80, 60));
       await tester.pumpAndSettle();
       expect(
@@ -168,6 +174,51 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(MarkerLayer), findsNothing);
     expect(find.text('Inicia sesión para ver los lugares.'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('permite guardar un lugar y muestra el estado y duplicado', (
+    tester,
+  ) async {
+    var calls = 0;
+    await mount(
+      tester,
+      _Service(
+        () async => const GenericResponse(success: true, data: places),
+        favorite: (id) async {
+          expect(id, 1);
+          if (calls++ == 0) {
+            return const GenericResponse(
+              success: true,
+              data: true,
+              message: 'Lugar agregado a tus favoritos.',
+            );
+          }
+          return const GenericResponse(
+            success: false,
+            error: PlaceService.favoriteAlreadyExists,
+            message: 'Este lugar ya pertenece a tus favoritos.',
+          );
+        },
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('select-place-1')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('favorite-place-1')));
+    await tester.pumpAndSettle();
+    expect(find.text('Lugar agregado a tus favoritos.'), findsOneWidget);
+    expect(find.text('En tus favoritos'), findsOneWidget);
+    expect(find.byIcon(Icons.favorite), findsWidgets);
+
+    await tester.tap(find.byKey(const ValueKey('favorite-place-1')));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Este lugar ya pertenece a tus favoritos.'),
+      findsOneWidget,
+    );
+    expect(calls, 2);
     expect(tester.takeException(), isNull);
   });
 }

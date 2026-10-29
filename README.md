@@ -132,4 +132,4 @@ La revisión del 06/10/2026 conserva ese trabajo y añade `test/session_async_te
 
 ## Alcance
 
-La base entregada corresponde al Sprint 1 y `develop` incluye HU 2.4. Ramas dependientes incorporan HU 3.1, pulido, HU 2.3 y partes verificables de HU 2.1–2.2, con envío real pendiente. No incluyen saturación, búsqueda, filtros, reportes, favoritos, geolocalización ni detalles completos. HU 3.2 y HU 3.3 no están terminadas. Publicación no equivale a integración ni aprobación manual de plataformas; ver [estado técnico](docs/ESTADO_ACTUAL.md).
+La base entregada corresponde al Sprint 1 y `develop` incluye HU 2.4. Ramas dependientes incorporan HU 3.1, pulido, HU 2.3, partes verificables de HU 2.1–2.2 y HU 8.1 de favoritos; el envío real de correo sigue pendiente. No incluyen saturación, búsqueda, filtros, reportes, geolocalización ni detalles completos. HU 3.2 y HU 3.3 no están terminadas. Publicación no equivale a integración ni aprobación manual de plataformas; ver [estado técnico](docs/ESTADO_ACTUAL.md).

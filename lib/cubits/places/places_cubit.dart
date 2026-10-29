@@ -1,4 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../configs/generic_response.dart';
 import '../../services/place_service.dart';
 import '../../services/session_service.dart';
 import 'places_state.dart';
@@ -45,6 +47,42 @@ class PlacesCubit extends Cubit<PlacesState> {
       }
       emit(PlacesError(message: PlaceService.loadError));
     }
+  }
+
+  Future<GenericResponse<bool>> addFavorite(int placeId) async {
+    final current = state;
+    if (current is! PlacesLoaded) {
+      return const GenericResponse(
+        success: false,
+        message: 'Espera a que se carguen los lugares e inténtalo de nuevo.',
+      );
+    }
+    final operation = ++_request;
+    final generation = SessionService.generation;
+    final result = await _service.addFavorite(placeId);
+    if (!isClosed &&
+        operation == _request &&
+        generation == SessionService.generation &&
+        (result.success ||
+            result.error == PlaceService.favoriteAlreadyExists)) {
+      final latest = state;
+      if (latest is PlacesLoaded) {
+        emit(
+          PlacesLoaded(
+            places: List.unmodifiable(
+              latest.places
+                  .map(
+                    (place) => place.id == placeId
+                        ? place.copyWith(esFavorito: true)
+                        : place,
+                  )
+                  .toList(growable: false),
+            ),
+          ),
+        );
+      }
+    }
+    return result;
   }
 
   @override

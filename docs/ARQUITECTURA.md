@@ -17,7 +17,7 @@ main.dart / MaterialApp.router
 
 `AuthCubit` coordina registro/login/logout. `SessionService` guarda token/usuario en memoria y una generación de sesión para descartar respuestas antiguas. El router permite login, registro, solicitud y restablecimiento; protege las restantes rutas. El cierre retira datos inmediatamente; una respuesta tardía no los repone.
 
-`PlacesCubit` controla carga/vacío/error/datos y descarta solicitudes antiguas; `PlaceService` usa JWT y timeout; `MapPage` representa lugares mediante flutter_map/OpenStreetMap. Los datos actuales son ilustrativos y se identifican como demostrativos. Seleccionar un marcador no implementa detalle completo ni saturación.
+`PlacesCubit` controla carga/vacío/error/datos y descarta solicitudes antiguas; `PlaceService` usa JWT y timeout; `MapPage` representa lugares mediante flutter_map/OpenStreetMap. Al seleccionar un marcador permite guardar el lugar y muestra el estado `esFavorito`; `FavoritesCubit` carga la lista propia desde el backend y limpia datos al cambiar/cerrar sesión. Los datos actuales son ilustrativos y se identifican como demostrativos. La selección no implementa detalle completo ni saturación.
 
 `PasswordService` traduce el contrato de cambio a resultados públicos sin mutar sesión. `PasswordChangeCubit` controla envío único y generación/token; solo una respuesta perteneciente a la sesión vigente puede cerrarla. La página protegida conserva formulario/errores durante la solicitud; después de éxito exige nuevo login. La invalidación efectiva de todos los JWT anteriores la hace el backend con `users.sessionVersion`, no el widget. No se persisten contraseñas/JWT ni se interpreta un mensaje arbitrario de API como aviso de login.
 
