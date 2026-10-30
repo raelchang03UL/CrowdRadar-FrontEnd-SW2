@@ -4,6 +4,7 @@ import 'login_state.dart';
 
 import '../services/auth_service.dart';
 import '../services/session_service.dart';
+import '../services/push_notification_service.dart';
 
 enum AuthOperation { login, register }
 
@@ -72,6 +73,7 @@ class AuthCubit extends Cubit<AuthState> {
 
   void logout() {
     _loginAttempt++;
+    PushNotificationService.instance.unregisterForLogout();
     SessionService.clear();
     emit(AuthLoggedOut());
   }

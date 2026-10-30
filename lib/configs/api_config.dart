@@ -15,6 +15,7 @@ class ApiConfig {
 
   static const String reportHistory = '/api/users/reports';
   static const String places = '/api/places';
+  static const String notificationDevices = '/api/notifications/devices';
   static const String favorites = '/api/places/favorites';
 
   static Uri uri(String path) => Uri.parse('$baseUrl$path');
