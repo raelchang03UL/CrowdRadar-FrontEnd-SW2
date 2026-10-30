@@ -1,5 +1,15 @@
 # Arquitectura frontend
 
+## Integración HU8 — 30/10/2026
+
+Favoritos conserva pages → cubits → PlaceService → API. FavoritesCubit centraliza lista propia, carga/error/vacío, borrado por ID, envío único y descarte por generación. PlaceDetailCubit consulta el ID de la ruta y alterna el favorito sin confiar en `extra`. PlaceModel conserva dirección/referencia y añade esFavorito opcional para mantener compatibles los contratos y fixtures anteriores. Los mensajes de mutación son públicos y fijos.
+
+SessionService.changes notifica cada generación, incluso al pasar de cuenta A a B sin logout intermedio. Los servicios de favoritos llaman rejectIfCurrent con token/generación antes de interpretar un401. Red, timeout y503 conservan sesión. El mapa actualiza por ID; las mutaciones conservan selección/cámara mediante selectionKey y una consulta nueva las retira como antes. Volver del detalle refresca ese lugar sin reiniciar los filtros.
+
+PushNotificationService reutiliza Firebase/FCM y PushDeviceService originales. Web se activa desde una acción explícita; register/onRegistered usa FID y un binding registrationId que entrega backend. Se serializan los registros para que eventos concurrentes no dejen un binding cliente distinto al servidor. Una baja incluye token de dispositivo y registrationId capturado: una baja antigua no elimina el alta de una sesión posterior. El binding activo exige la generación vigente y el mismo usuario antes de mostrar/abrir alertas.
+
+El worker Web recibe mensajes data-only, consulta el binding efímero a pestañas vivas y muestra texto genérico. Un click vuelve a validar binding y entrega placeId a Dart, que valida usuario/binding y navega a `/places/:id`; el detalle siempre consulta la API autorizada. No hay JWT, sesiones ni binding en almacenamiento del navegador o worker. Sin pestaña autenticada viva se descarta la alerta; no se garantiza entrega con la aplicación cerrada. [Configuración](../README.md) y [pruebas/límites](ESTADO_ACTUAL.md).
+
 ## Moderación HU7 — 28/10/2026
 
 Páginas/diálogos administrativos → cubits derivados de RequestCubit → AdminUserService o AdminReportService → ApiJsonClient. Modelos validan DTO, agrupaciones, revisiones, orden y cursores. El router restringe ADMIN; la autorización efectiva pertenece al backend. No hay HTTP en widgets ni datos simulados para reemplazar endpoints.
