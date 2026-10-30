@@ -224,6 +224,7 @@ class PlaceService {
     }
   }
 
+  static const favoriteAlreadyExists = 'FAVORITE_ALREADY_EXISTS';
   static const favoriteError =
       'No pudimos eliminar el favorito. Comprueba tu conexión y vuelve a intentarlo.';
 
@@ -253,6 +254,78 @@ class PlaceService {
       return const GenericResponse(success: false, message: favoriteError);
     }
   }
+  Future<GenericResponse<bool>> addFavorite(int placeId) async {
+    final generation = SessionService.generation;
+    final token = SessionService.token;
+    if (token == null || !SessionService.isAuthenticated) {
+      return const GenericResponse(
+        success: false,
+        message: 'Inicia sesión para guardar lugares favoritos.',
+      );
+    }
+    try {
+      final response = await http
+          .post(
+            ApiConfig.uri('${ApiConfig.places}/$placeId/favorite'),
+            headers: ApiConfig.authHeaders(token),
+          )
+          .timeout(const Duration(seconds: 15));
+      if (generation != SessionService.generation) {
+        return const GenericResponse(
+          success: false,
+          message: 'La sesión cambió durante la solicitud',
+        );
+      }
+      if (response.statusCode == 401) {
+        SessionService.rejectIfCurrent(token: token, generation: generation);
+        return const GenericResponse(success: false, message: 'Tu sesión no es válida. Vuelve a iniciar sesión.');
+      }
+      final body = jsonDecode(utf8.decode(response.bodyBytes));
+      if (body is! Map<String, dynamic>) {
+        throw const FormatException('Respuesta de favorito inválida');
+      }
+      if (response.statusCode == 201 &&
+          body['data'] is Map<String, dynamic> &&
+          body['data']['esFavorito'] == true) {
+        return GenericResponse(
+          success: true,
+          data: true,
+          message: body['message'] is String ? body['message'] as String : '',
+        );
+      }
+      if (response.statusCode == 409 && body['code'] == favoriteAlreadyExists) {
+        return GenericResponse(
+          success: false,
+          message: body['message'] is String
+              ? body['message'] as String
+              : 'Este lugar ya pertenece a tus favoritos.',
+          error: favoriteAlreadyExists,
+        );
+      }
+      if (response.statusCode == 401) {
+        return const GenericResponse(
+          success: false,
+          message: 'Tu sesión no es válida. Vuelve a iniciar sesión.',
+        );
+      }
+      if (response.statusCode == 404) {
+        return const GenericResponse(
+          success: false,
+          message: 'El lugar ya no está disponible.',
+        );
+      }
+      return const GenericResponse(success: false, message: favoriteError);
+    } catch (_) {
+      if (generation != SessionService.generation) {
+        return const GenericResponse(
+          success: false,
+          message: 'La sesión cambió durante la solicitud',
+        );
+      }
+      return const GenericResponse(success: false, message: favoriteError);
+    }
+  }
+
   GenericResponse<T> _sessionChanged<T>() => const GenericResponse(
     success: false,
     message: 'La sesión cambió durante la solicitud',
