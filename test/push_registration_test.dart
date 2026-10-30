@@ -62,6 +62,22 @@ class _Devices extends PushDeviceService {
   }
 }
 
+class _PendingPermissionMessaging extends _Messaging {
+  final permissions = <Completer<NotificationSettings>>[];
+  int registrations = 0;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    if (invocation.memberName == #requestPermission) {
+      final permission = Completer<NotificationSettings>();
+      permissions.add(permission);
+      return permission.future;
+    }
+    if (invocation.memberName == #register) registrations++;
+    return super.noSuchMethod(invocation);
+  }
+}
+
 Future<void> flush() async {
   for (var i = 0; i < 5; i++) {
     await Future<void>.delayed(Duration.zero);
@@ -77,6 +93,64 @@ void main() {
     ),
   );
   tearDown(SessionService.clear);
+
+  testWidgets(
+    'permiso pendiente vence sin cerrar sesión y su aceptación tardía no registra',
+    (tester) async {
+      final messaging = _PendingPermissionMessaging(), devices = _Devices();
+      final push = PushNotificationService.forTesting(devices, messaging);
+      addTearDown(() async {
+        await push.dispose();
+        await messaging.events.close();
+      });
+      final generation = SessionService.generation;
+      final pending = push.enableForCurrentSession();
+      await tester.pump();
+      expect(messaging.permissions.length, 1);
+      await tester.pump(const Duration(seconds: 21));
+      expect(await pending, isFalse);
+      expect(SessionService.isAuthenticated, isTrue);
+      expect(SessionService.generation, generation);
+      messaging.permissions.single.complete(_Settings());
+      await tester.pump();
+      expect(messaging.registrations, 0);
+      expect(devices.requests, isEmpty);
+    },
+  );
+
+  testWidgets(
+    'permiso tardío de intento vencido no finaliza un intento nuevo',
+    (tester) async {
+      final messaging = _PendingPermissionMessaging(), devices = _Devices();
+      final push = PushNotificationService.forTesting(devices, messaging);
+      addTearDown(() async {
+        await push.dispose();
+        await messaging.events.close();
+      });
+      final first = push.enableForCurrentSession();
+      await tester.pump(const Duration(seconds: 21));
+      expect(await first, isFalse);
+      var secondCompleted = false;
+      final second = push.enableForCurrentSession().then((value) {
+        secondCompleted = true;
+        return value;
+      });
+      await tester.pump();
+      expect(messaging.permissions.length, 2);
+      messaging.permissions.first.complete(_Settings());
+      await tester.pump();
+      expect(secondCompleted, isFalse);
+      expect(messaging.registrations, 0);
+      messaging.permissions.last.complete(_Settings());
+      await tester.pump();
+      expect(messaging.registrations, 1);
+      expect(secondCompleted, isFalse);
+      push.unregisterForLogout();
+      await tester.pump();
+      expect(await second, isFalse);
+      expect(SessionService.isAuthenticated, isTrue);
+    },
+  );
 
   test(
     'dos eventos FCM pendientes se serializan y conservan un binding',

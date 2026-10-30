@@ -125,15 +125,33 @@ class PushNotificationService {
     }
     if (_activeRegistrationId != null) return true;
     final result = Completer<bool>();
+    final attempt = ++_sessionAttempt;
     _enableResult = result;
-    final registered = await _registerForCurrentSession(++_sessionAttempt);
-    if (!registered) _finishEnable(false);
-    try {
-      return await result.future.timeout(const Duration(seconds: 20));
-    } on TimeoutException {
-      _finishEnable(false);
-      return false;
+    void failIfCurrent() {
+      if (attempt == _sessionAttempt && identical(_enableResult, result)) {
+        _finishEnable(false);
+      }
     }
+
+    // El plazo incluye el permiso del navegador, no solo el evento de registro.
+    unawaited(
+      _registerForCurrentSession(attempt).then<void>((registered) {
+        if (!registered) failIfCurrent();
+      }, onError: (Object error, StackTrace stack) => failIfCurrent()),
+    );
+    return result.future.timeout(
+      const Duration(seconds: 20),
+      onTimeout: () {
+        if (attempt == _sessionAttempt && identical(_enableResult, result)) {
+          // Un permiso aceptado tarde no puede registrar este intento vencido.
+          ++_sessionAttempt;
+          _fcmAttempt = null;
+          _finishEnable(false);
+          _stopFcmRegistration();
+        }
+        return false;
+      },
+    );
   }
 
   Future<bool> _registerForCurrentSession(int attempt) async {
