@@ -8,7 +8,9 @@ class PlacesLoading extends PlacesState {}
 
 class PlacesLoaded extends PlacesState {
   final List<PlaceModel> places;
-  PlacesLoaded({required this.places});
+  final Object selectionKey;
+  PlacesLoaded({required this.places, Object? selectionKey})
+    : selectionKey = selectionKey ?? Object();
 }
 
 class PlacesError extends PlacesState {

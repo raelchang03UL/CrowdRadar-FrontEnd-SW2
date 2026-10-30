@@ -69,6 +69,45 @@ class PlaceDetailPage extends StatelessWidget {
                             valor: lugar.direccion ?? 'Dirección no registrada',
                           ),
                           _Dato(titulo: 'Categoría', valor: lugar.categoria),
+                          _Dato(
+                            titulo: 'Coordenadas',
+                            valor: '${lugar.latitud}, ${lugar.longitud}',
+                          ),
+                          if (lugar.esFavorito) const Text('En tus favoritos'),
+                          const SizedBox(height: 8),
+                          OutlinedButton.icon(
+                            onPressed: state.saving
+                                ? null
+                                : () async {
+                                    final result = await context
+                                        .read<PlaceDetailCubit>()
+                                        .toggleFavorite();
+                                    if (!context.mounted || result == null) {
+                                      return;
+                                    }
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text(result.message)),
+                                    );
+                                  },
+                            icon: state.saving
+                                ? const SizedBox.square(
+                                    dimension: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Icon(
+                                    lugar.esFavorito
+                                        ? Icons.favorite
+                                        : Icons.favorite_border,
+                                  ),
+                            label: Text(
+                              lugar.esFavorito
+                                  ? 'Quitar de favoritos'
+                                  : 'Agregar a favoritos',
+                            ),
+                          ),
+                          const SizedBox(height: 16),
                           OutlinedButton.icon(
                             onPressed: () =>
                                 context.push('/places/${lugar.id}/history'),

@@ -8,7 +8,8 @@ class FavoritesLoading extends FavoritesState {}
 
 class FavoritesLoaded extends FavoritesState {
   final List<PlaceModel> places;
-  FavoritesLoaded({required this.places});
+  final Set<int> removing;
+  FavoritesLoaded({required this.places, this.removing = const {}});
 }
 
 class FavoritesError extends FavoritesState {

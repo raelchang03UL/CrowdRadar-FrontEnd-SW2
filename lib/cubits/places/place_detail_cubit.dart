@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../models/place_model.dart';
+import '../../configs/generic_response.dart';
 import '../../services/place_service.dart';
 import '../../services/session_service.dart';
 
@@ -11,7 +12,8 @@ class PlaceDetailLoading extends PlaceDetailState {}
 
 class PlaceDetailLoaded extends PlaceDetailState {
   final PlaceModel place;
-  PlaceDetailLoaded(this.place);
+  final bool saving;
+  PlaceDetailLoaded(this.place, {this.saving = false});
 }
 
 class PlaceDetailError extends PlaceDetailState {
@@ -62,6 +64,34 @@ class PlaceDetailCubit extends Cubit<PlaceDetailState> {
       }
       emit(PlaceDetailError(PlaceService.detailError));
     }
+  }
+
+  Future<GenericResponse<bool>?> toggleFavorite() async {
+    final current = state;
+    if (isClosed || current is! PlaceDetailLoaded || current.saving) {
+      return null;
+    }
+    final generation = SessionService.generation;
+    final request = _request;
+    emit(PlaceDetailLoaded(current.place, saving: true));
+    final result = current.place.esFavorito
+        ? await _service.removeFavorite(id)
+        : await _service.addFavorite(id);
+    if (isClosed ||
+        request != _request ||
+        generation != SessionService.generation) {
+      return null;
+    }
+    final saved =
+        result.success || result.error == PlaceService.favoriteAlreadyExists;
+    emit(
+      PlaceDetailLoaded(
+        saved
+            ? current.place.copyWith(esFavorito: !current.place.esFavorito)
+            : current.place,
+      ),
+    );
+    return result;
   }
 
   @override

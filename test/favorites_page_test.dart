@@ -21,6 +21,15 @@ class _FavoritesService extends PlaceService {
 
   @override
   Future<GenericResponse<List<PlaceModel>>> getFavorites() => load();
+
+  @override
+  Future<GenericResponse<PlaceModel>> getPlace(int id) async {
+    final result = await load();
+    return GenericResponse(
+      success: result.success,
+      data: result.data?.firstOrNull,
+    );
+  }
 }
 
 void main() {
@@ -40,6 +49,40 @@ void main() {
     SessionService.start(token: 'favorites-test', user: const UserModel(id: 1));
   });
   tearDown(SessionService.clear);
+
+  for (final width in [360.0, 390.0, 1440.0]) {
+    testWidgets('favoritos y detalle a ancho $width con texto 2x', (
+      tester,
+    ) async {
+      tester.view.physicalSize = Size(width, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final service = _FavoritesService(
+        () async => const GenericResponse(success: true, data: [place]),
+      );
+      Widget app(Widget child) => MaterialApp(
+        theme: AppTheme.lightTheme,
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: const TextScaler.linear(2)),
+          child: child!,
+        ),
+        home: child,
+      );
+      await tester.pumpWidget(app(FavoritosPage(service: service)));
+      await tester.pumpAndSettle();
+      expect(find.text(place.nombre), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(
+        app(PlaceDetailPage(id: place.id, service: service)),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('En tus favoritos'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  }
 
   Future<void> mount(WidgetTester tester, PlaceService service) async {
     tester.view.physicalSize = const Size(1080, 2400);
@@ -97,21 +140,35 @@ void main() {
       },
       () => MockClient((request) async {
         expect(request.method, 'GET');
-        expect(request.url.path, '/api/places/favorites');
+        expect(
+          request.url.path,
+          isIn(['/api/places/favorites', '/api/places/1']),
+        );
         return http.Response(
           jsonEncode({
-            'data': [
-              {
-                'id': place.id,
-                'nombre': place.nombre,
-                'categoria': place.categoria,
-                'referencia': place.referencia,
-                'latitud': place.latitud,
-                'longitud': place.longitud,
-                'demostrativo': place.demostrativo,
-                'esFavorito': place.esFavorito,
-              },
-            ],
+            'data': request.url.path == '/api/places/1'
+                ? {
+                    'id': place.id,
+                    'nombre': place.nombre,
+                    'categoria': place.categoria,
+                    'referencia': place.referencia,
+                    'latitud': place.latitud,
+                    'longitud': place.longitud,
+                    'demostrativo': place.demostrativo,
+                    'esFavorito': place.esFavorito,
+                  }
+                : [
+                    {
+                      'id': place.id,
+                      'nombre': place.nombre,
+                      'categoria': place.categoria,
+                      'referencia': place.referencia,
+                      'latitud': place.latitud,
+                      'longitud': place.longitud,
+                      'demostrativo': place.demostrativo,
+                      'esFavorito': place.esFavorito,
+                    },
+                  ],
           }),
           200,
         );

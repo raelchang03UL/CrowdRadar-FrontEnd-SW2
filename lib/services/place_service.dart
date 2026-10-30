@@ -226,7 +226,7 @@ class PlaceService {
 
   static const favoriteAlreadyExists = 'FAVORITE_ALREADY_EXISTS';
   static const favoriteError =
-      'No pudimos eliminar el favorito. Comprueba tu conexión y vuelve a intentarlo.';
+      'No pudimos actualizar el favorito. Comprueba tu conexión y vuelve a intentarlo.';
 
   Future<GenericResponse<List<PlaceModel>>> getFavorites() =>
       _getList(endpoint: ApiConfig.favorites);
@@ -235,25 +235,40 @@ class PlaceService {
     final generation = SessionService.generation;
     final token = SessionService.token;
     if (token == null || !SessionService.isAuthenticated) {
-      return const GenericResponse(success: false, message: 'Inicia sesión para eliminar lugares favoritos.');
+      return const GenericResponse(
+        success: false,
+        message: 'Inicia sesión para eliminar lugares favoritos.',
+      );
     }
     try {
-      final response = await http.delete(
-        ApiConfig.uri('${ApiConfig.places}/$placeId/favorite'),
-        headers: ApiConfig.authHeaders(token),
-      ).timeout(const Duration(seconds: 15));
+      final response = await http
+          .delete(
+            ApiConfig.uri('${ApiConfig.places}/$placeId/favorite'),
+            headers: ApiConfig.authHeaders(token),
+          )
+          .timeout(const Duration(seconds: 15));
       if (generation != SessionService.generation) return _sessionChanged();
       if (response.statusCode == 401) {
         SessionService.rejectIfCurrent(token: token, generation: generation);
-        return const GenericResponse(success: false, message: 'Tu sesión no es válida. Vuelve a iniciar sesión.');
+        return const GenericResponse(
+          success: false,
+          message: 'Tu sesión no es válida. Vuelve a iniciar sesión.',
+        );
       }
-      if (response.statusCode == 204) return const GenericResponse(success: true, data: true);
+      if (response.statusCode == 204) {
+        return const GenericResponse(
+          success: true,
+          data: true,
+          message: 'Lugar eliminado de tus favoritos.',
+        );
+      }
       return const GenericResponse(success: false, message: favoriteError);
     } catch (_) {
       if (generation != SessionService.generation) return _sessionChanged();
       return const GenericResponse(success: false, message: favoriteError);
     }
   }
+
   Future<GenericResponse<bool>> addFavorite(int placeId) async {
     final generation = SessionService.generation;
     final token = SessionService.token;
@@ -278,7 +293,13 @@ class PlaceService {
       }
       if (response.statusCode == 401) {
         SessionService.rejectIfCurrent(token: token, generation: generation);
-        return const GenericResponse(success: false, message: 'Tu sesión no es válida. Vuelve a iniciar sesión.');
+        return const GenericResponse(
+          success: false,
+          message: 'Tu sesión no es válida. Vuelve a iniciar sesión.',
+        );
+      }
+      if (response.statusCode != 201 && response.statusCode != 409) {
+        return const GenericResponse(success: false, message: favoriteError);
       }
       final body = jsonDecode(utf8.decode(response.bodyBytes));
       if (body is! Map<String, dynamic>) {
@@ -286,19 +307,18 @@ class PlaceService {
       }
       if (response.statusCode == 201 &&
           body['data'] is Map<String, dynamic> &&
-          body['data']['esFavorito'] == true) {
+          body['data']['esFavorito'] == true &&
+          body['data']['placeId'] == placeId) {
         return GenericResponse(
           success: true,
           data: true,
-          message: body['message'] is String ? body['message'] as String : '',
+          message: 'Lugar agregado a tus favoritos.',
         );
       }
       if (response.statusCode == 409 && body['code'] == favoriteAlreadyExists) {
         return GenericResponse(
           success: false,
-          message: body['message'] is String
-              ? body['message'] as String
-              : 'Este lugar ya pertenece a tus favoritos.',
+          message: 'Este lugar ya pertenece a tus favoritos.',
           error: favoriteAlreadyExists,
         );
       }

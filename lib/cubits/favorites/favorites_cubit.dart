@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../services/place_service.dart';
+import '../../configs/generic_response.dart';
 import '../../services/session_service.dart';
 import 'favorites_state.dart';
 
@@ -19,6 +20,8 @@ class FavoritesCubit extends Cubit<FavoritesState> {
 
   Future<void> loadFavorites() async {
     if (isClosed) return;
+    final current = state;
+    if (current is FavoritesLoaded && current.removing.isNotEmpty) return;
     final request = ++_request;
     final generation = SessionService.generation;
     if (!SessionService.isAuthenticated) {
@@ -46,6 +49,46 @@ class FavoritesCubit extends Cubit<FavoritesState> {
       }
       emit(FavoritesError(message: PlaceService.loadError));
     }
+  }
+
+  Future<GenericResponse<bool>?> removeFavorite(int id) async {
+    final current = state;
+    if (isClosed ||
+        current is! FavoritesLoaded ||
+        current.removing.contains(id)) {
+      return null;
+    }
+    final generation = SessionService.generation;
+    final request = _request;
+    emit(
+      FavoritesLoaded(
+        places: current.places,
+        removing: {...current.removing, id},
+      ),
+    );
+    final result = await _service.removeFavorite(id);
+    if (isClosed ||
+        request != _request ||
+        generation != SessionService.generation) {
+      return null;
+    }
+    final latest = state;
+    if (latest is! FavoritesLoaded) return null;
+    emit(
+      FavoritesLoaded(
+        places: result.success
+            ? latest.places.where((p) => p.id != id).toList(growable: false)
+            : latest.places,
+        removing: {...latest.removing}..remove(id),
+      ),
+    );
+    return result.success
+        ? const GenericResponse(
+            success: true,
+            data: true,
+            message: 'Lugar eliminado de tus favoritos.',
+          )
+        : result;
   }
 
   @override

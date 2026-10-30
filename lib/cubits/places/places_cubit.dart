@@ -101,7 +101,7 @@ class PlacesCubit extends Cubit<PlacesState> {
         message: 'Espera a que se carguen los lugares e inténtalo de nuevo.',
       );
     }
-    final operation = ++_request;
+    final operation = _request;
     final generation = SessionService.generation;
     final result = await _service.addFavorite(placeId);
     if (!isClosed &&
@@ -113,6 +113,7 @@ class PlacesCubit extends Cubit<PlacesState> {
       if (latest is PlacesLoaded) {
         emit(
           PlacesLoaded(
+            selectionKey: latest.selectionKey,
             places: List.unmodifiable(
               latest.places
                   .map(
@@ -127,6 +128,29 @@ class PlacesCubit extends Cubit<PlacesState> {
       }
     }
     return result;
+  }
+
+  Future<void> refreshPlace(int id) async {
+    final request = _request;
+    final generation = SessionService.generation;
+    final result = await _service.getPlace(id);
+    if (isClosed ||
+        request != _request ||
+        generation != SessionService.generation) {
+      return;
+    }
+    final current = state;
+    if (current is! PlacesLoaded || !result.success || result.data == null) {
+      return;
+    }
+    emit(
+      PlacesLoaded(
+        selectionKey: current.selectionKey,
+        places: List.unmodifiable(
+          current.places.map((p) => p.id == id ? result.data! : p),
+        ),
+      ),
+    );
   }
 
   @override

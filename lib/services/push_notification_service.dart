@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -8,14 +9,20 @@ import 'package:flutter/material.dart';
 import '../configs/firebase_options.dart';
 import '../router/app_router.dart';
 import 'push_device_service.dart';
+import 'push_message_guard.dart';
+import 'push_web_bridge.dart';
 import 'session_service.dart';
 
 class PushNotificationService {
-  PushNotificationService._();
+  PushNotificationService._() : _devices = PushDeviceService();
+
+  @visibleForTesting
+  PushNotificationService.forTesting(this._devices, FirebaseMessaging messaging)
+    : _messaging = messaging;
 
   static final PushNotificationService instance = PushNotificationService._();
 
-  final PushDeviceService _devices = PushDeviceService();
+  final PushDeviceService _devices;
   FirebaseMessaging? _messaging;
   StreamSubscription<RemoteMessage>? _openedSubscription;
   StreamSubscription<RemoteMessage>? _foregroundSubscription;
@@ -23,26 +30,32 @@ class PushNotificationService {
   _RegisteredDevice? _registered;
   int _sessionAttempt = 0;
   bool _initialized = false;
+  int? _fcmAttempt;
+  Completer<bool>? _enableResult;
+  Future<void> _stopping = Future.value();
+  Future<void> _registrationQueue = Future.value();
 
   Future<void> initialize() async {
     if (_initialized) return;
     _initialized = true;
-    if (kIsWeb) {
-      debugPrint(
-        'Las alertas push web requieren una configuración Firebase web y no están habilitadas.',
-      );
-      return;
-    }
     final options = FirebaseOptionsConfig.currentPlatform;
-    if (options == null) {
+    if (options == null && _messaging == null) {
       debugPrint(
         'Alertas push no configuradas: define las opciones Firebase de la plataforma móvil.',
       );
       return;
     }
     try {
-      await Firebase.initializeApp(options: options);
-      _messaging = FirebaseMessaging.instance;
+      initializePushBridge(() => _activeRegistrationId ?? '', (raw) {
+        try {
+          final data = jsonDecode(raw);
+          if (data is Map<String, dynamic>) _openData(data);
+        } catch (_) {}
+      });
+      if (_messaging == null) {
+        await Firebase.initializeApp(options: options);
+        _messaging = FirebaseMessaging.instance;
+      }
       SessionService.changes.addListener(_onSessionChanged);
       _openedSubscription = FirebaseMessaging.onMessageOpenedApp.listen(
         _openPlace,
@@ -56,8 +69,9 @@ class PushNotificationService {
       );
       _registeredSubscription = _messaging!.onRegistered.listen(
         _onRegistered,
-        onError: (Object error) =>
-            debugPrint('No se pudo actualizar el registro push del dispositivo.'),
+        onError: (Object error) => debugPrint(
+          'No se pudo actualizar el registro push del dispositivo.',
+        ),
       );
       final initialMessage = await _messaging!.getInitialMessage();
       if (initialMessage != null) {
@@ -75,30 +89,59 @@ class PushNotificationService {
 
   void _onSessionChanged() {
     final attempt = ++_sessionAttempt;
-    if (!SessionService.isAuthenticated) {
-      final previous = _registered;
-      _registered = null;
-      if (previous != null) {
-        unawaited(_unregister(previous));
-      }
-      _stopFcmRegistration();
-      return;
+    _fcmAttempt = null;
+    _finishEnable(false);
+    clearPushBridge();
+    final previous = _registered;
+    _registered = null;
+    if (previous != null) {
+      unawaited(_unregister(previous));
     }
+    _stopFcmRegistration();
+    if (!SessionService.isAuthenticated || kIsWeb) return;
     unawaited(_registerForCurrentSession(attempt));
   }
 
   void unregisterForLogout() {
     ++_sessionAttempt;
+    _fcmAttempt = null;
+    _finishEnable(false);
+    clearPushBridge();
     final previous = _registered;
     _registered = null;
     if (previous != null) unawaited(_unregister(previous));
     _stopFcmRegistration();
   }
 
-  Future<void> _registerForCurrentSession(int attempt) async {
+  bool get isConfigured =>
+      _messaging != null &&
+      (!kIsWeb || FirebaseOptionsConfig.vapidKey.isNotEmpty);
+
+  Future<bool> enableForCurrentSession() async {
+    if (!isConfigured ||
+        !SessionService.isAuthenticated ||
+        _enableResult != null) {
+      return false;
+    }
+    if (_activeRegistrationId != null) return true;
+    final result = Completer<bool>();
+    _enableResult = result;
+    final registered = await _registerForCurrentSession(++_sessionAttempt);
+    if (!registered) _finishEnable(false);
+    try {
+      return await result.future.timeout(const Duration(seconds: 20));
+    } on TimeoutException {
+      _finishEnable(false);
+      return false;
+    }
+  }
+
+  Future<bool> _registerForCurrentSession(int attempt) async {
     final sessionToken = SessionService.token;
     final userId = SessionService.currentUser?.id;
-    if (sessionToken == null || userId == null || _messaging == null) return;
+    if (sessionToken == null || userId == null || _messaging == null) {
+      return false;
+    }
     try {
       final authorization = await _messaging!.requestPermission(
         alert: true,
@@ -107,34 +150,58 @@ class PushNotificationService {
       );
       if (authorization.authorizationStatus == AuthorizationStatus.denied) {
         debugPrint('El usuario no autorizó las alertas push.');
-        return;
+        return false;
       }
-      if (!_isCurrentSession(attempt, sessionToken, userId)) return;
-      await _messaging!.register();
+      if (!_isCurrentSession(attempt, sessionToken, userId)) return false;
+      await _stopping;
+      if (!_isCurrentSession(attempt, sessionToken, userId)) return false;
+      if (kIsWeb) await preparePushWorker(FirebaseOptionsConfig.workerPath);
+      if (!_isCurrentSession(attempt, sessionToken, userId)) return false;
+      _fcmAttempt = attempt;
+      await _messaging!.register(
+        vapidKey: kIsWeb ? FirebaseOptionsConfig.vapidKey : null,
+        serviceWorkerScriptPath: kIsWeb
+            ? FirebaseOptionsConfig.workerPath
+            : null,
+      );
+      return true;
     } catch (error) {
       debugPrint('No se pudo registrar el dispositivo para alertas push.');
+      return false;
     }
   }
 
   void _onRegistered(String token) {
-    unawaited(_registerTokenForCurrentSession(token));
+    if (_fcmAttempt != _sessionAttempt) return;
+    final attempt = _sessionAttempt;
+    _registrationQueue = _registrationQueue
+        .then((_) async {
+          if (_fcmAttempt != attempt || _sessionAttempt != attempt) return;
+          await _registerTokenForCurrentSession(token);
+        })
+        .catchError((Object error) {
+          if (attempt == _sessionAttempt) _finishEnable(false);
+        });
   }
 
   void _stopFcmRegistration() {
     final messaging = _messaging;
     if (messaging == null) return;
-    unawaited(
-      messaging.unregister().catchError((Object error) {
-        debugPrint('No se pudo detener el registro push del dispositivo.');
-      }),
-    );
+    _stopping = _stopping.then((_) => messaging.unregister()).catchError((
+      Object error,
+    ) {
+      debugPrint('No se pudo detener el registro push del dispositivo.');
+    });
   }
 
   Future<void> _registerTokenForCurrentSession(String token) async {
     final sessionToken = SessionService.token;
     final userId = SessionService.currentUser?.id;
     final attempt = _sessionAttempt;
-    if (sessionToken == null || userId == null || !SessionService.isAuthenticated) {
+    final generation = SessionService.generation;
+    if (sessionToken == null ||
+        userId == null ||
+        !SessionService.isAuthenticated) {
       return;
     }
     final previous = _registered;
@@ -147,24 +214,44 @@ class PushNotificationService {
       if (previous != null && previous.deviceToken != token) {
         await _unregister(previous);
       }
-      await _devices.register(
+      final registrationId = await _devices.register(
         sessionToken: sessionToken,
         deviceToken: token,
-        platform: defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android',
+        platform: kIsWeb
+            ? 'web'
+            : defaultTargetPlatform == TargetPlatform.iOS
+            ? 'ios'
+            : 'android',
+        generation: generation,
       );
       final registration = _RegisteredDevice(
         userId: userId,
         sessionToken: sessionToken,
         deviceToken: token,
+        generation: generation,
+        registrationId: registrationId,
       );
       if (!_isCurrentSession(attempt, sessionToken, userId)) {
         await _unregister(registration);
         return;
       }
       _registered = registration;
+      _finishEnable(true);
     } catch (error) {
       debugPrint('No se pudo registrar el dispositivo para alertas push.');
+      if (attempt == _sessionAttempt) _finishEnable(false);
     }
+  }
+
+  String? get _activeRegistrationId =>
+      _registered?.generation == SessionService.generation
+      ? _registered?.registrationId
+      : null;
+
+  void _finishEnable(bool success) {
+    final result = _enableResult;
+    _enableResult = null;
+    if (result != null && !result.isCompleted) result.complete(success);
   }
 
   bool _isCurrentSession(int attempt, String token, int userId) =>
@@ -178,6 +265,7 @@ class PushNotificationService {
       await _devices.unregister(
         sessionToken: device.sessionToken,
         deviceToken: device.deviceToken,
+        registrationId: device.registrationId,
       );
     } catch (error) {
       debugPrint('No se pudo desactivar el dispositivo para alertas push.');
@@ -186,7 +274,7 @@ class PushNotificationService {
 
   void _showForegroundMessage(RemoteMessage message) {
     final context = appRouter.routerDelegate.navigatorKey.currentContext;
-    final placeId = _placeId(message);
+    final placeId = authorizedPushPlace(message.data, _activeRegistrationId);
     if (context == null || placeId == null) {
       debugPrint('La alerta push no incluye un lugar válido.');
       return;
@@ -205,22 +293,15 @@ class PushNotificationService {
     );
   }
 
-  void _openPlace(RemoteMessage message) {
-    final placeId = _placeId(message);
-    if (placeId == null) {
-      debugPrint('Se descartó una alerta push con un identificador inválido.');
-      return;
-    }
-    appRouter.push('/places/$placeId');
-  }
+  void _openPlace(RemoteMessage message) => _openData(message.data);
 
-  int? _placeId(RemoteMessage message) {
-    final id = int.tryParse(message.data['placeId'] ?? '');
-    if (id == null || id < -2147483648 || id > 2147483647) return null;
-    return id;
+  void _openData(Map<String, dynamic> data) {
+    final placeId = authorizedPushPlace(data, _activeRegistrationId);
+    if (placeId != null) appRouter.push('/places/$placeId');
   }
 
   Future<void> dispose() async {
+    unregisterForLogout();
     SessionService.changes.removeListener(_onSessionChanged);
     await _openedSubscription?.cancel();
     await _foregroundSubscription?.cancel();
@@ -232,10 +313,14 @@ class _RegisteredDevice {
   final int userId;
   final String sessionToken;
   final String deviceToken;
+  final int generation;
+  final String registrationId;
 
   const _RegisteredDevice({
     required this.userId,
     required this.sessionToken,
     required this.deviceToken,
+    required this.generation,
+    required this.registrationId,
   });
 }
