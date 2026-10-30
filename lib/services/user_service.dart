@@ -18,6 +18,54 @@ class UserService {
 
   Future<GenericResponse<UserModel>> getProfile() => _request();
 
+  Future<GenericResponse<int>> getKarma() async {
+    final generation = SessionService.generation;
+    final token = SessionService.token;
+    if (token == null) {
+      return const GenericResponse(success: false, message: sessionError);
+    }
+    try {
+      final response = await http
+          .get(
+            ApiConfig.uri(ApiConfig.karma),
+            headers: ApiConfig.authHeaders(token),
+          )
+          .timeout(_timeout);
+      if (generation != SessionService.generation) {
+        return const GenericResponse(success: false, message: sessionError);
+      }
+      if (response.statusCode == 401) {
+        SessionService.rejectIfCurrent(token: token, generation: generation);
+        return const GenericResponse(success: false, message: sessionError);
+      }
+      if (response.statusCode != 200) {
+        return const GenericResponse(
+          success: false,
+          message: 'No pudimos consultar tu karma. Inténtalo de nuevo.',
+        );
+      }
+      final decoded = jsonDecode(utf8.decode(response.bodyBytes));
+      final data = decoded is Map<String, dynamic> ? decoded['data'] : null;
+      if (data is! Map<String, dynamic> || data['karmaPoints'] is! num) {
+        throw const FormatException('Respuesta de karma inválida');
+      }
+      return GenericResponse(
+        success: true,
+        data: (data['karmaPoints'] as num).toInt(),
+      );
+    } on FormatException {
+      return const GenericResponse(
+        success: false,
+        message: 'No pudimos leer tu karma. Inténtalo de nuevo.',
+      );
+    } catch (_) {
+      return const GenericResponse(
+        success: false,
+        message: 'No pudimos consultar tu karma. Inténtalo de nuevo.',
+      );
+    }
+  }
+
   Future<GenericResponse<UserModel>> updateProfile(
     Map<String, dynamic> cambios,
   ) => _request(changes: cambios);
@@ -42,6 +90,7 @@ class UserService {
         return const GenericResponse(success: false, message: sessionError);
       }
       if (response.statusCode == 401) {
+        SessionService.rejectIfCurrent(token: token, generation: generation);
         return const GenericResponse(success: false, message: sessionError);
       }
       if (response.statusCode == 404) {

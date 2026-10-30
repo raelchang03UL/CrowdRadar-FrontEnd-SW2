@@ -1,8 +1,12 @@
 import 'package:go_router/go_router.dart';
+import 'package:flutter/widgets.dart';
 
 import '../models/user_model.dart';
 import '../services/session_service.dart';
 import '../services/recovery_service.dart';
+import '../services/place_service.dart';
+import '../pages/places/place_search_page.dart';
+import '../pages/places/place_detail_page.dart';
 
 import '../pages/login/login_page.dart';
 import '../pages/register/register_page.dart';
@@ -14,12 +18,22 @@ import '../pages/favoritos/favoritos_page.dart';
 import '../pages/profile/profile_page.dart';
 import '../pages/profile/edit_profile_page.dart';
 import '../pages/profile/change_password_page.dart';
+import '../pages/reports/report_history_page.dart';
+import '../pages/reports/report_review_page.dart';
+import '../pages/places/place_history_page.dart';
+import '../pages/admin/admin_users_page.dart';
+import '../pages/admin/admin_user_detail_page.dart';
+import '../services/admin_user_service.dart';
+import '../pages/admin/admin_reports_page.dart';
+import '../pages/admin/admin_report_detail_page.dart';
 
 final appRouter = createAppRouter();
 
 GoRouter createAppRouter({
   String initialLocation = '/login',
   RecoveryService? recoveryService,
+  PlaceService? placeService,
+  AdminUserService? adminUserService,
 }) => GoRouter(
   initialLocation: initialLocation,
   refreshListenable: SessionService.changes,
@@ -30,11 +44,45 @@ GoRouter createAppRouter({
         state.uri.path == '/forgot-password' ||
         state.uri.path == '/reset-password';
     if (!SessionService.isAuthenticated && !isPublic) {
-      return '/login';
+      return SessionService.wasRejected
+          ? '/login?notice=sessionExpired'
+          : '/login';
+    }
+    if ((state.uri.path == '/admin' || state.uri.path.startsWith('/admin/')) &&
+        SessionService.currentUser?.rol != 'ADMIN') {
+      return '/profile';
     }
     return null;
   },
   routes: [
+    GoRoute(
+      path: '/admin/reports',
+      builder: (context, state) => AdminReportsPage(
+        key: ValueKey(state.uri.toString()),
+        authorId: state.uri.queryParameters.containsKey('authorId')
+            ? int.tryParse(state.uri.queryParameters['authorId']!) ?? 0
+            : null,
+      ),
+    ),
+    GoRoute(
+      path: '/admin/reports/:id',
+      builder: (context, state) => AdminReportDetailPage(
+        key: ValueKey(state.uri.path),
+        id: state.pathParameters['id'] ?? '',
+      ),
+    ),
+    GoRoute(
+      path: '/admin/users',
+      builder: (context, state) => AdminUsersPage(service: adminUserService),
+    ),
+    GoRoute(
+      path: '/admin/users/:id',
+      builder: (context, state) => AdminUserDetailPage(
+        key: ValueKey(state.uri.path),
+        id: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
+        service: adminUserService,
+      ),
+    ),
     GoRoute(
       path: '/login',
       builder: (context, state) => LoginPage(
@@ -61,13 +109,53 @@ GoRouter createAppRouter({
         service: recoveryService,
       ),
     ),
-    GoRoute(path: '/map', builder: (context, state) => const MapPage()),
+    GoRoute(
+      path: '/map',
+      builder: (context, state) => MapPage(service: placeService),
+    ),
+    GoRoute(
+      path: '/places/search',
+      builder: (context, state) => PlaceSearchPage(service: placeService),
+    ),
+    GoRoute(
+      path: '/places/:id',
+      builder: (context, state) => PlaceDetailPage(
+        id: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
+        service: placeService,
+      ),
+    ),
+    GoRoute(
+      path: '/reports/:id',
+      builder: (context, state) => ReportReviewPage(
+        key: ValueKey(state.uri.path),
+        id: state.pathParameters['id'] ?? '',
+      ),
+    ),
+    GoRoute(
+      path: '/profile/reports/:id/validation',
+      builder: (context, state) => ReportReviewPage(
+        key: ValueKey(state.uri.path),
+        id: state.pathParameters['id'] ?? '',
+        ownOnly: true,
+      ),
+    ),
+    GoRoute(
+      path: '/places/:id/history',
+      builder: (context, state) => PlaceHistoryPage(
+        key: ValueKey(state.uri.path),
+        id: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
+      ),
+    ),
     GoRoute(path: '/validar', builder: (context, state) => const ValidarPage()),
     GoRoute(
       path: '/favoritos',
       builder: (context, state) => const FavoritosPage(),
     ),
     GoRoute(path: '/profile', builder: (context, state) => const ProfilePage()),
+    GoRoute(
+      path: '/profile/reports',
+      builder: (context, state) => const ReportHistoryPage(),
+    ),
     GoRoute(
       path: '/profile/password',
       builder: (context, state) => const ChangePasswordPage(),

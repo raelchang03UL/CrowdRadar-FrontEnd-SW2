@@ -12,6 +12,8 @@ class AuthService {
       'El servidor devolvió una respuesta no válida. Inténtalo de nuevo.';
   static const serverError =
       'No pudimos completar la solicitud. Inténtalo de nuevo.';
+  static const suspendedAccountMessage =
+      'Tu cuenta está suspendida. Un administrador debe reactivarla para que puedas volver a ingresar.';
 
   Future<GenericResponse<UserModel>> login(
     String email,
@@ -31,6 +33,20 @@ class AuthService {
           success: false,
           message: 'Correo o contraseña incorrectos.',
         );
+      }
+      if (res.statusCode == 403) {
+        try {
+          if (_decode(res.bodyBytes)['code'] == 'ACCOUNT_SUSPENDED') {
+            return const GenericResponse(
+              success: false,
+              error: 'ACCOUNT_SUSPENDED',
+              message: suspendedAccountMessage,
+            );
+          }
+        } catch (_) {
+          // No mostrar cuerpos inválidos ni detalles del servidor.
+        }
+        return const GenericResponse(success: false, message: serverError);
       }
       if (res.statusCode == 400) {
         return const GenericResponse(

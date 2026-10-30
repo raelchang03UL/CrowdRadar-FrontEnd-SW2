@@ -5,6 +5,8 @@ class PlaceModel {
   final double latitud;
   final double longitud;
   final bool demostrativo;
+  final String? direccion;
+  final String? referencia;
 
   const PlaceModel({
     required this.id,
@@ -13,6 +15,8 @@ class PlaceModel {
     required this.latitud,
     required this.longitud,
     required this.demostrativo,
+    this.direccion,
+    this.referencia,
   });
 
   factory PlaceModel.fromJson(Map<String, dynamic> json) {
@@ -22,6 +26,8 @@ class PlaceModel {
     final latitud = json['latitud'];
     final longitud = json['longitud'];
     final demostrativo = json['demostrativo'];
+    final direccion = json['direccion'];
+    final referencia = json['referencia'];
     if (id is! int ||
         nombre is! String ||
         nombre.trim().isEmpty ||
@@ -35,7 +41,10 @@ class PlaceModel {
         !longitud.isFinite ||
         longitud < -180 ||
         longitud > 180 ||
-        demostrativo is! bool) {
+        demostrativo is! bool ||
+        (direccion != null &&
+            (direccion is! String || direccion.trim().isEmpty)) ||
+        (referencia != null && referencia is! String)) {
       throw const FormatException('Información de lugar inválida');
     }
     return PlaceModel(
@@ -45,6 +54,8 @@ class PlaceModel {
       latitud: latitud.toDouble(),
       longitud: longitud.toDouble(),
       demostrativo: demostrativo,
+      direccion: direccion as String?,
+      referencia: referencia as String?,
     );
   }
 }
