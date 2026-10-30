@@ -150,13 +150,13 @@ La revisión del 06/10/2026 conserva ese trabajo y añade `test/session_async_te
 
 ## Alcance
 
-El candidato conserva HU1–7 e integra agregar, consultar, abrir y quitar favoritos propios. Las alertas Web están implementadas sobre Firebase/FCM existente; su recepción real y apertura requieren configuración autorizada y evidencia específica. La compilación y las pruebas con dobles no completan esa aceptación. Ver [estado técnico](docs/ESTADO_ACTUAL.md).
+El candidato conserva HU1–7 e integra agregar, consultar, abrir y quitar favoritos propios. Las alertas Web reutilizan Firebase/FCM existente. En el ensayo autorizado del30/10, la configuración Spark quedó preparada y FCM aceptó envíos, pero no se demostró recepción ni apertura en Chrome: HU8.3 sigue pendiente. La compilación y las pruebas con dobles no completan esa aceptación. Ver [estado técnico](docs/ESTADO_ACTUAL.md).
 
 ## Configuración de alertas Web HU8
 
 Las opciones públicas se inyectan al ejecutar o compilar: `FIREBASE_API_KEY`, `FIREBASE_WEB_APP_ID`, `FIREBASE_MESSAGING_SENDER_ID`, `FIREBASE_PROJECT_ID`, `FIREBASE_AUTH_DOMAIN` y `FIREBASE_WEB_VAPID_KEY`. Usar un archivo local ignorado con `--dart-define-from-file`; no versionar configuraciones locales ni credenciales del servidor. Estas opciones Web no sustituyen la credencial Firebase Admin que configura exclusivamente el backend.
 
-En Favoritos, **Activar alertas** solicita permiso mediante una acción del usuario y registra el dispositivo para la sesión vigente. Requiere HTTPS o localhost, navegador compatible, permiso concedido y acceso a Firebase. `web/push/firebase-messaging-sw.js` recibe la misma configuración pública mediante su URL; usa Firebase JS13.1.0, correspondiente a `firebase_core_web4.1.0` del lock. Su ámbito `/push/` evita sustituir el worker de Flutter en `/`. Firebase registra FID con `register/onRegistered`, como el aporte original.
+En Favoritos, **Activar alertas** solicita permiso mediante una acción del usuario y registra el dispositivo para la sesión vigente. El intento tiene un plazo total de20s, incluido el permiso; una respuesta tardía no activa un intento vencido. Requiere HTTPS o localhost, navegador compatible, permiso concedido y acceso a Firebase. `web/push/firebase-messaging-sw.js` recibe la misma configuración pública mediante su URL; usa Firebase JS13.1.0, correspondiente a `firebase_core_web4.1.0` del lock. Su ámbito `/push/` evita sustituir el worker de Flutter en `/`. Firebase registra FID con `register/onRegistered`, como el aporte original.
 
 El cliente conserva JWT y binding de dispositivo solo en memoria. El worker consulta una pestaña autenticada viva antes de mostrar una alerta y antes de enfocar/abrir el detalle. Logout, cambio de cuenta o recarga invalidan el binding; una notificación antigua no abre información de una sesión posterior. Cerrar todas las pestañas no garantiza alertas: esta política evita persistir una sesión sin aprobación. Los permisos y la entrega dependen del navegador y FCM.
 
