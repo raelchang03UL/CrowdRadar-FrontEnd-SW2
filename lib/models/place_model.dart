@@ -5,6 +5,7 @@ class PlaceModel {
   final double latitud;
   final double longitud;
   final bool demostrativo;
+  final bool esFavorito;
   final String? direccion;
   final String? referencia;
 
@@ -15,6 +16,7 @@ class PlaceModel {
     required this.latitud,
     required this.longitud,
     required this.demostrativo,
+    this.esFavorito = false,
     this.direccion,
     this.referencia,
   });
@@ -26,6 +28,7 @@ class PlaceModel {
     final latitud = json['latitud'];
     final longitud = json['longitud'];
     final demostrativo = json['demostrativo'];
+    final esFavorito = json['esFavorito'];
     final direccion = json['direccion'];
     final referencia = json['referencia'];
     if (id is! int ||
@@ -42,6 +45,7 @@ class PlaceModel {
         longitud < -180 ||
         longitud > 180 ||
         demostrativo is! bool ||
+        (esFavorito != null && esFavorito is! bool) ||
         (direccion != null &&
             (direccion is! String || direccion.trim().isEmpty)) ||
         (referencia != null && referencia is! String)) {
@@ -54,8 +58,20 @@ class PlaceModel {
       latitud: latitud.toDouble(),
       longitud: longitud.toDouble(),
       demostrativo: demostrativo,
+      esFavorito: esFavorito == true,
       direccion: direccion as String?,
       referencia: referencia as String?,
     );
   }
+  PlaceModel copyWith({bool? esFavorito}) => PlaceModel(
+    id: id,
+    nombre: nombre,
+    categoria: categoria,
+    latitud: latitud,
+    longitud: longitud,
+    demostrativo: demostrativo,
+    direccion: direccion,
+    referencia: referencia,
+    esFavorito: esFavorito ?? this.esFavorito,
+  );
 }

@@ -187,7 +187,7 @@ class _MapView extends StatelessWidget {
         reportService: reportService,
         // Cada lista consultada retira la selección previa, incluso si la
         // respuesta inmediata no llegó a dibujar el estado de carga.
-        key: ValueKey(state),
+        key: ValueKey(state.selectionKey),
         places: state.places,
         tileProvider: tileProvider,
         saturationService: saturationService,
@@ -269,6 +269,38 @@ class _PlacesMap extends StatefulWidget {
 
 class _PlacesMapState extends State<_PlacesMap> {
   PlaceModel? _selected;
+  final Set<int> _pendingFavorites = {};
+
+  @override
+  void didUpdateWidget(covariant _PlacesMap oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final selectedId = _selected?.id;
+    if (selectedId == null) return;
+    _selected = widget.places
+        .where((place) => place.id == selectedId)
+        .firstOrNull;
+  }
+
+  Future<void> _addFavorite(PlaceModel place) async {
+    if (_pendingFavorites.contains(place.id)) return;
+    final generation = SessionService.generation;
+    setState(() => _pendingFavorites.add(place.id));
+    final result = await context.read<PlacesCubit>().addFavorite(place.id);
+    if (!mounted || generation != SessionService.generation) return;
+    setState(() {
+      _pendingFavorites.remove(place.id);
+      if (result.success ||
+          result.error == PlaceService.favoriteAlreadyExists) {
+        if (_selected?.id == place.id) {
+          _selected = _selected?.copyWith(esFavorito: true);
+        }
+      }
+    });
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(result.message)));
+  }
+
   final MapController _mapController = MapController();
   bool _picking = false;
   bool _reporting = false;
@@ -739,11 +771,45 @@ class _PlacesMapState extends State<_PlacesMap> {
                                                       'Reportar saturación',
                                                     ),
                                                   ),
+                                                  OutlinedButton.icon(
+                                                    key: ValueKey(
+                                                      'favorite-place-${place.id}',
+                                                    ),
+                                                    onPressed:
+                                                        _pendingFavorites
+                                                                .contains(
+                                                                  place.id,
+                                                                ) ||
+                                                            place.esFavorito
+                                                        ? null
+                                                        : () => _addFavorite(
+                                                            place,
+                                                          ),
+                                                    icon: Icon(
+                                                      place.esFavorito
+                                                          ? Icons.favorite
+                                                          : Icons
+                                                                .favorite_border,
+                                                    ),
+                                                    label: Text(
+                                                      place.esFavorito
+                                                          ? 'En tus favoritos'
+                                                          : 'Agregar a favoritos',
+                                                    ),
+                                                  ),
                                                   TextButton(
-                                                    onPressed: () =>
-                                                        context.push(
-                                                          '/places/${place.id}',
-                                                        ),
+                                                    onPressed: () async {
+                                                      await context.push(
+                                                        '/places/${place.id}',
+                                                      );
+                                                      if (context.mounted) {
+                                                        context
+                                                            .read<PlacesCubit>()
+                                                            .refreshPlace(
+                                                              place.id,
+                                                            );
+                                                      }
+                                                    },
                                                     child: const Text(
                                                       'Ver detalles',
                                                     ),

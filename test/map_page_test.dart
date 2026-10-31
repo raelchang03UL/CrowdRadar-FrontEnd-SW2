@@ -47,6 +47,19 @@ class _Saturation extends SaturationService {
       );
 }
 
+class _FavoriteService extends _Service {
+  final saved = Completer<GenericResponse<bool>>();
+  int calls = 0;
+
+  _FavoriteService(super.load);
+
+  @override
+  Future<GenericResponse<bool>> addFavorite(int id) {
+    calls++;
+    return saved.future;
+  }
+}
+
 // Solo sustituye la red de teselas: se renderizan FlutterMap y MarkerLayer reales.
 class _Tiles extends TileProvider {
   @override
@@ -78,6 +91,51 @@ void main() {
     SessionService.start(token: 'test-token', user: const UserModel(id: 1));
   });
   tearDown(SessionService.clear);
+
+  testWidgets('favorito A pendiente no cambia estado de selección B', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1440, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final service = _FavoriteService(
+      () async => const GenericResponse(success: true, data: places),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.lightTheme,
+        home: MapPage(
+          service: service,
+          tileProvider: _Tiles(),
+          saturationService: _Saturation(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('select-place-1')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const ValueKey('favorite-place-1')));
+    await tester.tap(find.byKey(const ValueKey('favorite-place-1')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('catalog-place-2')));
+    await tester.pumpAndSettle();
+    service.saved.complete(
+      const GenericResponse(
+        success: true,
+        data: true,
+        message: 'Favorito guardado',
+      ),
+    );
+    await tester.pumpAndSettle();
+    final button = find.byKey(const ValueKey('favorite-place-2'));
+    expect(
+      find.descendant(of: button, matching: find.text('Agregar a favoritos')),
+      findsOneWidget,
+    );
+    expect(service.calls, 1);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('mapa abre detalles desde marcador y búsqueda desde la barra', (
     tester,

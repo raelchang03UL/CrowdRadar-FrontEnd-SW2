@@ -8,11 +8,12 @@ class SessionService {
   static int _generation = 0;
   static bool _wasRejected = false;
   static final ValueNotifier<bool> _authenticated = ValueNotifier(false);
+  static final ValueNotifier<int> _changes = ValueNotifier(0);
 
   static String? get token => _token;
   static UserModel? get currentUser => _currentUser;
   static bool get isAuthenticated => _authenticated.value;
-  static Listenable get changes => _authenticated;
+  static Listenable get changes => _changes;
   static int get generation => _generation;
   static bool get wasRejected => _wasRejected;
 
@@ -36,6 +37,7 @@ class SessionService {
     _token = token;
     _currentUser = user;
     _authenticated.value = true;
+    _changes.value = _generation;
     return true;
   }
 
@@ -45,6 +47,7 @@ class SessionService {
     _token = null;
     _currentUser = null;
     _authenticated.value = false;
+    _changes.value = _generation;
   }
 
   // El token puede repetirse: la generación distingue sesiones y hace idempotente
