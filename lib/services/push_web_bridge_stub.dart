@@ -4,3 +4,4 @@ void initializePushBridge(
 ) {}
 void clearPushBridge() {}
 Future<void> preparePushWorker(String path) async {}
+Future<bool> hasPushFidRegistration(String appId) async => false;

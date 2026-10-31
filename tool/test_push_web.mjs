@@ -100,3 +100,53 @@ test('logout cleanup closes only CrowdRadar messaging notifications', async () =
   await new Promise(resolve => setImmediate(resolve));
   assert.deepEqual(closed, ['http://localhost/push/']);
 });
+
+async function fidBridge(indexedDB) {
+  const window = {};
+  runInNewContext(await readFile(new URL('../web/crowdradar-push.js', import.meta.url), 'utf8'), {
+    window, indexedDB, URL, setTimeout, clearTimeout,
+    navigator: {serviceWorker: {addEventListener() {}}},
+  });
+  return window.crowdRadarPush;
+}
+
+test('FID migration check does not create absent database or touch legacy token cache', async () => {
+  const bridge = await fidBridge({databases: async () => [], open() { assert.fail('Must not create database'); }});
+  assert.equal(await bridge.hasFidRegistration('current-app'), false);
+});
+
+test('FID migration only counts the exact app key in a readonly transaction', async () => {
+  for (const countValue of [0, 1]) {
+    const bridge = await fidBridge({databases: async () => [{name: 'firebase-messaging-database'}], open() {
+      const request = {};
+      queueMicrotask(() => {
+        request.result = {objectStoreNames: {contains: name => name === 'firebase-messaging-fid-registration-store'}, close() {},
+          transaction(name, mode) {
+            assert.equal(mode, 'readonly');
+            assert.equal(name, 'firebase-messaging-fid-registration-store');
+            const transaction = {objectStore: () => ({count(key) {
+              assert.equal(key, 'current-app');
+              const count = {};
+              queueMicrotask(() => { count.result = countValue; count.onsuccess(); transaction.oncomplete(); });
+              return count;
+            }, get() { assert.fail('Must not read FID/token/auth'); }, put() { assert.fail('Must not modify cache'); }})};
+            return transaction;
+          }};
+        request.onsuccess();
+      });
+      return request;
+    }});
+    assert.equal(await bridge.hasFidRegistration('current-app'), countValue === 1);
+  }
+});
+
+test('FID migration check aborts a database creation race', async () => {
+  let aborted = false;
+  const bridge = await fidBridge({databases: async () => [{name: 'firebase-messaging-database'}], open() {
+    const request = {transaction: {abort() { aborted = true; queueMicrotask(() => request.onerror()); }}};
+    queueMicrotask(() => request.onupgradeneeded());
+    return request;
+  }});
+  await assert.rejects(bridge.hasFidRegistration('current-app'));
+  assert.equal(aborted, true);
+});

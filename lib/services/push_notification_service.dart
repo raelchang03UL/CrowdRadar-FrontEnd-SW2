@@ -14,15 +14,31 @@ import 'push_web_bridge.dart';
 import 'session_service.dart';
 
 class PushNotificationService {
-  PushNotificationService._() : _devices = PushDeviceService();
+  PushNotificationService._()
+    : _devices = PushDeviceService(),
+      _isWeb = kIsWeb,
+      _vapidKey = FirebaseOptionsConfig.vapidKey,
+      _hasFidRegistration = (() =>
+          hasPushFidRegistration(FirebaseOptionsConfig.webAppId));
 
   @visibleForTesting
-  PushNotificationService.forTesting(this._devices, FirebaseMessaging messaging)
-    : _messaging = messaging;
+  PushNotificationService.forTesting(
+    this._devices,
+    FirebaseMessaging messaging, {
+    bool isWeb = kIsWeb,
+    String? vapidKey,
+    Future<bool> Function()? hasFidRegistration,
+  }) : _messaging = messaging,
+       _isWeb = isWeb,
+       _vapidKey = vapidKey ?? FirebaseOptionsConfig.vapidKey,
+       _hasFidRegistration = hasFidRegistration ?? (() async => false);
 
   static final PushNotificationService instance = PushNotificationService._();
 
   final PushDeviceService _devices;
+  final bool _isWeb;
+  final String _vapidKey;
+  final Future<bool> Function() _hasFidRegistration;
   FirebaseMessaging? _messaging;
   StreamSubscription<RemoteMessage>? _openedSubscription;
   StreamSubscription<RemoteMessage>? _foregroundSubscription;
@@ -32,8 +48,10 @@ class PushNotificationService {
   bool _initialized = false;
   int? _fcmAttempt;
   Completer<bool>? _enableResult;
-  Future<void> _stopping = Future.value();
+  Future<void> _sdkQueue = Future.value();
   Future<void> _registrationQueue = Future.value();
+  bool _webTokenModeReady = false;
+  bool _webTokenRequested = false;
 
   Future<void> initialize() async {
     if (_initialized) return;
@@ -67,12 +85,14 @@ class PushNotificationService {
         onError: (Object error) =>
             debugPrint('No se pudo mostrar la alerta push recibida.'),
       );
-      _registeredSubscription = _messaging!.onRegistered.listen(
-        _onRegistered,
-        onError: (Object error) => debugPrint(
-          'No se pudo actualizar el registro push del dispositivo.',
-        ),
-      );
+      if (!_isWeb) {
+        _registeredSubscription = _messaging!.onRegistered.listen(
+          _onRegistered,
+          onError: (Object error) => debugPrint(
+            'No se pudo actualizar el registro push del dispositivo.',
+          ),
+        );
+      }
       final initialMessage = await _messaging!.getInitialMessage();
       if (initialMessage != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -98,7 +118,7 @@ class PushNotificationService {
       unawaited(_unregister(previous));
     }
     _stopFcmRegistration();
-    if (!SessionService.isAuthenticated || kIsWeb) return;
+    if (!SessionService.isAuthenticated || _isWeb) return;
     unawaited(_registerForCurrentSession(attempt));
   }
 
@@ -114,8 +134,7 @@ class PushNotificationService {
   }
 
   bool get isConfigured =>
-      _messaging != null &&
-      (!kIsWeb || FirebaseOptionsConfig.vapidKey.isNotEmpty);
+      _messaging != null && (!_isWeb || _vapidKey.isNotEmpty);
 
   Future<bool> enableForCurrentSession() async {
     if (!isConfigured ||
@@ -123,7 +142,7 @@ class PushNotificationService {
         _enableResult != null) {
       return false;
     }
-    if (_activeRegistrationId != null) return true;
+    if (!_isWeb && _activeRegistrationId != null) return true;
     final result = Completer<bool>();
     final attempt = ++_sessionAttempt;
     _enableResult = result;
@@ -157,6 +176,7 @@ class PushNotificationService {
   Future<bool> _registerForCurrentSession(int attempt) async {
     final sessionToken = SessionService.token;
     final userId = SessionService.currentUser?.id;
+    final generation = SessionService.generation;
     if (sessionToken == null || userId == null || _messaging == null) {
       return false;
     }
@@ -170,18 +190,39 @@ class PushNotificationService {
         debugPrint('El usuario no autorizó las alertas push.');
         return false;
       }
-      if (!_isCurrentSession(attempt, sessionToken, userId)) return false;
-      await _stopping;
-      if (!_isCurrentSession(attempt, sessionToken, userId)) return false;
-      if (kIsWeb) await preparePushWorker(FirebaseOptionsConfig.workerPath);
-      if (!_isCurrentSession(attempt, sessionToken, userId)) return false;
-      _fcmAttempt = attempt;
-      await _messaging!.register(
-        vapidKey: kIsWeb ? FirebaseOptionsConfig.vapidKey : null,
-        serviceWorkerScriptPath: kIsWeb
-            ? FirebaseOptionsConfig.workerPath
-            : null,
-      );
+      bool current() =>
+          generation == SessionService.generation &&
+          _isCurrentSession(attempt, sessionToken, userId);
+      if (!current()) return false;
+      final token = await _withSdk<String?>(() async {
+        if (!current()) return null;
+        if (_isWeb) {
+          await preparePushWorker(FirebaseOptionsConfig.workerPath);
+          if (!current()) return null;
+          if (!_webTokenModeReady) {
+            // Transición única de la API FID anterior; después solo getToken/deleteToken.
+            if (await _hasFidRegistration()) await _messaging!.unregister();
+            _webTokenModeReady = true;
+          }
+          if (!current()) return null;
+          _webTokenRequested = true;
+          // Compatibilidad Web comprobada con recepción real; no equivale al FID.
+          // ignore: deprecated_member_use
+          return _messaging!.getToken(
+            vapidKey: _vapidKey,
+            serviceWorkerScriptPath: FirebaseOptionsConfig.workerPath,
+          );
+        }
+        _fcmAttempt = attempt;
+        await _messaging!.register();
+        return null;
+      });
+      if (!current()) return false;
+      if (_isWeb) {
+        if (token == null || token.isEmpty) return false;
+        _fcmAttempt = attempt;
+        await _queueRegistration(token, attempt);
+      }
       return true;
     } catch (error) {
       debugPrint('No se pudo registrar el dispositivo para alertas push.');
@@ -190,8 +231,11 @@ class PushNotificationService {
   }
 
   void _onRegistered(String token) {
-    if (_fcmAttempt != _sessionAttempt) return;
-    final attempt = _sessionAttempt;
+    if (_isWeb || _fcmAttempt != _sessionAttempt) return;
+    unawaited(_queueRegistration(token, _sessionAttempt));
+  }
+
+  Future<void> _queueRegistration(String token, int attempt) {
     _registrationQueue = _registrationQueue
         .then((_) async {
           if (_fcmAttempt != attempt || _sessionAttempt != attempt) return;
@@ -200,16 +244,32 @@ class PushNotificationService {
         .catchError((Object error) {
           if (attempt == _sessionAttempt) _finishEnable(false);
         });
+    return _registrationQueue;
+  }
+
+  Future<T> _withSdk<T>(Future<T> Function() operation) {
+    final result = _sdkQueue.then((_) => operation());
+    _sdkQueue = result.then<void>((_) {}, onError: (Object error) {});
+    return result;
   }
 
   void _stopFcmRegistration() {
     final messaging = _messaging;
     if (messaging == null) return;
-    _stopping = _stopping.then((_) => messaging.unregister()).catchError((
-      Object error,
-    ) {
-      debugPrint('No se pudo detener el registro push del dispositivo.');
-    });
+    unawaited(
+      _withSdk<void>(() async {
+        if (_isWeb) {
+          if (!_webTokenRequested) return;
+          // ignore: deprecated_member_use
+          await messaging.deleteToken();
+          _webTokenRequested = false;
+        } else {
+          await messaging.unregister();
+        }
+      }).catchError((Object error) {
+        debugPrint('No se pudo detener el registro push del dispositivo.');
+      }),
+    );
   }
 
   Future<void> _registerTokenForCurrentSession(String token) async {
@@ -225,22 +285,29 @@ class PushNotificationService {
     final previous = _registered;
     if (previous?.deviceToken == token &&
         previous?.userId == userId &&
-        previous?.sessionToken == sessionToken) {
+        previous?.sessionToken == sessionToken &&
+        previous?.generation == generation) {
+      _finishEnable(true);
       return;
     }
     try {
       if (previous != null && previous.deviceToken != token) {
         await _unregister(previous);
       }
+      if (!_isCurrentSession(attempt, sessionToken, userId) ||
+          generation != SessionService.generation) {
+        return;
+      }
       final registrationId = await _devices.register(
         sessionToken: sessionToken,
         deviceToken: token,
-        platform: kIsWeb
+        platform: _isWeb
             ? 'web'
             : defaultTargetPlatform == TargetPlatform.iOS
             ? 'ios'
             : 'android',
         generation: generation,
+        targetType: _isWeb ? 'fcm-token' : 'fid',
       );
       final registration = _RegisteredDevice(
         userId: userId,
@@ -249,7 +316,8 @@ class PushNotificationService {
         generation: generation,
         registrationId: registrationId,
       );
-      if (!_isCurrentSession(attempt, sessionToken, userId)) {
+      if (!_isCurrentSession(attempt, sessionToken, userId) ||
+          generation != SessionService.generation) {
         await _unregister(registration);
         return;
       }

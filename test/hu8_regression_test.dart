@@ -254,6 +254,7 @@ void main() {
             deviceToken: 'test-fid',
             platform: 'web',
             generation: SessionService.generation,
+            targetType: 'fcm-token',
           );
           expect(id, 'test-registration');
         },
@@ -261,6 +262,7 @@ void main() {
           expect(jsonDecode(request.body), {
             'token': 'test-fid',
             'platform': 'web',
+            'targetType': 'fcm-token',
           });
           return http.Response(
             '{"data":{"registrationId":"test-registration"}}',

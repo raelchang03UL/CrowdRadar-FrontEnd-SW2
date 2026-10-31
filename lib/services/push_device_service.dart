@@ -11,12 +11,17 @@ class PushDeviceService {
     required String deviceToken,
     required String platform,
     required int generation,
+    String targetType = 'fid',
   }) async {
     final response = await http
         .post(
           ApiConfig.uri(ApiConfig.notificationDevices),
           headers: ApiConfig.authHeaders(sessionToken),
-          body: jsonEncode({'token': deviceToken, 'platform': platform}),
+          body: jsonEncode({
+            'token': deviceToken,
+            'platform': platform,
+            'targetType': targetType,
+          }),
         )
         .timeout(const Duration(seconds: 15));
     if (response.statusCode == 401) {
