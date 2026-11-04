@@ -11,7 +11,8 @@ import 'package:crowdradar/theme/app_theme.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 // Inyecta los streams del paquete ya resuelto, sin dependencia nueva ni red.
 // ignore: depend_on_referenced_packages
-import 'package:firebase_messaging_platform_interface/firebase_messaging_platform_interface.dart';
+import 'package:firebase_messaging_platform_interface/firebase_messaging_platform_interface.dart'
+    show FirebaseMessagingPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;

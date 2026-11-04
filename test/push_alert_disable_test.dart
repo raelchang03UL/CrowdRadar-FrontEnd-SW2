@@ -9,7 +9,8 @@ import 'package:crowdradar/services/session_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 // Inyección de streams del adaptador transitivo ya usado por Firebase Messaging.
 // ignore: depend_on_referenced_packages
-import 'package:firebase_messaging_platform_interface/firebase_messaging_platform_interface.dart';
+import 'package:firebase_messaging_platform_interface/firebase_messaging_platform_interface.dart'
+    show FirebaseMessagingPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
