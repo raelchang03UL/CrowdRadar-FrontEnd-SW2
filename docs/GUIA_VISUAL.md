@@ -1,8 +1,12 @@
 # Guía visual — pulido sobrio
 
-## Traslado del pulido a la demo — 04/11/2026
+## Pulido y alertas publicados; recorrido visual pendiente — 04/11/2026
 
-En la copia `tmp/mejoras-demo-web-20261104/frontend`, rama `ux/demo-alertas-20261104`, se traslada la propuesta visual verificada del 03/11 sobre `ea05ae6d7452bd60cd750f66a65898d9733091d5`. Las 21 fuentes de presentación, cuatro archivos de pruebas y guía proceden del mismo parche; las fuentes base coinciden con las de la demo compilada `a4919f0`. Se conserva la nota del despliegue público en ESTADO_ACTUAL. La propuesta sigue local y su integración final requiere las comprobaciones del nuevo conjunto; no cambia todavía el sitio publicado. El corte del 03/11 siguiente describe la copia original y sus resultados históricos.
+La [demo pública](https://crowdradar-demo-web.vercel.app) sirve `8ce8510123bba400b5ed628ba96c67f18a47b57c` desde `dpl_4BcTtyyXUAfXxztGv2dDgLsS2sy9`. El commit `e006709f2c65e2adf36ccc3a56a7bdb23e789cf6` trasladó las 21 fuentes de presentación y cuatro archivos de pruebas del pulido del 03/11 sobre la base documentada `ea05ae6d7452bd60cd750f66a65898d9733091d5`; `769093227556898a7d2dedb291010069312c11dc` añadió el control real por dispositivo y el contexto de alertas, y `8ce8510` precisó imports de pruebas. Se conservan Material 3, logo, colores y distribución verificados de la propuesta original.
+
+Favoritos presenta activar/desactivar con confirmación y un resultado incierto que permite reintentar. La ficha identifica «Cambio que originó esta alerta», con nivel anterior → nuevo y aviso de que el nivel actual puede ser distinto. Es un contexto histórico autorizado; no incorpora consulta de nivel actual ni fechas inexistentes. Una alerta incompleta conserva la ficha normal y una sesión/registro ajenos no autorizan la apertura.
+
+Análisis, 737 pruebas aprobadas (2 opt-in omitidas), build y 37/37 comprobaciones HTTP acreditan el paquete servido. **Las nuevas capturas, el recorrido humano completo del pulido, la baja/reactivación real y la transición recibida/abierta siguen pendientes.** No se trasladan a esta versión las capturas o aceptaciones de los cortes anteriores. [Evidencia y límites](evidence/demo-improvements-20261104/release-verification.json). El corte del 03/11 siguiente conserva íntegramente la copia original y sus resultados históricos.
 
 ## Vista previa local del pulido Web — 03/11/2026
 

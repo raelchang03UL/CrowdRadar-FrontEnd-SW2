@@ -1,5 +1,11 @@
 # CrowdRadar Frontend
 
+## Demo pública vigente — 04/11/2026
+
+[Abrir CrowdRadar](https://crowdradar-demo-web.vercel.app). La Web sirve el frontend `8ce8510123bba400b5ed628ba96c67f18a47b57c` con el pulido visual, control de activar/desactivar alertas por dispositivo y contexto histórico anterior → nuevo al abrir una alerta. La API conserva el backend `7780db488892a0dc3c45edfc7a9622b846e71847`. La ficha identifica «Cambio que originó esta alerta»; no consulta ni muestra un nivel actual nuevo.
+
+Análisis limpio, **737 pruebas aprobadas / 2 opt-in omitidas**, build Web de 46,4 s y **37/37 comprobaciones HTTP públicas** del paquete publicado. El recorrido humano completo del nuevo diseño, la baja/reactivación y la apertura con transición siguen pendientes; estas comprobaciones de build/HTTP no los sustituyen. [Evidencia de esta publicación](docs/evidence/demo-improvements-20261104/release-verification.json), [operación y reversión](docs/DEMO_WEB.md) y [estado técnico](docs/ESTADO_ACTUAL.md). Los cortes fechados siguientes conservan sus antecedentes; correo y FCM del cierre anterior mantienen su par y alcance originales.
+
 ## Candidato HU7 para revisión — 28/10/2026
 
 Esta rama incorpora Perfil ADMIN → Administrar usuarios y Revisar reportes denunciados, con búsqueda, acciones confirmadas e historiales persistidos. Necesita el backend HU7 y sus migraciones explícitas008/009. [Recorridos y evidencia](docs/CIERRE_HU7.md); contrato canónico en el backend compañero. Publicación, revisión e integración son pasos separados; el par exacto se acredita en Git/PR. Los cortes inferiores son históricos y no describen el alcance HU7 de esta rama.
@@ -166,4 +172,4 @@ Web usa el registro FCM devuelto por `getToken` y lo declara como `targetType: f
 
 El cliente conserva JWT y binding de dispositivo solo en memoria; Firebase mantiene su caché normal de registro en IndexedDB. El worker consulta una pestaña autenticada viva antes de mostrar una alerta y antes de enfocar/abrir el detalle. Logout, cambio de cuenta o recarga invalidan el binding; una notificación antigua no abre información de una sesión posterior. Cerrar todas las pestañas no garantiza alertas: esta política evita persistir una sesión sin aprobación. Los permisos y la entrega dependen del navegador y FCM.
 
-Para comprobar el aislamiento del worker sin Firebase: `node --test tool/test_push_web.mjs`. Son dobles de navegador, no prueba de entrega real. En un despliegue futuro, backend requiere ejecución programada/cola para revisar vencimiento de la ventana de saturación; un temporizador permanente no es una garantía en Vercel. No se desplegó como parte de este trabajo.
+Para comprobar el aislamiento del worker sin Firebase: `node --test tool/test_push_web.mjs`. Son dobles de navegador, no prueba de entrega real. La demo publicada utiliza la ejecución programada ya documentada para revisar cambios y vencimiento de la ventana de saturación; un temporizador permanente no es una garantía en Vercel. Consultar [despliegue, operación y límites actuales](docs/DEMO_WEB.md), separando las verificaciones del paquete de la recepción humana de alertas.

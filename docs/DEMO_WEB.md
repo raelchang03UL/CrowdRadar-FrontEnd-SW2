@@ -1,6 +1,18 @@
 # Demo Web: publicación y preparación del paquete
 
-## Publicación verificada — 04/11/2026
+## Publicación vigente del pulido y alertas — 04/11/2026
+
+La [Web pública](https://crowdradar-demo-web.vercel.app) sirve `8ce8510123bba400b5ed628ba96c67f18a47b57c`, despliegue `dpl_4BcTtyyXUAfXxztGv2dDgLsS2sy9` en estado `READY`. La [API](https://crowdradar-demo-api.vercel.app) conserva `7780db488892a0dc3c45edfc7a9622b846e71847`. El paquete nuevo incorpora el pulido visual, control de alertas por dispositivo y transición histórica al abrir una alerta. Análisis limpio, 737 pruebas aprobadas/2 opt-in omitidas y build Web de 46,4 s. [Registro público saneado](evidence/demo-improvements-20261104/release-verification.json).
+
+El control sin autenticación de las 23:45:18 UTC aprobó **37/37**: raíz más 28 archivos estáticos con tamaño/SHA256 coincidentes, siete rutas ausentes o privadas con 404 y HTTP→HTTPS 308. La fuente compilada produjo 29.982.782 bytes estáticos. Se conservan los workers, PWA `none`, no-cache/nosniff y ausencia de fallback HTML para recursos desconocidos.
+
+La publicación reutilizó **9 blobs CanvasKit inmutables** del despliegue anterior, contrastados mediante un listado remoto nuevo de Vercel y coincidencia de SHA1/SHA256/tamaño con ambos manifests. Se confirmaron **4 cargas nuevas** y se incluyeron **16 archivos pequeños inline**, incluida la configuración. No se atribuyen trece cargas nuevas ni una recompilación remota a esta versión. El manifest local conserva `deployed: false` como registro de compilación; la publicación se acredita por separado.
+
+**Alias y reversión:** `createDeployment` llegó a `READY` sin cambiar `crowdradar-demo-web.vercel.app`. El control previo a la asignación dio 35/37: `main.dart.js` y `MaterialIcons-Regular.otf` aún coincidían con la versión anterior. La operación explícita `assign_alias` del nuevo despliegue al alias habitual reemplazó `dpl_cWMnw46YkbA893DRGNmkwokhTZv2`; la repetición posterior pasó 37/37. Ambos resultados se conservan. Para revertir esta publicación, asignar el mismo alias a `dpl_cWMnw46YkbA893DRGNmkwokhTZv2` y verificar después los hashes del paquete anterior y el acceso público; no cambiar SQL ni la API para esta reversión del frontend.
+
+El recorrido GUI completo del nuevo diseño, las capturas nuevas, la baja/reactivación real y la recepción/apertura con transición siguen pendientes. Ver «Desactivar» no demuestra todavía todo ese ciclo. La ficha muestra el cambio histórico y advierte que el nivel actual puede ser distinto; no añade una consulta del nivel actual. Los registros anteriores de GUI, correo y FCM conservan el par `a4919f0`/`7780db4` y no se reatribuyen a este paquete.
+
+## Primera publicación verificada (antecedente) — 04/11/2026
 
 La demo pública está disponible en [crowdradar-demo-web.vercel.app](https://crowdradar-demo-web.vercel.app), con API en [crowdradar-demo-api.vercel.app](https://crowdradar-demo-api.vercel.app). El despliegue Web `dpl_cWMnw46YkbA893DRGNmkwokhTZv2` está `READY` y sirve el paquete compilado desde el SHA frontend `a4919f021157632a4e6500855c6d32acff2f0ab9`. La API publicada corresponde al SHA backend `7780db488892a0dc3c45edfc7a9622b846e71847`; sus rutas `/` y `/health/ready` respondieron HTTP 200 sin autenticación.
 
