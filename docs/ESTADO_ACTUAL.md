@@ -1,5 +1,13 @@
 # Estado actual
 
+## Preparación local del paquete Web — 04/11/2026
+
+La copia de trabajo parte de develop `c3148628b4cbf148254cb4b77d9fddc4f64be67a`, que incorpora F#29 y conserva el mismo árbol probado de la corrección de favoritos. Se añade una herramienta local para compilar un SHA exacto y limpio con Flutter3.41.9/Dart3.11.5 y empaquetar solo recursos estáticos en Vercel Build Output APIv3. La interfaz, las fuentes de la aplicación y las dependencias no cambian.
+
+El empaquetador exige API HTTPS sin credenciales y las seis opciones públicas verificadas de `crowdradar-hu8-web`; bloquea configuración extra, identidad ajena, árbol modificado y salidas previas. PWA none desactiva la caché Flutter conservando el worker push original; las rutas no convierten recursos ausentes en HTML. Seis controles Node aprobados, sintaxis PowerShell/Node y diff-check correctos. [Procedimiento y límites](DEMO_WEB.md).
+
+Todavía no se ha ejecutado el build final de esta herramienta ni generado/publicado su paquete: necesita primero registrar el tooling revisado y disponer del origen HTTPS verificado de la API. No se atribuyen a esta preparación nuevas pruebas del producto, correo, FCM, Android o lector de pantalla. Las evidencias inferiores conservan su fecha; no representan el estado administrativo del backlog ni la operación en hosting.
+
 ## Corrección local HU8.1 — respuesta tardía de favorito, 01/11/2026
 
 Rama `fix/hu8-favorito-respuesta-tardia`, base `ebc43eb5b6505752f9db747fdc57ccab7390a04a` de origin/develop. Registro de validación previo a publicación; el SHA final se identifica en el PR de esta rama hacia develop. PlacesCubit mantiene una revisión de favorito por ID: una consulta anterior a un alta confirmada conserva el favorito vigente y actualiza los demás campos; una consulta posterior y las de otros lugares siguen aplicándose normalmente. Se conservan selectionKey y las guardas de sesión/generación. No cambian widgets, estilos, backend ni dependencias.
