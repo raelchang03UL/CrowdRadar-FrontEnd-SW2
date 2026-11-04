@@ -1,5 +1,11 @@
 # Estado actual
 
+## Pulido visual en revisión local — 04/11/2026
+
+Rama `ux/demo-alertas-20261104`, base `ea05ae6d7452bd60cd750f66a65898d9733091d5`, en una nueva copia de trabajo. Se trasladan las 21 fuentes de presentación y cuatro pruebas visuales del parche verificado del 03/11, conservando los cierres públicos inferiores. El parche original y sus 27 archivos mantienen las huellas registradas; las fuentes base coinciden con la demo `a4919f0`. Cubits, servicios, modelos, router, workers, dependencias y configuración Firebase permanecen sin cambios en esta fase.
+
+Validación dirigida: los cuatro archivos visuales aprobaron sus **10 casos**, con dependencias del lock resueltas desde caché mediante `pub get --offline --enforce-lockfile`; sin versiones nuevas. `git diff --check` correcto. Evidencia local: `tmp/mejoras-demo-web-20261104/qa/phase-a-visual-tests.log`. Análisis, suite completa, build y recorrido visual del conjunto se reservan para la integración final. No hay publicación de este pulido; la URL pública sigue sirviendo el par identificado en el corte inferior. [Alcance visual](GUIA_VISUAL.md).
+
 ## Demo Web publicada y verificada — 04/11/2026
 
 La demo está disponible en [crowdradar-demo-web.vercel.app](https://crowdradar-demo-web.vercel.app), con API [crowdradar-demo-api.vercel.app](https://crowdradar-demo-api.vercel.app). Despliegue Web `dpl_cWMnw46YkbA893DRGNmkwokhTZv2`, estado `READY`, origen frontend `a4919f021157632a4e6500855c6d32acff2f0ab9` compilado con Flutter 3.41.9/Dart 3.11.5. Parte de develop `c3148628b4cbf148254cb4b77d9fddc4f64be67a`, que incorpora F#29. La preparación y publicación no modificaron interfaz, fuentes de la aplicación ni dependencias. Backend publicado `7780db488892a0dc3c45edfc7a9622b846e71847`: `/` y `/health/ready` públicos respondieron HTTP 200.

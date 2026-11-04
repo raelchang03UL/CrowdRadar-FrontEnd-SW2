@@ -90,16 +90,9 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Center(
-                  child: Image.asset(
-                    'assets/images/crowdradar-logo-transparent.png',
-                    height: 72,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'Restablecer contraseña',
-                  style: Theme.of(context).textTheme.headlineSmall,
+                const AuthFormHeader(
+                  title: 'Restablecer contraseña',
+                  showBrand: true,
                 ),
                 const SizedBox(height: 8),
                 if (state is ResetPasswordChecking ||
@@ -170,22 +163,11 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                           textInputAction: TextInputAction.done,
                           onSubmitted: (_) => _submit(),
                         ),
-                        if (busy || state.error != null) ...[
-                          const SizedBox(height: 16),
-                          Semantics(
-                            liveRegion: true,
-                            child: busy
-                                ? const Center(
-                                    child: CircularProgressIndicator(),
-                                  )
-                                : Text(
-                                    state.error!,
-                                    style: const TextStyle(
-                                      color: AppColors.danger,
-                                    ),
-                                  ),
-                          ),
-                        ],
+                        AuthFeedback(
+                          loading: busy,
+                          loadingText: null,
+                          error: state.error,
+                        ),
                         const SizedBox(height: 24),
                         ElevatedButton(
                           key: const ValueKey('reset-password-submit'),

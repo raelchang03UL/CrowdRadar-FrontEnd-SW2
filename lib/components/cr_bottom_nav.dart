@@ -33,20 +33,18 @@ class CrBottomNav extends StatelessWidget {
       ),
       child: SafeArea(
         top: false,
-        child: SizedBox(
-          height:
-              56 +
-              (MediaQuery.textScalerOf(context).scale(11) - 11).clamp(
-                0,
-                double.infinity,
-              ),
-          child: Row(
-            children: [
-              _item(context, 0, Icons.map_outlined, 'Mapa'),
-              _item(context, 1, Icons.shield_outlined, 'Validar'),
-              _item(context, 2, Icons.favorite_border, 'Favoritos'),
-              _item(context, 3, Icons.person_outline, 'Perfil'),
-            ],
+        child: Align(
+          heightFactor: 1,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 680, minHeight: 64),
+            child: Row(
+              children: [
+                _item(context, 0, Icons.map_outlined, 'Mapa'),
+                _item(context, 1, Icons.shield_outlined, 'Validar'),
+                _item(context, 2, Icons.favorite_border, 'Favoritos'),
+                _item(context, 3, Icons.person_outline, 'Perfil'),
+              ],
+            ),
           ),
         ),
       ),
@@ -55,34 +53,42 @@ class CrBottomNav extends StatelessWidget {
 
   Widget _item(BuildContext context, int index, IconData icon, String label) {
     final bool active = index == currentIndex;
-    final Color color = active ? AppColors.secondary : AppColors.textMuted;
+    final Color color = active ? AppColors.primary : AppColors.textMuted;
 
     return Expanded(
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () => _onTap(context, index),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Semantics(
-              selected: active,
-              label: label,
-              excludeSemantics: true,
-              child: Icon(icon, size: 23, color: color),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              maxLines: 1,
-              softWrap: false,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 11,
-                color: color,
-                fontWeight: active ? FontWeight.w500 : FontWeight.w400,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        child: Semantics(
+          selected: active,
+          child: Material(
+            color: active ? AppColors.primaryContainer : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(10),
+              onTap: () => _onTap(context, index),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ExcludeSemantics(child: Icon(icon, size: 22, color: color)),
+                    const SizedBox(height: 4),
+                    Text(
+                      label,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 12,
+                        height: 1.25,
+                        color: color,
+                        fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ],
+          ),
         ),
       ),
     );

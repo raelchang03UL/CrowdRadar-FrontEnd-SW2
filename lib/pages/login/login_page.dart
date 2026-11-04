@@ -71,33 +71,23 @@ class _LoginViewState extends State<_LoginView> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Center(
-                      child: Image.asset(
-                        'assets/images/crowdradar-logo-transparent.png',
-                        height: 88,
-                      ),
+                    const AuthFormHeader(
+                      title: 'Iniciar sesión',
+                      description:
+                          'Usa el correo y la contraseña con los que te registraste.',
+                      showBrand: true,
                     ),
                     const SizedBox(height: 24),
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'Iniciar sesión',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.text,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Usa el correo y la contraseña con los que te registraste.',
-                    ),
-                    const SizedBox(height: 16),
                     if (widget.notice != null) ...[
                       Semantics(
                         liveRegion: true,
-                        child: Card(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primaryContainer,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                           child: Padding(
                             padding: const EdgeInsets.all(16),
                             child: Text(switch (widget.notice) {
@@ -162,16 +152,17 @@ class _LoginViewState extends State<_LoginView> {
                         child: Text.rich(
                           TextSpan(
                             text: '¿No tienes cuenta? ',
-                            style: const TextStyle(
-                              color: AppColors.textMuted,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            children: const [
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                            children: [
                               TextSpan(
                                 text: 'Regístrate',
                                 style: TextStyle(
-                                  color: AppColors.primary,
+                                  color: Theme.of(context).colorScheme.primary,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),

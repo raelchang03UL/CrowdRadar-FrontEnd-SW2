@@ -7,7 +7,8 @@ import '../../cubits/profile/profile_cubit.dart';
 import '../../cubits/profile/profile_state.dart';
 import '../../models/user_model.dart';
 import '../../services/user_service.dart';
-import '../../theme/app_colors.dart';
+import '../../components/auth_fields.dart';
+import '../../components/auth_form_layout.dart';
 
 class EditProfilePage extends StatelessWidget {
   final UserModel? user;
@@ -135,126 +136,88 @@ class _EditProfileViewState extends State<_EditProfileView> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Text(
-                              'Tu información personal',
-                              style: Theme.of(context).textTheme.headlineSmall,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Actualiza tus datos y guarda los cambios al terminar.',
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(color: AppColors.textMuted),
+                            const AuthFormHeader(
+                              title: 'Tu información personal',
+                              description:
+                                  'Actualiza tus datos y guarda los cambios al terminar.',
                             ),
                             const SizedBox(height: 24),
-                            Card(
-                              child: Padding(
-                                padding: const EdgeInsets.all(24),
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    TextFormField(
-                                      controller: _nombreCtrl,
-                                      enabled: !busy,
-                                      textCapitalization:
-                                          TextCapitalization.words,
-                                      textInputAction: TextInputAction.next,
-                                      decoration: const InputDecoration(
-                                        labelText: 'Nombre',
-                                        helperText: 'Mínimo 2 caracteres.',
-                                      ),
-                                      validator: _name,
-                                    ),
-                                    const SizedBox(height: 16),
-                                    TextFormField(
-                                      controller: _apellidoCtrl,
-                                      enabled: !busy,
-                                      textCapitalization:
-                                          TextCapitalization.words,
-                                      textInputAction: TextInputAction.next,
-                                      decoration: const InputDecoration(
-                                        labelText: 'Apellido',
-                                        helperText: 'Mínimo 2 caracteres.',
-                                      ),
-                                      validator: _name,
-                                    ),
-                                    const SizedBox(height: 16),
-                                    TextFormField(
-                                      enabled: false,
-                                      initialValue: _user?.email ?? '',
-                                      decoration: const InputDecoration(
-                                        labelText: 'Correo electrónico',
-                                        helperText:
-                                            'El correo no se puede editar.',
-                                        helperMaxLines: 2,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    TextFormField(
-                                      controller: _telefonoCtrl,
-                                      enabled: !busy,
-                                      keyboardType: TextInputType.phone,
-                                      textInputAction: TextInputAction.next,
-                                      maxLength: 9,
-                                      inputFormatters: [
-                                        FilteringTextInputFormatter.digitsOnly,
-                                      ],
-                                      decoration: const InputDecoration(
-                                        labelText: 'Teléfono',
-                                        helperText: 'Hasta 9 dígitos.',
-                                        counterText: '',
-                                      ),
-                                      validator: _required,
-                                    ),
-                                    const SizedBox(height: 16),
-                                    TextFormField(
-                                      controller: _distritoCtrl,
-                                      enabled: !busy,
-                                      textCapitalization:
-                                          TextCapitalization.words,
-                                      textInputAction: TextInputAction.done,
-                                      onFieldSubmitted: busy
-                                          ? null
-                                          : (_) => _save(context),
-                                      decoration: const InputDecoration(
-                                        labelText: 'Distrito',
-                                      ),
-                                      validator: _required,
-                                    ),
-                                  ],
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                TextFormField(
+                                  controller: _nombreCtrl,
+                                  enabled: !busy,
+                                  textCapitalization: TextCapitalization.words,
+                                  textInputAction: TextInputAction.next,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Nombre',
+                                    helperText: 'Mínimo 2 caracteres.',
+                                  ),
+                                  validator: _name,
                                 ),
-                              ),
+                                const SizedBox(height: 16),
+                                TextFormField(
+                                  controller: _apellidoCtrl,
+                                  enabled: !busy,
+                                  textCapitalization: TextCapitalization.words,
+                                  textInputAction: TextInputAction.next,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Apellido',
+                                    helperText: 'Mínimo 2 caracteres.',
+                                  ),
+                                  validator: _name,
+                                ),
+                                const SizedBox(height: 16),
+                                TextFormField(
+                                  enabled: false,
+                                  initialValue: _user?.email ?? '',
+                                  decoration: const InputDecoration(
+                                    labelText: 'Correo electrónico',
+                                    helperText: 'El correo no se puede editar.',
+                                    helperMaxLines: 2,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                TextFormField(
+                                  controller: _telefonoCtrl,
+                                  enabled: !busy,
+                                  keyboardType: TextInputType.phone,
+                                  textInputAction: TextInputAction.next,
+                                  maxLength: 9,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                  ],
+                                  decoration: const InputDecoration(
+                                    labelText: 'Teléfono',
+                                    helperText: 'Hasta 9 dígitos.',
+                                    counterText: '',
+                                  ),
+                                  validator: _required,
+                                ),
+                                const SizedBox(height: 16),
+                                TextFormField(
+                                  controller: _distritoCtrl,
+                                  enabled: !busy,
+                                  textCapitalization: TextCapitalization.words,
+                                  textInputAction: TextInputAction.done,
+                                  onFieldSubmitted: busy
+                                      ? null
+                                      : (_) => _save(context),
+                                  decoration: const InputDecoration(
+                                    labelText: 'Distrito',
+                                  ),
+                                  validator: _required,
+                                ),
+                              ],
                             ),
-                            if (busy || state is ProfileError) ...[
-                              const SizedBox(height: 16),
-                              Semantics(
-                                liveRegion: true,
-                                child: busy
-                                    ? const Row(
-                                        children: [
-                                          SizedBox(
-                                            width: 16,
-                                            height: 16,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                            ),
-                                          ),
-                                          SizedBox(width: 12),
-                                          Expanded(
-                                            child: Text(
-                                              'Guardando tus cambios…',
-                                            ),
-                                          ),
-                                        ],
-                                      )
-                                    : Text(
-                                        (state as ProfileError).message,
-                                        style: const TextStyle(
-                                          color: AppColors.danger,
-                                        ),
-                                      ),
-                              ),
-                            ],
+                            AuthFeedback(
+                              loading: busy,
+                              loadingText: 'Guardando tus cambios…',
+                              error: state is ProfileError
+                                  ? state.message
+                                  : null,
+                            ),
                             const SizedBox(height: 24),
                             ElevatedButton.icon(
                               onPressed: busy ? null : () => _save(context),

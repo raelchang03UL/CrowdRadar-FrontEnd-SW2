@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
 
 /// Explica la política aprobada; el saldo siempre llega del DTO del backend.
 class CitizenPointsCard extends StatelessWidget {
@@ -8,26 +7,41 @@ class CitizenPointsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
+    color: Theme.of(context).colorScheme.primaryContainer,
     child: Padding(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Wrap(
+            spacing: 24,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Icon(Icons.stars_outlined, color: AppColors.primary),
-              SizedBox(width: 12),
-              Expanded(child: Text('Tus puntos')),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.stars_outlined,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      'Tus puntos',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                '$points ${points == 1 ? 'punto' : 'puntos'}',
+                key: const ValueKey('citizen-points-balance'),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
             ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            '$points ${points == 1 ? 'punto' : 'puntos'}',
-            key: const ValueKey('citizen-points-balance'),
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w700,
-            ),
           ),
           const SizedBox(height: 12),
           if (points == 0) ...[

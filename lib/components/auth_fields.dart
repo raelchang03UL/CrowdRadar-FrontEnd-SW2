@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
 
 class AuthValidation {
   static String? name(String? value) =>
@@ -68,8 +67,8 @@ class _AuthPasswordFieldState extends State<AuthPasswordField> {
           (widget.registering
               ? 'Mínimo 8 caracteres y máximo 72 bytes.'
               : 'La que elegiste al crear tu cuenta.'),
-      helperMaxLines: 2,
-      errorMaxLines: 2,
+      helperMaxLines: 5,
+      errorMaxLines: 5,
       suffixIcon: IconButton(
         tooltip:
             '${_visible ? 'Ocultar' : 'Mostrar'} ${widget.labelText.toLowerCase()}',
@@ -94,32 +93,80 @@ class _AuthPasswordFieldState extends State<AuthPasswordField> {
 class AuthFeedback extends StatelessWidget {
   final bool loading;
   final String? error;
-  const AuthFeedback({super.key, required this.loading, this.error});
+  final String? message;
+  final String? loadingText;
+  const AuthFeedback({
+    super.key,
+    required this.loading,
+    this.error,
+    this.message,
+    this.loadingText = 'Conectando con el servidor…',
+  });
   @override
-  Widget build(BuildContext context) => Semantics(
-    liveRegion: true,
-    child: Padding(
-      padding: const EdgeInsets.only(top: 12),
-      child: loading
-          ? const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final status = error ?? message;
+    return Semantics(
+      liveRegion: true,
+      child: Padding(
+        padding: const EdgeInsets.only(top: 12),
+        // Reserva únicamente la altura natural del indicador; crece con texto.
+        child: Visibility(
+          visible: loading || status != null,
+          maintainSize: true,
+          maintainAnimation: true,
+          maintainState: true,
+          child: !loading && status != null
+              ? Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      error != null
+                          ? Icons.error_outline
+                          : Icons.check_circle_outline,
+                      size: 20,
+                      color: error != null
+                          ? theme.colorScheme.error
+                          : theme.colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        status,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: error != null
+                              ? theme.colorScheme.error
+                              : theme.colorScheme.onSurface,
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TickerMode(
+                      enabled: loading,
+                      child: const SizedBox.square(
+                        dimension: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
+                    if (loadingText != null) ...[
+                      const SizedBox(width: 12),
+                      Flexible(
+                        child: Text(
+                          loadingText!,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
-                SizedBox(width: 12),
-                Flexible(child: Text('Conectando con el servidor…')),
-              ],
-            )
-          : error == null
-          ? const SizedBox.shrink()
-          : Text(
-              error!,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.danger),
-            ),
-    ),
-  );
+        ),
+      ),
+    );
+  }
 }

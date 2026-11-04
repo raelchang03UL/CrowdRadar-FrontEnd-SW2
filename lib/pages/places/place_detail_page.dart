@@ -45,7 +45,7 @@ class PlaceDetailPage extends StatelessWidget {
           }
           final lugar = state.place;
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(16),
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 680),
@@ -57,25 +57,44 @@ class PlaceDetailPage extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (lugar.demostrativo) ...[
-                            const Text(
-                              'Lugar demostrativo · Datos ilustrativos, no verificados. Sin monitoreo en tiempo real.',
-                            ),
-                            const SizedBox(height: 24),
-                          ],
-                          _Dato(titulo: 'Nombre', valor: lugar.nombre),
                           _Dato(
-                            titulo: 'Dirección',
-                            valor: lugar.direccion ?? 'Dirección no registrada',
+                            titulo: 'Nombre',
+                            valor: lugar.nombre,
+                            prominent: true,
                           ),
                           _Dato(titulo: 'Categoría', valor: lugar.categoria),
-                          _Dato(
-                            titulo: 'Coordenadas',
-                            valor: '${lugar.latitud}, ${lugar.longitud}',
-                          ),
+                          if (lugar.demostrativo) ...[
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerLowest,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.outlineVariant,
+                                ),
+                              ),
+                              child: const Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Icon(Icons.info_outline, size: 20),
+                                  SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'Lugar demostrativo · Datos ilustrativos, no verificados. Sin monitoreo en tiempo real.',
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                          ],
                           if (lugar.esFavorito) const Text('En tus favoritos'),
                           const SizedBox(height: 8),
-                          OutlinedButton.icon(
+                          FilledButton.icon(
                             onPressed: state.saving
                                 ? null
                                 : () async {
@@ -107,19 +126,27 @@ class PlaceDetailPage extends StatelessWidget {
                                   : 'Agregar a favoritos',
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 8),
                           OutlinedButton.icon(
                             onPressed: () =>
                                 context.push('/places/${lugar.id}/history'),
                             icon: const Icon(Icons.history),
                             label: const Text('Historial de saturación'),
                           ),
-                          const SizedBox(height: 16),
+                          const Divider(height: 40),
+                          _Dato(
+                            titulo: 'Dirección',
+                            valor: lugar.direccion ?? 'Dirección no registrada',
+                          ),
                           if (lugar.referencia?.trim().isNotEmpty ?? false)
                             _Dato(
                               titulo: 'Referencia',
                               valor: lugar.referencia!,
                             ),
+                          _Dato(
+                            titulo: 'Coordenadas',
+                            valor: '${lugar.latitud}, ${lugar.longitud}',
+                          ),
                         ],
                       ),
                     ),
@@ -136,7 +163,12 @@ class PlaceDetailPage extends StatelessWidget {
 
 class _Dato extends StatelessWidget {
   final String titulo, valor;
-  const _Dato({required this.titulo, required this.valor});
+  final bool prominent;
+  const _Dato({
+    required this.titulo,
+    required this.valor,
+    this.prominent = false,
+  });
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.only(bottom: 20),
@@ -144,8 +176,13 @@ class _Dato extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(titulo, style: Theme.of(context).textTheme.labelLarge),
-        const SizedBox(height: 8),
-        SelectableText(valor, style: Theme.of(context).textTheme.bodyLarge),
+        const SizedBox(height: 4),
+        SelectableText(
+          valor,
+          style: prominent
+              ? Theme.of(context).textTheme.headlineSmall
+              : Theme.of(context).textTheme.bodyLarge,
+        ),
       ],
     ),
   );

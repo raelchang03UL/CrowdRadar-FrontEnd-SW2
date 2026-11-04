@@ -94,36 +94,46 @@ class _ProfileView extends StatelessWidget {
             .toUpperCase();
     final fullName = '$name $surname'.trim();
     return [
-      Card(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CircleAvatar(
-                radius: 28,
-                backgroundColor: AppColors.primary.withValues(alpha: 0.08),
-                foregroundColor: AppColors.primary,
-                child: Text(
-                  initials.isEmpty ? '?' : initials,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CircleAvatar(
+              radius: 28,
+              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+              foregroundColor: Theme.of(context).colorScheme.primary,
+              child: Text(
+                initials.isEmpty ? '?' : initials,
+                style: Theme.of(context).textTheme.titleLarge,
               ),
-              const SizedBox(height: 16),
-              Text(
-                fullName.isEmpty ? 'Ciudadano' : fullName,
-                style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Semantics(
+                    header: true,
+                    child: Text(
+                      fullName.isEmpty ? 'Ciudadano' : fullName,
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _value(user.email),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 8),
-              Text(
-                _value(user.email),
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
-      const SizedBox(height: 24),
+      const SizedBox(height: 16),
       CitizenPointsCard(points: user.karmaPoints),
       const SizedBox(height: 24),
       Text(
@@ -138,26 +148,38 @@ class _ProfileView extends StatelessWidget {
         ).textTheme.bodyMedium?.copyWith(color: AppColors.textMuted),
       ),
       const SizedBox(height: 16),
-      Card(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-          child: Column(
-            children: [
-              _ProfileDatum(
-                Icons.phone_outlined,
-                'Teléfono',
-                _value(user.telefono),
-              ),
-              const Divider(height: 1),
-              _ProfileDatum(
-                Icons.location_city_outlined,
-                'Distrito',
-                _value(user.distrito),
-              ),
-            ],
-          ),
-        ),
+      const Divider(height: 1),
+      LayoutBuilder(
+        builder: (context, constraints) {
+          final data = [
+            _ProfileDatum(
+              Icons.phone_outlined,
+              'Teléfono',
+              _value(user.telefono),
+            ),
+            _ProfileDatum(
+              Icons.location_city_outlined,
+              'Distrito',
+              _value(user.distrito),
+            ),
+          ];
+          if (constraints.maxWidth >= 520 &&
+              MediaQuery.textScalerOf(context).scale(14) <= 18) {
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: data.first),
+                const SizedBox(width: 24),
+                Expanded(child: data.last),
+              ],
+            );
+          }
+          return Column(
+            children: [data.first, const Divider(height: 1), data.last],
+          );
+        },
       ),
+      const Divider(height: 1),
       const SizedBox(height: 24),
       if (user.rol == 'ADMIN') ...[
         OutlinedButton.icon(
@@ -173,41 +195,66 @@ class _ProfileView extends StatelessWidget {
         ),
         const SizedBox(height: 16),
       ],
-      ElevatedButton.icon(
-        icon: const Icon(Icons.edit_outlined),
-        label: const Text('Editar perfil'),
-        onPressed: () async {
-          await context.push('/profile/edit', extra: user.toJson());
-          if (context.mounted) context.read<ProfileCubit>().loadProfile();
-        },
-      ),
-      const SizedBox(height: 16),
-      OutlinedButton.icon(
-        icon: const Icon(Icons.history),
-        label: const Text('Historial de reportes'),
-        onPressed: () => context.push('/profile/reports'),
-      ),
-      const SizedBox(height: 16),
-      OutlinedButton.icon(
-        icon: const Icon(Icons.lock_outline),
-        label: const Text('Cambiar contraseña'),
-        onPressed: () => context.push('/profile/password'),
-      ),
-      const SizedBox(height: 16),
-      OutlinedButton.icon(
-        icon: const Icon(Icons.logout),
-        label: const Text('Cerrar sesión'),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.danger,
-          side: const BorderSide(color: AppColors.danger),
-        ),
-        onPressed: () => context.read<AuthCubit>().logout(),
+      _ProfileActions(
+        children: [
+          ElevatedButton.icon(
+            icon: const Icon(Icons.edit_outlined),
+            label: const Text('Editar perfil'),
+            onPressed: () async {
+              await context.push('/profile/edit', extra: user.toJson());
+              if (context.mounted) context.read<ProfileCubit>().loadProfile();
+            },
+          ),
+          OutlinedButton.icon(
+            icon: const Icon(Icons.history),
+            label: const Text('Historial de reportes'),
+            onPressed: () => context.push('/profile/reports'),
+          ),
+          OutlinedButton.icon(
+            icon: const Icon(Icons.lock_outline),
+            label: const Text('Cambiar contraseña'),
+            onPressed: () => context.push('/profile/password'),
+          ),
+          OutlinedButton.icon(
+            icon: const Icon(Icons.logout),
+            label: const Text('Cerrar sesión'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.danger,
+              side: const BorderSide(color: AppColors.danger),
+            ),
+            onPressed: () => context.read<AuthCubit>().logout(),
+          ),
+        ],
       ),
     ];
   }
 
   String _value(String? value) =>
       value == null || value.trim().isEmpty ? 'No registrado' : value;
+}
+
+class _ProfileActions extends StatelessWidget {
+  final List<Widget> children;
+  const _ProfileActions({required this.children});
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final twoColumns =
+          constraints.maxWidth >= 560 &&
+          MediaQuery.textScalerOf(context).scale(14) <= 18;
+      final width = twoColumns
+          ? (constraints.maxWidth - 12) / 2
+          : constraints.maxWidth;
+      return Wrap(
+        spacing: 12,
+        runSpacing: 12,
+        children: [
+          for (final child in children) SizedBox(width: width, child: child),
+        ],
+      );
+    },
+  );
 }
 
 class _ProfileDatum extends StatelessWidget {

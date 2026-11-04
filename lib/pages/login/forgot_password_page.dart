@@ -6,7 +6,6 @@ import '../../components/auth_fields.dart';
 import '../../components/auth_form_layout.dart';
 import '../../cubits/recovery_cubit.dart';
 import '../../services/recovery_service.dart';
-import '../../theme/app_colors.dart';
 
 class ForgotPasswordPage extends StatelessWidget {
   final RecoveryService? service;
@@ -61,20 +60,11 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Center(
-                    child: Image.asset(
-                      'assets/images/crowdradar-logo-transparent.png',
-                      height: 72,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Recuperar contraseña',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Escribe tu correo para solicitar un enlace de recuperación.',
+                  const AuthFormHeader(
+                    title: 'Recuperar contraseña',
+                    description:
+                        'Escribe tu correo para solicitar un enlace de recuperación.',
+                    showBrand: true,
                   ),
                   const SizedBox(height: 24),
                   TextFormField(
@@ -99,24 +89,14 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
                         : () => _submit(context),
                     child: Text(busy ? 'Solicitando…' : 'Enviar enlace'),
                   ),
-                  if (busy || confirmed || state is ForgotPasswordError) ...[
-                    const SizedBox(height: 16),
-                    Semantics(
-                      liveRegion: true,
-                      child: busy
-                          ? const Center(child: CircularProgressIndicator())
-                          : Text(
-                              confirmed
-                                  ? RecoveryService.requestedMessage
-                                  : (state as ForgotPasswordError).message,
-                              style: TextStyle(
-                                color: confirmed
-                                    ? AppColors.text
-                                    : AppColors.danger,
-                              ),
-                            ),
-                    ),
-                  ],
+                  AuthFeedback(
+                    loading: busy,
+                    loadingText: null,
+                    message: confirmed
+                        ? RecoveryService.requestedMessage
+                        : null,
+                    error: state is ForgotPasswordError ? state.message : null,
+                  ),
                   const SizedBox(height: 16),
                   TextButton(
                     onPressed: busy ? null : () => context.go('/login'),

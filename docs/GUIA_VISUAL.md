@@ -1,5 +1,19 @@
 # Guía visual — pulido sobrio
 
+## Traslado del pulido a la demo — 04/11/2026
+
+En la copia `tmp/mejoras-demo-web-20261104/frontend`, rama `ux/demo-alertas-20261104`, se traslada la propuesta visual verificada del 03/11 sobre `ea05ae6d7452bd60cd750f66a65898d9733091d5`. Las 21 fuentes de presentación, cuatro archivos de pruebas y guía proceden del mismo parche; las fuentes base coinciden con las de la demo compilada `a4919f0`. Se conserva la nota del despliegue público en ESTADO_ACTUAL. La propuesta sigue local y su integración final requiere las comprobaciones del nuevo conjunto; no cambia todavía el sitio publicado. El corte del 03/11 siguiente describe la copia original y sus resultados históricos.
+
+## Vista previa local del pulido Web — 03/11/2026
+
+Candidato `ui/pulido-visual-web-crowdradar`, desde `edc1cf5`, dependiente de la corrección de favoritos del [PR #29](https://github.com/raelchang03UL/CrowdRadar-FrontEnd-SW2/pull/29), todavía abierto. Son cambios locales sin commit ni publicación; no representan integración ni aceptación visual del titular. Los cortes inferiores se conservan como antecedentes.
+
+P1/P2 implementados con Material 3, logo y azul `#1A3C8F`: barras claras y controles coherentes; búsqueda, filtros, catálogo y ficha del mapa con jerarquía más legible; reporte con acción y resultado distinguibles; navegación con selección visible. Los formularios comparten cabecera compacta y estado de carga sin desplazar sus campos. Favoritos ofrece alertas y retiro textuales, apertura y retiro como botones semánticos separados, y desplazamiento conjunto de cabecera/contenido. Perfil compacta identidad, datos y acciones, conservando el saldo real y su explicación. Sin datos, premios o controles ficticios ni cambios de contratos, validaciones o sesión.
+
+P3 se limita al tema compartido y una comprobación breve de historial y Validar; moderación manual pendiente. El diff comprende 21 fuentes de presentación y cuatro archivos nuevos con diez pruebas. La arquitectura y las dependencias permanecen intactas.
+
+Comparación IAB a 360/390/768/1440 px en las superficies documentadas; texto 2× comprobado en widgets, no como revisión manual completa. Capturas antes/después conservadas en `tmp/pulido-visual-web-20261103/capturas/`; pruebas y límites de ese corte en su `diff-probado.json`. Sin lector de pantalla ni Android nuevo; la caché local de Firebase impidió esa comprobación Android. SMTP y FCM permanecieron apagados. No certificación de accesibilidad ni preparación para Internet.
+
 ## Cierre19/10 — sin rediseño adicional
 
 Se conserva C2:I1/I2/mapa/catalogo/perfil. Solo navegación F11 corregida; [evidencia final versionada](CIERRE_WEB_R01_S03.md). Publicación no equivale a aceptación visual ni integración. Cortes inferiores fechados son antecedentes, no instrucciones para repetir otro pulido.
