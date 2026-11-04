@@ -8,6 +8,7 @@ import 'places_state.dart';
 class PlacesCubit extends Cubit<PlacesState> {
   final PlaceService _service;
   int _request = 0;
+  final Map<int, int> _favoriteRevisions = {};
   SaturationLevel? _nivelSaturacion;
   SaturationLevel? get nivelSaturacion => _nivelSaturacion;
   Future<void> filtrarPorSaturacion(SaturationLevel? nivel) async {
@@ -27,6 +28,7 @@ class PlacesCubit extends Cubit<PlacesState> {
 
   void _onSessionChanged() {
     _request++;
+    _favoriteRevisions.clear();
     _consulta = '';
     _categoria = '';
     _nivelSaturacion = null;
@@ -111,6 +113,11 @@ class PlacesCubit extends Cubit<PlacesState> {
             result.error == PlaceService.favoriteAlreadyExists)) {
       final latest = state;
       if (latest is PlacesLoaded) {
+        _favoriteRevisions.update(
+          placeId,
+          (revision) => revision + 1,
+          ifAbsent: () => 1,
+        );
         emit(
           PlacesLoaded(
             selectionKey: latest.selectionKey,
@@ -133,6 +140,7 @@ class PlacesCubit extends Cubit<PlacesState> {
   Future<void> refreshPlace(int id) async {
     final request = _request;
     final generation = SessionService.generation;
+    final favoriteRevision = _favoriteRevisions[id] ?? 0;
     final result = await _service.getPlace(id);
     if (isClosed ||
         request != _request ||
@@ -147,7 +155,13 @@ class PlacesCubit extends Cubit<PlacesState> {
       PlacesLoaded(
         selectionKey: current.selectionKey,
         places: List.unmodifiable(
-          current.places.map((p) => p.id == id ? result.data! : p),
+          current.places.map((place) {
+            if (place.id != id) return place;
+            // Una lectura anterior al alta no revierte el favorito confirmado.
+            return favoriteRevision == (_favoriteRevisions[id] ?? 0)
+                ? result.data!
+                : result.data!.copyWith(esFavorito: place.esFavorito);
+          }),
         ),
       ),
     );

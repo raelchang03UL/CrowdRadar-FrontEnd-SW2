@@ -1,5 +1,15 @@
 # Estado actual
 
+## Corrección local HU8.1 — respuesta tardía de favorito, 01/11/2026
+
+Rama `fix/hu8-favorito-respuesta-tardia`, base `ebc43eb5b6505752f9db747fdc57ccab7390a04a` de origin/develop. Registro de validación previo a publicación; el SHA final se identifica en el PR de esta rama hacia develop. PlacesCubit mantiene una revisión de favorito por ID: una consulta anterior a un alta confirmada conserva el favorito vigente y actualiza los demás campos; una consulta posterior y las de otros lugares siguen aplicándose normalmente. Se conservan selectionKey y las guardas de sesión/generación. No cambian widgets, estilos, backend ni dependencias.
+
+Regresión determinista con Completer: antes del arreglo falló (esperado true, recibido false); después la misma prueba pasó y las nueve regresiones completas también. Cubren éxito/duplicado, lectura durante el alta, rechazo sin falso favorito, lectura posterior false, otro lugar y respuestas tardías tras logout/cambio de cuenta con mismo JWT. Validación final: analyze limpio, **683 pruebas aprobadas + 2 opt-in omitidas**, build Web con configuración existente correcto en66,9s y diff-check limpio. SHA256 main.dart.js `51677D0C59BB182D3CA548E932B0A7130019571E9D319393AEC4ADE9561B344C`.
+
+Las respuestas de la regresión son simuladas; no hubo recorrido manual nuevo porque API3053/Web5553/PostgreSQL55488 estaban apagados. No se iniciaron servicios ni se repitieron backend/SMTP/FCM reales. Se conserva la evidencia Web real anterior de alertas. Rael autorizó commit, publicación de la rama y PR desde raelchang03UL; revisión e integración siguen pendientes, sin autorización de merge. No se da por cerrado HU8/Sprint4/proyecto.
+
+## Antecedente de implementación y validación HU8
+
 ## HU8 integrada localmente para revisión — 30/10/2026
 
 Rama `feature/hu-8-4-eliminar-favoritos`. Base `origin/develop` comprobada: `679cc3f6d8fdf15a546c501181de1c1700ec48d8`. Merges locales conservan commits/autores de F#25, #26 y #27 sobre el aporte F#28, incorporando develop; no se reabrieron F#24 ni se creó un PR duplicado. Correcciones: colaboración delegada asistida por Codex, con identidad Git configurada de Rael Chang, sin atribuirlas a los autores originales. Implementación inicial F`d75c6b1b8ce6ee2dbc934088006da7a36b838a8a` y corrección de activación F`6d77cd5b73b715631c8490f487feaef0959b5c11`; compañero B`f33db103ae105bd25440ef9dfd7dca8e5d258a18`. Primera publicación en F#28/B#46; revisión ajena e integración siguen pendientes. Consultar los heads de los PR para identificar el par publicado final.
