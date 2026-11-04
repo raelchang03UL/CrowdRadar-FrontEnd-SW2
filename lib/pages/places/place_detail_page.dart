@@ -2,13 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../components/place_status.dart';
+import '../../components/push_transition_banner.dart';
 import '../../cubits/places/place_detail_cubit.dart';
 import '../../services/place_service.dart';
+import '../../services/push_message_guard.dart';
 
 class PlaceDetailPage extends StatelessWidget {
   final int id;
   final PlaceService? service;
-  const PlaceDetailPage({super.key, required this.id, this.service});
+  final AuthorizedPushTransition? pushTransition;
+  const PlaceDetailPage({
+    super.key,
+    required this.id,
+    this.service,
+    this.pushTransition,
+  });
 
   @override
   Widget build(BuildContext context) => BlocProvider(
@@ -63,6 +71,11 @@ class PlaceDetailPage extends StatelessWidget {
                             prominent: true,
                           ),
                           _Dato(titulo: 'Categoría', valor: lugar.categoria),
+                          if (pushTransition != null && lugar.id == id)
+                            PushTransitionBanner(
+                              alert: pushTransition!,
+                              placeId: lugar.id,
+                            ),
                           if (lugar.demostrativo) ...[
                             Container(
                               padding: const EdgeInsets.all(12),

@@ -150,6 +150,15 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('Activar alertas').hitTestable(), findsOneWidget);
+      if (!empty) expect(find.text('1 lugar'), findsOneWidget);
+      // El estado de alertas añade contenido al encabezado; la lista construye
+      // sus filas al desplazarse, también con texto ampliado.
+      await tester.scrollUntilVisible(
+        find.text(empty ? 'Sin favoritos todavía' : 'Quitar'),
+        150,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
       if (empty) {
         await tester.ensureVisible(find.text('Sin favoritos todavía'));
         await tester.pumpAndSettle();
@@ -159,7 +168,6 @@ void main() {
         );
       } else {
         expect(find.text(place.nombre), findsOneWidget);
-        expect(find.text('1 lugar'), findsOneWidget);
         await tester.ensureVisible(find.text('Quitar'));
         await tester.pumpAndSettle();
         expect(find.text('Quitar').hitTestable(), findsOneWidget);

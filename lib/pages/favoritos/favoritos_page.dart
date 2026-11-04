@@ -3,11 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../components/cr_bottom_nav.dart';
+import '../../components/push_alerts_control.dart';
 import '../../cubits/favorites/favorites_cubit.dart';
 import '../../cubits/favorites/favorites_state.dart';
 import '../../services/place_service.dart';
-import '../../services/push_notification_service.dart';
-import '../../services/session_service.dart';
 import '../../theme/app_colors.dart';
 
 class FavoritosPage extends StatelessWidget {
@@ -59,7 +58,7 @@ class FavoritosPage extends StatelessWidget {
                             ],
                           ],
                         ),
-                        const _AlertsButton(),
+                        const PushAlertsControl(),
                       ],
                     ),
                   ),
@@ -234,54 +233,6 @@ class _FavoritesContent extends StatelessWidget {
       title: 'Inicia sesión para ver tus favoritos.',
     );
   }
-}
-
-class _AlertsButton extends StatefulWidget {
-  const _AlertsButton();
-
-  @override
-  State<_AlertsButton> createState() => _AlertsButtonState();
-}
-
-class _AlertsButtonState extends State<_AlertsButton> {
-  bool _enabling = false;
-
-  Future<void> _enable() async {
-    final generation = SessionService.generation;
-    final push = PushNotificationService.instance;
-    final configured = push.isConfigured;
-    setState(() => _enabling = true);
-    final enabled = configured && await push.enableForCurrentSession();
-    if (!mounted) return;
-    setState(() => _enabling = false);
-    if (generation != SessionService.generation) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          !configured
-              ? 'Las alertas aún no están disponibles.'
-              : enabled
-              ? 'Alertas activadas en este dispositivo.'
-              : 'No se pudieron activar las alertas. Revisa los permisos del navegador.',
-        ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) => Tooltip(
-    message: 'Activar alertas',
-    child: TextButton.icon(
-      onPressed: _enabling ? null : _enable,
-      icon: _enabling
-          ? const SizedBox.square(
-              dimension: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          : const Icon(Icons.notifications_outlined),
-      label: const Text('Activar alertas'),
-    ),
-  );
 }
 
 class _FavoritesMessage extends StatelessWidget {

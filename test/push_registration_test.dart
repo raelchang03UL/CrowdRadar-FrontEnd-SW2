@@ -71,6 +71,7 @@ class _Devices extends PushDeviceService {
     required String sessionToken,
     required String deviceToken,
     required String registrationId,
+    int? generation,
   }) async {
     removed.add(registrationId);
   }
@@ -275,7 +276,7 @@ void main() {
   );
 
   test(
-    'Web conserva caché legacy, renueva token a demanda y declara tipo explícito',
+    'Web conserva caché legacy y activar un binding vigente es idempotente',
     () async {
       final messaging = _WebMessaging(), devices = _Devices();
       var inspections = 0;
@@ -301,19 +302,11 @@ void main() {
       expect(await first, isTrue);
       final unchanged = push.enableForCurrentSession();
       await flush();
-      messaging.tokens.last.complete('registration-token-first');
       expect(await unchanged, isTrue);
       expect(devices.requests.length, 1);
-      final renewed = push.enableForCurrentSession();
-      await flush();
-      messaging.tokens.last.complete('registration-token-renewed');
-      await flush();
-      expect(devices.removed, ['binding-first']);
-      expect(devices.requests.last.token, 'registration-token-renewed');
-      devices.requests.last.result.complete('binding-renewed');
-      expect(await renewed, isTrue);
+      expect(await push.enableForCurrentSession(), isTrue);
       expect(inspections, 1);
-      expect(messaging.operations, ['getToken', 'getToken', 'getToken']);
+      expect(messaging.operations, ['getToken']);
       push.unregisterForLogout();
       await flush();
       expect(messaging.operations.last, 'deleteToken');

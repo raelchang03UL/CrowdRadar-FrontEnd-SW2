@@ -1,10 +1,12 @@
 # Estado actual
 
-## Pulido visual en revisión local — 04/11/2026
+## Pulido visual y control de alertas en validación — 04/11/2026
 
-Rama `ux/demo-alertas-20261104`, base `ea05ae6d7452bd60cd750f66a65898d9733091d5`, en una nueva copia de trabajo. Se trasladan las 21 fuentes de presentación y cuatro pruebas visuales del parche verificado del 03/11, conservando los cierres públicos inferiores. El parche original y sus 27 archivos mantienen las huellas registradas; las fuentes base coinciden con la demo `a4919f0`. Cubits, servicios, modelos, router, workers, dependencias y configuración Firebase permanecen sin cambios en esta fase.
+Rama `ux/demo-alertas-20261104`, base `ea05ae6d7452bd60cd750f66a65898d9733091d5`, en una nueva copia de trabajo. El commit `e006709f2c65e2adf36ccc3a56a7bdb23e789cf6` traslada las 21 fuentes de presentación y cuatro pruebas visuales del parche verificado del 03/11, conservando el original y los cierres públicos inferiores. Sus diez pruebas visuales pasaron en esta copia. El cambio posterior añade activar/desactivar por dispositivo y el contexto histórico de la alerta; no modifica backend, workers, dependencias ni configuración Firebase.
 
-Validación dirigida: los cuatro archivos visuales aprobaron sus **10 casos**, con dependencias del lock resueltas desde caché mediante `pub get --offline --enforce-lockfile`; sin versiones nuevas. `git diff --check` correcto. Evidencia local: `tmp/mejoras-demo-web-20261104/qa/phase-a-visual-tests.log`. Análisis, suite completa, build y recorrido visual del conjunto se reservan para la integración final. No hay publicación de este pulido; la URL pública sigue sirviendo el par identificado en el corte inferior. [Alcance visual](GUIA_VISUAL.md).
+La baja requiere confirmación y HTTP 204, bloquea de inmediato mensajes/aperturas locales y distingue un resultado incierto de una eliminación confirmada. Los errores permiten reintentar sin afectar otra cuenta; activar un binding vigente es idempotente. La ficha recibe únicamente un contexto tipado autorizado por usuario/generación/binding/lugar y niveles conocidos, separado de las estimaciones actuales del mapa e historial. No reconstruye una transición desde la URL ni muestra texto arbitrario del mensaje. Al desactivar o cambiar de sesión se ocultan el aviso push y el banner histórico.
+
+Pruebas dirigidas con dobles HTTP/Firebase: control de baja, errores/timeout/doble clic, limpieza antigua, 401 vigente/antiguo, avisos ajenos, ruta y contexto, móvil a360 y texto2×. Los registros están en `tmp/mejoras-demo-web-20261104/qa`; las repeticiones por correcciones de fixtures conservan sus resultados anteriores. Análisis, suite completa, build y recorrido público del conjunto se realizan sobre el commit final. Todavía no se atribuye recepción real, captura del nuevo diseño ni aceptación humana a esta versión. La URL pública conserva el par inferior como reversión. [Alcance visual](GUIA_VISUAL.md) y [diseño de las alertas](ARQUITECTURA.md).
 
 ## Demo Web publicada y verificada — 04/11/2026
 

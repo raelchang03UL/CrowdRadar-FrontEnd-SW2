@@ -5,6 +5,7 @@ import '../models/user_model.dart';
 import '../services/session_service.dart';
 import '../services/recovery_service.dart';
 import '../services/place_service.dart';
+import '../services/push_message_guard.dart';
 import '../pages/places/place_search_page.dart';
 import '../pages/places/place_detail_page.dart';
 
@@ -119,10 +120,18 @@ GoRouter createAppRouter({
     ),
     GoRoute(
       path: '/places/:id',
-      builder: (context, state) => PlaceDetailPage(
-        id: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
-        service: placeService,
-      ),
+      builder: (context, state) {
+        final id = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+        final extra = state.extra;
+        return PlaceDetailPage(
+          id: id,
+          service: placeService,
+          pushTransition:
+              extra is AuthorizedPushTransition && extra.isCurrentForPlace(id)
+              ? extra
+              : null,
+        );
+      },
     ),
     GoRoute(
       path: '/reports/:id',
