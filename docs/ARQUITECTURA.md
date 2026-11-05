@@ -1,5 +1,13 @@
 # Arquitectura frontend
 
+## Control de alertas y contexto histórico — 04/11/2026
+
+`PushNotificationService.status` expone únicamente el estado de las alertas de esta sesión y dispositivo. Favoritos observa ese estado y solicita alta o baja explícita; un registro activo se reutiliza sin volver a pedir permiso ni registrarse. La baja bloquea localmente mensajes y aperturas de inmediato, cierra solo el aviso push y conserva una captura privada para reintentar. Solo HTTP 204 confirma la eliminación remota. Un fallo o timeout mantiene el estado de baja no confirmada; no se anuncia éxito ni se reactiva automáticamente. La cola SDK y las guardas de generación evitan que una limpieza antigua alcance una sesión nueva. El resto de dispositivos y los favoritos se conservan.
+
+Tras autorizar usuario, binding y lugar, los niveles `previousLevel` y `newLevel` forman un contexto tipado que vive solo en memoria. Los tres niveles reutilizan las etiquetas del dominio; `SIN_DATOS` representa «Sin datos». Niveles desconocidos, iguales o incompletos no forman una transición. El router y el banner vuelven a verificar usuario, generación, binding y lugar cargado. Al perder autorización, el banner desaparece; nunca reemplaza la estimación actual consultada a la API. La URL y el texto arbitrario del mensaje no reconstruyen el contexto. Si el historial del navegador descarta el objeto, la ficha funciona sin aviso histórico.
+
+Web mantiene el permiso por gesto explícito, la sesión en memoria y el worker existente con pestaña autenticada viva. No cambia el contrato backend, la caducidad de sesión, la configuración Firebase ni el arranque nativo. Las comprobaciones y límites de plataforma se registran en [estado actual](ESTADO_ACTUAL.md).
+
 ## Integración HU8 — 30/10/2026
 
 Favoritos conserva pages → cubits → PlaceService → API. FavoritesCubit centraliza lista propia, carga/error/vacío, borrado por ID, envío único y descarte por generación. PlaceDetailCubit consulta el ID de la ruta y alterna el favorito sin confiar en `extra`. PlaceModel conserva dirección/referencia y añade esFavorito opcional para mantener compatibles los contratos y fixtures anteriores. Los mensajes de mutación son públicos y fijos.

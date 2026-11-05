@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../models/place_model.dart';
 import '../services/saturation_report_service.dart';
 import '../services/session_service.dart';
+import '../theme/app_colors.dart';
 
 // Presentación del contrato de Manu: la recompensa solo procede del servidor.
 class ReportPlaceSheet extends StatefulWidget {
@@ -130,7 +131,10 @@ class _ReportPlaceSheetState extends State<ReportPlaceSheet> {
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
-            Text(widget.place.nombre),
+            Text(
+              widget.place.nombre,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 20),
             if (_invalidSession) ...[
               const Text(SaturationReportService.sessionError),
@@ -139,12 +143,24 @@ class _ReportPlaceSheetState extends State<ReportPlaceSheet> {
                 child: const Text('Cerrar'),
               ),
             ] else if (_sent) ...[
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Icon(
+                  Icons.check_circle_outline,
+                  size: 32,
+                  color: AppColors.success,
+                ),
+              ),
+              const SizedBox(height: 12),
               const Text('Gracias por compartir lo que observaste.'),
               if (_reward != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 12),
                   child: Text(
                     '+${_reward!.pointsAwarded} karma · Total: ${_reward!.karmaPoints}',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleMedium?.copyWith(color: AppColors.success),
                   ),
                 ),
               const SizedBox(height: 24),
@@ -181,7 +197,33 @@ class _ReportPlaceSheetState extends State<ReportPlaceSheet> {
                 children: SaturationLevel.values
                     .map(
                       (level) => ChoiceChip(
+                        avatar: Icon(
+                          switch (level) {
+                            SaturationLevel.tranquil =>
+                              Icons.check_circle_outline,
+                            SaturationLevel.moderate => Icons.people_outline,
+                            SaturationLevel.saturated => Icons.groups_outlined,
+                          },
+                          size: 20,
+                          color: switch (level) {
+                            SaturationLevel.tranquil => AppColors.success,
+                            SaturationLevel.moderate => AppColors.warning,
+                            SaturationLevel.saturated => AppColors.danger,
+                          },
+                        ),
                         label: Text(level.label),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        selectedColor: Theme.of(
+                          context,
+                        ).colorScheme.primaryContainer,
+                        side: BorderSide(
+                          color: _level == level
+                              ? AppColors.primary
+                              : AppColors.border,
+                        ),
                         selected: _level == level,
                         onSelected: _sending
                             ? null

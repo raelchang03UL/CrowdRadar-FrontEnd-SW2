@@ -8,31 +8,33 @@ class SaturationPanel extends StatelessWidget {
   final VoidCallback retry;
   final bool compact;
   final String? location;
+  final Widget? actions;
   const SaturationPanel({
     super.key,
     required this.state,
     required this.retry,
     this.compact = false,
     this.location,
+    this.actions,
   });
 
   @override
   Widget build(BuildContext context) {
     if (state.status == SaturationStatus.initial) {
-      return const SizedBox.shrink();
+      return actions ?? const SizedBox.shrink();
     }
     return Semantics(
       liveRegion: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Divider(height: 24),
+          if (!compact) const Divider(height: 24),
           if (!compact)
             Text(
               'Nivel de saturación',
               style: Theme.of(context).textTheme.titleSmall,
             ),
-          const SizedBox(height: 8),
+          if (!compact) const SizedBox(height: 8),
           if (state.status == SaturationStatus.loading)
             const Row(
               children: [
@@ -89,14 +91,7 @@ class SaturationPanel extends StatelessWidget {
                   ),
               ],
             ),
-            if (compact)
-              ExpansionTile(
-                tilePadding: EdgeInsets.zero,
-                title: const Text('Más información'),
-                children: [_details(data)],
-              )
-            else
-              _details(data),
+            if (!compact) _details(data),
             if (!compact)
               OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)),
@@ -105,6 +100,18 @@ class SaturationPanel extends StatelessWidget {
                 label: const Text('Actualizar saturación'),
               ),
           ],
+          if (actions case final content?) ...[
+            const SizedBox(height: 12),
+            content,
+          ],
+          if (compact)
+            if (state.data case final data?)
+              ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                childrenPadding: const EdgeInsets.only(bottom: 8),
+                title: const Text('Más información'),
+                children: [_details(data)],
+              ),
         ],
       ),
     );

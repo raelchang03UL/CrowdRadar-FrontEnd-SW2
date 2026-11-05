@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import '../../cubits/login_cubit.dart';
 import '../../cubits/login_state.dart';
 
-import '../../theme/app_colors.dart';
 import '../../components/auth_form_layout.dart';
 import '../../components/auth_fields.dart';
 
@@ -89,22 +88,12 @@ class _RegisterViewState extends State<_RegisterView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Crea tu cuenta',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.text,
-                      ),
-                    ),
+                  const AuthFormHeader(
+                    title: 'Crea tu cuenta',
+                    description:
+                        'Completa tus datos para empezar. Todos los campos son obligatorios.',
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Completa tus datos para empezar. Todos los campos son obligatorios.',
-                  ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
                   TextFormField(
                     enabled: !loading,
                     controller: _nombreCtrl,

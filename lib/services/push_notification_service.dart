@@ -7,11 +7,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../configs/firebase_options.dart';
+import '../components/push_alert_notice.dart';
 import '../router/app_router.dart';
+import 'push_alert_status.dart';
 import 'push_device_service.dart';
 import 'push_message_guard.dart';
 import 'push_web_bridge.dart';
 import 'session_service.dart';
+
+export 'push_alert_status.dart';
 
 class PushNotificationService {
   PushNotificationService._()
@@ -44,6 +48,10 @@ class PushNotificationService {
   StreamSubscription<RemoteMessage>? _foregroundSubscription;
   StreamSubscription<String>? _registeredSubscription;
   _RegisteredDevice? _registered;
+  _RegisteredDevice? _pendingDisable;
+  final _status = ValueNotifier(PushAlertStatus.inactive);
+  PushAlertNotice? _pushSnackBar;
+  bool _disposed = false;
   int _sessionAttempt = 0;
   bool _initialized = false;
   int? _fcmAttempt;
@@ -52,6 +60,19 @@ class PushNotificationService {
   Future<void> _registrationQueue = Future.value();
   bool _webTokenModeReady = false;
   bool _webTokenRequested = false;
+
+  ValueListenable<PushAlertStatus> get status => _status;
+
+  void _setStatus(PushAlertStatus value) {
+    if (!_disposed) _status.value = value;
+  }
+
+  void _clearLocalAuthorization() {
+    _registered = null;
+    clearPushBridge();
+    _pushSnackBar?.close();
+    _pushSnackBar = null;
+  }
 
   Future<void> initialize() async {
     if (_initialized) return;
@@ -111,13 +132,14 @@ class PushNotificationService {
     final attempt = ++_sessionAttempt;
     _fcmAttempt = null;
     _finishEnable(false);
-    clearPushBridge();
-    final previous = _registered;
-    _registered = null;
+    final previous = _registered ?? _pendingDisable;
+    _pendingDisable = null;
+    _clearLocalAuthorization();
+    _setStatus(PushAlertStatus.inactive);
     if (previous != null) {
       unawaited(_unregister(previous));
     }
-    _stopFcmRegistration();
+    unawaited(_stopFcmRegistration());
     if (!SessionService.isAuthenticated || _isWeb) return;
     unawaited(_registerForCurrentSession(attempt));
   }
@@ -126,11 +148,12 @@ class PushNotificationService {
     ++_sessionAttempt;
     _fcmAttempt = null;
     _finishEnable(false);
-    clearPushBridge();
-    final previous = _registered;
-    _registered = null;
+    final previous = _registered ?? _pendingDisable;
+    _pendingDisable = null;
+    _clearLocalAuthorization();
+    _setStatus(PushAlertStatus.inactive);
     if (previous != null) unawaited(_unregister(previous));
-    _stopFcmRegistration();
+    unawaited(_stopFcmRegistration());
   }
 
   bool get isConfigured =>
@@ -138,14 +161,18 @@ class PushNotificationService {
 
   Future<bool> enableForCurrentSession() async {
     if (!isConfigured ||
+        _disposed ||
         !SessionService.isAuthenticated ||
-        _enableResult != null) {
+        _enableResult != null ||
+        _status.value == PushAlertStatus.disabling ||
+        _pendingDisable != null) {
       return false;
     }
-    if (!_isWeb && _activeRegistrationId != null) return true;
+    if (_activeRegistrationId != null) return true;
     final result = Completer<bool>();
     final attempt = ++_sessionAttempt;
     _enableResult = result;
+    _setStatus(PushAlertStatus.enabling);
     void failIfCurrent() {
       if (attempt == _sessionAttempt && identical(_enableResult, result)) {
         _finishEnable(false);
@@ -166,11 +193,55 @@ class PushNotificationService {
           ++_sessionAttempt;
           _fcmAttempt = null;
           _finishEnable(false);
-          _stopFcmRegistration();
+          unawaited(_stopFcmRegistration());
         }
         return false;
       },
     );
+  }
+
+  Future<bool> disableForCurrentSession() async {
+    if (_disposed || !SessionService.isAuthenticated || _status.value.isBusy) {
+      return false;
+    }
+    final device = _registered ?? _pendingDisable;
+    if (device == null ||
+        device.generation != SessionService.generation ||
+        device.sessionToken != SessionService.token ||
+        device.userId != SessionService.currentUser?.id) {
+      return false;
+    }
+    final attempt = ++_sessionAttempt;
+    _fcmAttempt = null;
+    _pendingDisable = device;
+    // El deseo de no recibir más alertas rige localmente desde este momento.
+    // La captura privada se conserva hasta obtener el 204 o cambiar de sesión.
+    _clearLocalAuthorization();
+    _setStatus(PushAlertStatus.disabling);
+    bool current() =>
+        !_disposed &&
+        device.generation == SessionService.generation &&
+        _isCurrentSession(attempt, device.sessionToken, device.userId);
+    try {
+      // No usar _unregister: logout tolera errores, la baja explícita debe
+      // distinguir un 204 confirmado de un resultado incierto.
+      await _devices.unregister(
+        sessionToken: device.sessionToken,
+        deviceToken: device.deviceToken,
+        registrationId: device.registrationId,
+        generation: device.generation,
+      );
+      if (!current()) return false;
+      _pendingDisable = null;
+      // Se encola antes de permitir otra activación. La guarda se revalida
+      // dentro de la cola: una respuesta tardía no borra el token de otra sesión.
+      unawaited(_stopFcmRegistration(current: current));
+      _setStatus(PushAlertStatus.inactive);
+      return true;
+    } catch (_) {
+      if (current()) _setStatus(PushAlertStatus.disableUnconfirmed);
+      return false;
+    }
   }
 
   Future<bool> _registerForCurrentSession(int attempt) async {
@@ -253,23 +324,24 @@ class PushNotificationService {
     return result;
   }
 
-  void _stopFcmRegistration() {
+  Future<void> _stopFcmRegistration({bool Function()? current}) {
     final messaging = _messaging;
-    if (messaging == null) return;
-    unawaited(
-      _withSdk<void>(() async {
-        if (_isWeb) {
-          if (!_webTokenRequested) return;
-          // ignore: deprecated_member_use
-          await messaging.deleteToken();
-          _webTokenRequested = false;
-        } else {
-          await messaging.unregister();
-        }
-      }).catchError((Object error) {
-        debugPrint('No se pudo detener el registro push del dispositivo.');
-      }),
-    );
+    if (messaging == null || (current != null && !current())) {
+      return Future.value();
+    }
+    return _withSdk<void>(() async {
+      if (current != null && !current()) return;
+      if (_isWeb) {
+        if (!_webTokenRequested) return;
+        // ignore: deprecated_member_use
+        await messaging.deleteToken();
+        _webTokenRequested = false;
+      } else {
+        await messaging.unregister();
+      }
+    }).catchError((Object error) {
+      debugPrint('No se pudo detener el registro push del dispositivo.');
+    });
   }
 
   Future<void> _registerTokenForCurrentSession(String token) async {
@@ -330,13 +402,17 @@ class PushNotificationService {
   }
 
   String? get _activeRegistrationId =>
-      _registered?.generation == SessionService.generation
+      SessionService.isAuthenticated &&
+          _registered?.generation == SessionService.generation &&
+          _registered?.userId == SessionService.currentUser?.id &&
+          _registered?.sessionToken == SessionService.token
       ? _registered?.registrationId
       : null;
 
   void _finishEnable(bool success) {
     final result = _enableResult;
     _enableResult = null;
+    _setStatus(success ? PushAlertStatus.active : PushAlertStatus.inactive);
     if (result != null && !result.isCompleted) result.complete(success);
   }
 
@@ -365,17 +441,15 @@ class PushNotificationService {
       debugPrint('La alerta push no incluye un lugar válido.');
       return;
     }
-    final title = message.notification?.title ?? 'Cambió la saturación';
-    final body =
-        message.notification?.body ?? 'Actualiza la información del lugar.';
-    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-      SnackBar(
-        content: Text('$title: $body'),
-        action: SnackBarAction(
-          label: 'Ver lugar',
-          onPressed: () => _openPlace(message),
-        ),
-      ),
+    final transition = _transitionFor(message.data)?.transition;
+    final text = transition == null
+        ? 'Cambió la saturación de un favorito. Consulta su nivel actual.'
+        : 'Cambió la saturación: ${transition.previousLevel.label} → ${transition.newLevel.label}.';
+    _pushSnackBar?.close();
+    _pushSnackBar = PushAlertNotice.show(
+      context,
+      text: text,
+      onOpen: () => _openPlace(message),
     );
   }
 
@@ -383,11 +457,23 @@ class PushNotificationService {
 
   void _openData(Map<String, dynamic> data) {
     final placeId = authorizedPushPlace(data, _activeRegistrationId);
-    if (placeId != null) appRouter.push('/places/$placeId');
+    if (placeId != null) {
+      appRouter.push('/places/$placeId', extra: _transitionFor(data));
+    }
   }
+
+  AuthorizedPushTransition? _transitionFor(Map<String, dynamic> data) =>
+      authorizedPushTransition(
+        data,
+        _activeRegistrationId,
+        currentRegistrationId: () => _activeRegistrationId,
+        authorizationChanges: status,
+      );
 
   Future<void> dispose() async {
     unregisterForLogout();
+    _disposed = true;
+    _status.dispose();
     SessionService.changes.removeListener(_onSessionChanged);
     await _openedSubscription?.cancel();
     await _foregroundSubscription?.cancel();

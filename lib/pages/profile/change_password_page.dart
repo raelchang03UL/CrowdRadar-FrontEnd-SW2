@@ -5,11 +5,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../components/auth_fields.dart';
+import '../../components/auth_form_layout.dart';
 import '../../cubits/login_cubit.dart';
 import '../../cubits/password_change_cubit.dart';
 import '../../services/password_service.dart';
 import '../../services/session_service.dart';
-import '../../theme/app_colors.dart';
 
 class ChangePasswordPage extends StatelessWidget {
   final PasswordService? service;
@@ -104,104 +104,70 @@ class _ChangePasswordViewState extends State<_ChangePasswordView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(
-                        'Protege tu cuenta',
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Al guardar, se cerrarán tus sesiones anteriores y deberás iniciar sesión con la contraseña nueva.',
+                      const AuthFormHeader(
+                        title: 'Protege tu cuenta',
+                        description:
+                            'Al guardar, se cerrarán tus sesiones anteriores y deberás iniciar sesión con la contraseña nueva.',
                       ),
                       const SizedBox(height: 24),
-                      Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(24),
-                          child: Column(
-                            children: [
-                              AuthPasswordField(
-                                key: const ValueKey('current-password'),
-                                controller: _current,
-                                enabled: !busy,
-                                labelText: 'Contraseña actual',
-                                helperText: 'La que usas para iniciar sesión.',
-                                textInputAction: TextInputAction.next,
-                                validator: (value) {
-                                  if (value == null || value.trim().isEmpty) {
-                                    return 'Escribe tu contraseña actual';
-                                  }
-                                  return utf8.encode(value).length > 72
-                                      ? 'No superes 72 bytes'
-                                      : null;
-                                },
-                              ),
-                              const SizedBox(height: 16),
-                              AuthPasswordField(
-                                key: const ValueKey('new-password'),
-                                controller: _next,
-                                enabled: !busy,
-                                labelText: 'Nueva contraseña',
-                                helperText:
-                                    'Mínimo 8 caracteres y máximo 72 bytes. Debe ser diferente de la actual.',
-                                textInputAction: TextInputAction.next,
-                                validator: (value) =>
-                                    AuthValidation.password(value) ??
-                                    (value == _current.text
-                                        ? 'Elige una contraseña diferente de la actual'
-                                        : null),
-                              ),
-                              const SizedBox(height: 16),
-                              AuthPasswordField(
-                                key: const ValueKey('confirm-password'),
-                                controller: _confirmation,
-                                enabled: !busy,
-                                labelText: 'Confirmar nueva contraseña',
-                                helperText:
-                                    'Vuelve a escribir la contraseña nueva.',
-                                textInputAction: TextInputAction.done,
-                                validator: (value) =>
-                                    value == null || value.isEmpty
-                                    ? 'Confirma la contraseña nueva'
-                                    : value != _next.text
-                                    ? 'Las contraseñas no coinciden'
-                                    : null,
-                                onSubmitted: busy
-                                    ? null
-                                    : (_) => _submit(context),
-                              ),
-                            ],
+                      Column(
+                        children: [
+                          AuthPasswordField(
+                            key: const ValueKey('current-password'),
+                            controller: _current,
+                            enabled: !busy,
+                            labelText: 'Contraseña actual',
+                            helperText: 'La que usas para iniciar sesión.',
+                            textInputAction: TextInputAction.next,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Escribe tu contraseña actual';
+                              }
+                              return utf8.encode(value).length > 72
+                                  ? 'No superes 72 bytes'
+                                  : null;
+                            },
                           ),
-                        ),
+                          const SizedBox(height: 16),
+                          AuthPasswordField(
+                            key: const ValueKey('new-password'),
+                            controller: _next,
+                            enabled: !busy,
+                            labelText: 'Nueva contraseña',
+                            helperText:
+                                'Mínimo 8 caracteres y máximo 72 bytes. Debe ser diferente de la actual.',
+                            textInputAction: TextInputAction.next,
+                            validator: (value) =>
+                                AuthValidation.password(value) ??
+                                (value == _current.text
+                                    ? 'Elige una contraseña diferente de la actual'
+                                    : null),
+                          ),
+                          const SizedBox(height: 16),
+                          AuthPasswordField(
+                            key: const ValueKey('confirm-password'),
+                            controller: _confirmation,
+                            enabled: !busy,
+                            labelText: 'Confirmar nueva contraseña',
+                            helperText:
+                                'Vuelve a escribir la contraseña nueva.',
+                            textInputAction: TextInputAction.done,
+                            validator: (value) => value == null || value.isEmpty
+                                ? 'Confirma la contraseña nueva'
+                                : value != _next.text
+                                ? 'Las contraseñas no coinciden'
+                                : null,
+                            onSubmitted: busy ? null : (_) => _submit(context),
+                          ),
+                        ],
                       ),
-                      if (busy || state is PasswordChangeError) ...[
-                        const SizedBox(height: 16),
-                        Semantics(
-                          liveRegion: true,
-                          child: busy
-                              ? const Row(
-                                  children: [
-                                    SizedBox(
-                                      width: 16,
-                                      height: 16,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    ),
-                                    SizedBox(width: 12),
-                                    Expanded(
-                                      child: Text(
-                                        'Actualizando tu contraseña…',
-                                      ),
-                                    ),
-                                  ],
-                                )
-                              : Text(
-                                  (state as PasswordChangeError).message,
-                                  style: const TextStyle(
-                                    color: AppColors.danger,
-                                  ),
-                                ),
-                        ),
-                      ],
+                      AuthFeedback(
+                        loading: busy,
+                        loadingText: 'Actualizando tu contraseña…',
+                        error: state is PasswordChangeError
+                            ? state.message
+                            : null,
+                      ),
                       const SizedBox(height: 24),
                       ElevatedButton.icon(
                         key: const ValueKey('change-password-submit'),

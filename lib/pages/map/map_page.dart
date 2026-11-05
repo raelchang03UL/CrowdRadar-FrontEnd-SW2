@@ -101,7 +101,20 @@ class _MapView extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('Lugares'),
+      title: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Image.asset(
+            'assets/images/crowdradar-logo-transparent.png',
+            width: 72,
+            height: 44,
+            fit: BoxFit.contain,
+            excludeFromSemantics: true,
+          ),
+          const SizedBox(width: 10),
+          const Flexible(child: Text('Lugares')),
+        ],
+      ),
       centerTitle: false,
       actions: [
         PopupMenuButton<String>(
@@ -305,6 +318,7 @@ class _PlacesMapState extends State<_PlacesMap> {
   bool _picking = false;
   bool _reporting = false;
   bool _catalogVisible = true;
+  bool _selectionExpanded = false;
 
   Future<void> _choosePlace({
     bool forReport = false,
@@ -376,15 +390,241 @@ class _PlacesMapState extends State<_PlacesMap> {
   }
 
   void _select(PlaceModel place) {
-    setState(() => _selected = place);
+    setState(() {
+      _selected = place;
+      _selectionExpanded = false;
+    });
     _mapController.move(LatLng(place.latitud, place.longitud), 15);
     _saturationCubit.loadPlace(place.id);
   }
 
   void _clearSelection() {
-    setState(() => _selected = null);
+    setState(() {
+      _selected = null;
+      _selectionExpanded = false;
+    });
     _saturationCubit.clearSelection();
   }
+
+  Widget _mapSummary({
+    required double width,
+    required bool demo,
+    required ButtonStyle actionStyle,
+  }) {
+    final count = Text(
+      widget.places.length == 1
+          ? '1 lugar disponible'
+          : '${widget.places.length} lugares disponibles',
+      style: Theme.of(context).textTheme.titleSmall,
+    );
+    final notice = Text(
+      demo
+          ? 'Datos demostrativos · Sin monitoreo en tiempo real'
+          : 'Reportes ciudadanos sobre lugares registrados.',
+      style: Theme.of(
+        context,
+      ).textTheme.bodySmall?.copyWith(color: AppColors.textMuted),
+    );
+    final listAction = width < 1100
+        ? OutlinedButton.icon(
+            style: actionStyle,
+            onPressed: _choosePlace,
+            icon: const Icon(Icons.format_list_bulleted),
+            label: const Text('Ver lista'),
+          )
+        : OutlinedButton.icon(
+            key: const ValueKey('toggle-catalog'),
+            style: actionStyle,
+            onPressed: () => setState(() => _catalogVisible = !_catalogVisible),
+            icon: Icon(
+              _catalogVisible
+                  ? Icons.chevron_left
+                  : Icons.view_sidebar_outlined,
+            ),
+            label: Text(
+              _catalogVisible ? 'Ocultar catálogo' : 'Mostrar catálogo',
+            ),
+          );
+    if (width < 600 && _selected != null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(child: count),
+              const SizedBox(width: 8),
+              Flexible(child: listAction),
+            ],
+          ),
+          const SizedBox(height: 4),
+          notice,
+        ],
+      );
+    }
+    return Wrap(
+      spacing: 24,
+      runSpacing: 8,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: (width - 32).clamp(0, 420)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [count, const SizedBox(height: 4), notice],
+          ),
+        ),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            if (_selected == null)
+              FilledButton.icon(
+                key: const ValueKey('add-report'),
+                style: actionStyle,
+                onPressed: () => _choosePlace(forReport: true),
+                icon: const Icon(Icons.add_location_alt_outlined),
+                label: const Text('Agregar reporte'),
+              ),
+            listAction,
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _selectionContent(
+    PlaceModel place,
+    ButtonStyle actionStyle, {
+    required bool mobile,
+  }) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  place.nombre,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${place.categoria}${place.demostrativo ? ' · Demostrativo' : ''}',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: AppColors.textMuted),
+                ),
+                if (place.direccion ?? place.referencia case final location?)
+                  Tooltip(
+                    message: location,
+                    child: Text(
+                      location,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          if (mobile)
+            IconButton(
+              key: const ValueKey('toggle-selection-size'),
+              tooltip: _selectionExpanded ? 'Reducir ficha' : 'Ampliar ficha',
+              onPressed: () =>
+                  setState(() => _selectionExpanded = !_selectionExpanded),
+              icon: Icon(
+                _selectionExpanded ? Icons.unfold_less : Icons.unfold_more,
+              ),
+            ),
+          IconButton(
+            tooltip: 'Cerrar identificación',
+            onPressed: _clearSelection,
+            icon: const Icon(Icons.close, size: 20),
+          ),
+        ],
+      ),
+      const SizedBox(height: 12),
+      BlocBuilder<SaturationCubit, SaturationState>(
+        bloc: _saturationCubit,
+        builder: (context, state) => SaturationPanel(
+          compact: true,
+          location: place.direccion ?? place.referencia,
+          key: ValueKey('saturation-panel-${place.id}'),
+          state: state.placeId == place.id ? state : const SaturationState(),
+          retry: () => _saturationCubit.loadPlace(place.id),
+          actions: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  FilledButton.icon(
+                    style: actionStyle,
+                    onPressed: () => _report(place),
+                    icon: const Icon(Icons.add_location_alt_outlined),
+                    label: const Text('Reportar saturación'),
+                  ),
+                  TextButton(
+                    style: actionStyle,
+                    onPressed: () async {
+                      await context.push('/places/${place.id}');
+                      if (context.mounted) {
+                        context.read<PlacesCubit>().refreshPlace(place.id);
+                      }
+                    },
+                    child: const Text('Ver detalles'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                children: [
+                  OutlinedButton.icon(
+                    style: actionStyle,
+                    key: ValueKey('favorite-place-${place.id}'),
+                    onPressed:
+                        _pendingFavorites.contains(place.id) || place.esFavorito
+                        ? null
+                        : () => _addFavorite(place),
+                    icon: Icon(
+                      place.esFavorito ? Icons.favorite : Icons.favorite_border,
+                    ),
+                    label: Text(
+                      place.esFavorito
+                          ? 'En tus favoritos'
+                          : 'Agregar a favoritos',
+                    ),
+                  ),
+                  TextButton(
+                    style: actionStyle,
+                    onPressed: () =>
+                        context.push('/places/${place.id}/history'),
+                    child: const Text('Historial del lugar'),
+                  ),
+                  TextButton(
+                    style: actionStyle,
+                    onPressed: () => context.push('/profile/reports'),
+                    child: const Text('Mis reportes'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    ],
+  );
 
   @override
   void dispose() {
@@ -413,17 +653,6 @@ class _PlacesMapState extends State<_PlacesMap> {
       ),
       textStyle: WidgetStatePropertyAll(Theme.of(context).textTheme.labelLarge),
     );
-    final primaryAction = Theme.of(context).elevatedButtonTheme.style?.copyWith(
-      minimumSize: compactButton.minimumSize,
-      padding: compactButton.padding,
-      textStyle: compactButton.textStyle,
-    );
-    final secondaryAction = Theme.of(context).outlinedButtonTheme.style
-        ?.copyWith(
-          minimumSize: compactButton.minimumSize,
-          padding: compactButton.padding,
-          textStyle: compactButton.textStyle,
-        );
     return LayoutBuilder(
       builder: (context, espacio) => Column(
         children: [
@@ -442,75 +671,10 @@ class _PlacesMapState extends State<_PlacesMap> {
                   horizontal: 16,
                   vertical: 8,
                 ),
-                child: Wrap(
-                  spacing: 16,
-                  runSpacing: 8,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    SizedBox(
-                      width: (espacio.maxWidth - 48).clamp(0, 440),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.places.length == 1
-                                ? '1 lugar disponible'
-                                : '${widget.places.length} lugares disponibles',
-                            style: Theme.of(context).textTheme.titleSmall,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            demo
-                                ? 'Datos demostrativos · Sin monitoreo en tiempo real'
-                                : 'Reportes ciudadanos sobre lugares registrados.',
-                            style: const TextStyle(
-                              color: AppColors.textMuted,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Wrap(
-                      spacing: 12,
-                      runSpacing: 8,
-                      children: [
-                        if (_selected == null)
-                          FilledButton.icon(
-                            key: const ValueKey('add-report'),
-                            style: primaryAction,
-                            onPressed: () => _choosePlace(forReport: true),
-                            icon: const Icon(Icons.add_location_alt_outlined),
-                            label: const Text('Agregar reporte'),
-                          ),
-                        if (espacio.maxWidth < 1100)
-                          OutlinedButton.icon(
-                            style: secondaryAction,
-                            onPressed: _choosePlace,
-                            icon: const Icon(Icons.format_list_bulleted),
-                            label: const Text('Ver lista'),
-                          ),
-                        if (espacio.maxWidth >= 1100)
-                          OutlinedButton.icon(
-                            key: const ValueKey('toggle-catalog'),
-                            style: secondaryAction,
-                            onPressed: () => setState(
-                              () => _catalogVisible = !_catalogVisible,
-                            ),
-                            icon: Icon(
-                              _catalogVisible
-                                  ? Icons.chevron_left
-                                  : Icons.view_sidebar_outlined,
-                            ),
-                            label: Text(
-                              _catalogVisible
-                                  ? 'Ocultar catálogo'
-                                  : 'Mostrar catálogo',
-                            ),
-                          ),
-                      ],
-                    ),
-                  ],
+                child: _mapSummary(
+                  width: espacio.maxWidth,
+                  demo: demo,
+                  actionStyle: compactButton,
                 ),
               ),
             ),
@@ -658,205 +822,41 @@ class _PlacesMapState extends State<_PlacesMap> {
                             right: 16,
                             bottom: 34,
                             child: Align(
-                              alignment: Alignment.bottomCenter,
+                              alignment: espacio.maxWidth >= 1100
+                                  ? Alignment.bottomLeft
+                                  : Alignment.bottomCenter,
                               child: ConstrainedBox(
                                 constraints: BoxConstraints(
                                   maxWidth: 480,
                                   maxHeight:
                                       (constraints.maxHeight *
-                                              (constraints.maxHeight < 400
-                                                  ? 0.85
-                                                  : 0.60))
-                                          .clamp(0, 480),
+                                              (_selectionExpanded
+                                                  ? 0.88
+                                                  : 0.62))
+                                          .clamp(0, 560),
                                 ),
                                 child: Material(
+                                  key: const ValueKey('place-selection-card'),
                                   elevation: 2,
                                   color: AppColors.surface,
-                                  borderRadius: BorderRadius.circular(12),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    side: BorderSide(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.outlineVariant,
+                                    ),
+                                  ),
+                                  clipBehavior: Clip.antiAlias,
                                   child: SingleChildScrollView(
                                     key: const ValueKey(
                                       'saturation-selection-scroll',
                                     ),
                                     padding: const EdgeInsets.all(16),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Row(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            const Icon(
-                                              Icons.place_outlined,
-                                              color: AppColors.primary,
-                                            ),
-                                            const SizedBox(width: 12),
-                                            Expanded(
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  Text(
-                                                    place.nombre,
-                                                    style: Theme.of(context)
-                                                        .textTheme
-                                                        .titleSmall
-                                                        ?.copyWith(
-                                                          fontWeight:
-                                                              FontWeight.w700,
-                                                        ),
-                                                  ),
-                                                  const SizedBox(height: 4),
-                                                  Text(
-                                                    '${place.categoria}${place.demostrativo ? ' · Demostrativo' : ''}',
-                                                    style: const TextStyle(
-                                                      color:
-                                                          AppColors.textMuted,
-                                                      fontSize: 12,
-                                                    ),
-                                                  ),
-                                                  if (place.direccion ??
-                                                          place.referencia
-                                                      case final location?)
-                                                    Tooltip(
-                                                      message: location,
-                                                      child: Text(
-                                                        location,
-                                                        maxLines: 1,
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                        style: Theme.of(
-                                                          context,
-                                                        ).textTheme.bodySmall,
-                                                      ),
-                                                    ),
-                                                ],
-                                              ),
-                                            ),
-                                            IconButton(
-                                              tooltip: 'Cerrar identificación',
-                                              onPressed: _clearSelection,
-                                              icon: const Icon(
-                                                Icons.close,
-                                                size: 20,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        BlocBuilder<
-                                          SaturationCubit,
-                                          SaturationState
-                                        >(
-                                          bloc: _saturationCubit,
-                                          builder: (context, state) => Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Wrap(
-                                                spacing: 8,
-                                                runSpacing: 8,
-                                                children: [
-                                                  FilledButton.icon(
-                                                    style: primaryAction,
-                                                    onPressed: () =>
-                                                        _report(place),
-                                                    icon: const Icon(
-                                                      Icons
-                                                          .add_location_alt_outlined,
-                                                    ),
-                                                    label: const Text(
-                                                      'Reportar saturación',
-                                                    ),
-                                                  ),
-                                                  OutlinedButton.icon(
-                                                    key: ValueKey(
-                                                      'favorite-place-${place.id}',
-                                                    ),
-                                                    onPressed:
-                                                        _pendingFavorites
-                                                                .contains(
-                                                                  place.id,
-                                                                ) ||
-                                                            place.esFavorito
-                                                        ? null
-                                                        : () => _addFavorite(
-                                                            place,
-                                                          ),
-                                                    icon: Icon(
-                                                      place.esFavorito
-                                                          ? Icons.favorite
-                                                          : Icons
-                                                                .favorite_border,
-                                                    ),
-                                                    label: Text(
-                                                      place.esFavorito
-                                                          ? 'En tus favoritos'
-                                                          : 'Agregar a favoritos',
-                                                    ),
-                                                  ),
-                                                  TextButton(
-                                                    onPressed: () async {
-                                                      await context.push(
-                                                        '/places/${place.id}',
-                                                      );
-                                                      if (context.mounted) {
-                                                        context
-                                                            .read<PlacesCubit>()
-                                                            .refreshPlace(
-                                                              place.id,
-                                                            );
-                                                      }
-                                                    },
-                                                    child: const Text(
-                                                      'Ver detalles',
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              Wrap(
-                                                spacing: 8,
-                                                runSpacing: 8,
-                                                children: [
-                                                  TextButton(
-                                                    onPressed: () => context.push(
-                                                      '/places/${place.id}/history',
-                                                    ),
-                                                    child: const Text(
-                                                      'Historial del lugar',
-                                                    ),
-                                                  ),
-                                                  TextButton(
-                                                    onPressed: () =>
-                                                        context.push(
-                                                          '/profile/reports',
-                                                        ),
-                                                    child: const Text(
-                                                      'Mis reportes',
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              SaturationPanel(
-                                                compact: true,
-                                                location:
-                                                    place.direccion ??
-                                                    place.referencia,
-                                                key: ValueKey(
-                                                  'saturation-panel-${place.id}',
-                                                ),
-                                                state: state.placeId == place.id
-                                                    ? state
-                                                    : const SaturationState(),
-                                                retry: () => _saturationCubit
-                                                    .loadPlace(place.id),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
+                                    child: _selectionContent(
+                                      place,
+                                      compactButton,
+                                      mobile: espacio.maxWidth < 600,
                                     ),
                                   ),
                                 ),

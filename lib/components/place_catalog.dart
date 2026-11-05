@@ -20,11 +20,12 @@ class PlaceCatalogPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Material(
     color: AppColors.surface,
+    shape: const Border(right: BorderSide(color: AppColors.borderNav)),
     child: CustomScrollView(
       slivers: [
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -35,7 +36,7 @@ class PlaceCatalogPanel extends StatelessWidget {
                 const SizedBox(height: 8),
                 const Text(
                   'Selecciona uno para ver su información o reportar.',
-                  style: TextStyle(color: AppColors.textMuted),
+                  style: TextStyle(color: AppColors.textMuted, fontSize: 13),
                 ),
               ],
             ),
@@ -49,12 +50,23 @@ class PlaceCatalogPanel extends StatelessWidget {
               key: ValueKey('catalog-place-${place.id}'),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 20,
-                vertical: 8,
+                vertical: 6,
               ),
               selected: selectedId == place.id,
-              selectedTileColor: AppColors.primary.withValues(alpha: 0.06),
-              leading: const Icon(Icons.place_outlined),
-              title: Text(place.nombre),
+              selectedColor: AppColors.primary,
+              selectedTileColor: AppColors.primary.withValues(alpha: 0.08),
+              leading: Icon(
+                selectedId == place.id ? Icons.place : Icons.place_outlined,
+                size: 22,
+              ),
+              title: Text(
+                place.nombre,
+                style: TextStyle(
+                  fontWeight: selectedId == place.id
+                      ? FontWeight.w600
+                      : FontWeight.w400,
+                ),
+              ),
               subtitle: Text(place.categoria),
               trailing: const Icon(Icons.chevron_right, size: 20),
               onTap: () => onSelect(place),

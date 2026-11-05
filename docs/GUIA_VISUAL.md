@@ -1,5 +1,23 @@
 # Guía visual — pulido sobrio
 
+## Pulido y alertas publicados; recorrido visual pendiente — 04/11/2026
+
+La [demo pública](https://crowdradar-demo-web.vercel.app) sirve `8ce8510123bba400b5ed628ba96c67f18a47b57c` desde `dpl_4BcTtyyXUAfXxztGv2dDgLsS2sy9`. El commit `e006709f2c65e2adf36ccc3a56a7bdb23e789cf6` trasladó las 21 fuentes de presentación y cuatro archivos de pruebas del pulido del 03/11 sobre la base documentada `ea05ae6d7452bd60cd750f66a65898d9733091d5`; `769093227556898a7d2dedb291010069312c11dc` añadió el control real por dispositivo y el contexto de alertas, y `8ce8510` precisó imports de pruebas. Se conservan Material 3, logo, colores y distribución verificados de la propuesta original.
+
+Favoritos presenta activar/desactivar con confirmación y un resultado incierto que permite reintentar. La ficha identifica «Cambio que originó esta alerta», con nivel anterior → nuevo y aviso de que el nivel actual puede ser distinto. Es un contexto histórico autorizado; no incorpora consulta de nivel actual ni fechas inexistentes. Una alerta incompleta conserva la ficha normal y una sesión/registro ajenos no autorizan la apertura.
+
+Análisis, 737 pruebas aprobadas (2 opt-in omitidas), build y 37/37 comprobaciones HTTP acreditan el paquete servido. La baja/reactivación real quedó comprobada en Chrome: cero envíos al desactivar, una alerta tras reactivar y confirmación humana de apertura de Kennedy con «Moderado → Saturado»; el siguiente ciclo sin cambio envió cero. [Evidencia del ciclo](evidence/demo-improvements-20261104/push-toggle-human-acceptance.json). **Las nuevas capturas y el recorrido humano ampliado del pulido siguen pendientes tras detenerse el control del navegador con Esc.** No se trasladan a esta versión las capturas o aceptaciones de los cortes anteriores. [Evidencia de publicación y límites](evidence/demo-improvements-20261104/release-verification.json). El corte del 03/11 siguiente conserva íntegramente la copia original y sus resultados históricos.
+
+## Vista previa local del pulido Web — 03/11/2026
+
+Candidato `ui/pulido-visual-web-crowdradar`, desde `edc1cf5`, dependiente de la corrección de favoritos del [PR #29](https://github.com/raelchang03UL/CrowdRadar-FrontEnd-SW2/pull/29), todavía abierto. Son cambios locales sin commit ni publicación; no representan integración ni aceptación visual del titular. Los cortes inferiores se conservan como antecedentes.
+
+P1/P2 implementados con Material 3, logo y azul `#1A3C8F`: barras claras y controles coherentes; búsqueda, filtros, catálogo y ficha del mapa con jerarquía más legible; reporte con acción y resultado distinguibles; navegación con selección visible. Los formularios comparten cabecera compacta y estado de carga sin desplazar sus campos. Favoritos ofrece alertas y retiro textuales, apertura y retiro como botones semánticos separados, y desplazamiento conjunto de cabecera/contenido. Perfil compacta identidad, datos y acciones, conservando el saldo real y su explicación. Sin datos, premios o controles ficticios ni cambios de contratos, validaciones o sesión.
+
+P3 se limita al tema compartido y una comprobación breve de historial y Validar; moderación manual pendiente. El diff comprende 21 fuentes de presentación y cuatro archivos nuevos con diez pruebas. La arquitectura y las dependencias permanecen intactas.
+
+Comparación IAB a 360/390/768/1440 px en las superficies documentadas; texto 2× comprobado en widgets, no como revisión manual completa. Capturas antes/después conservadas en `tmp/pulido-visual-web-20261103/capturas/`; pruebas y límites de ese corte en su `diff-probado.json`. Sin lector de pantalla ni Android nuevo; la caché local de Firebase impidió esa comprobación Android. SMTP y FCM permanecieron apagados. No certificación de accesibilidad ni preparación para Internet.
+
 ## Cierre19/10 — sin rediseño adicional
 
 Se conserva C2:I1/I2/mapa/catalogo/perfil. Solo navegación F11 corregida; [evidencia final versionada](CIERRE_WEB_R01_S03.md). Publicación no equivale a aceptación visual ni integración. Cortes inferiores fechados son antecedentes, no instrucciones para repetir otro pulido.

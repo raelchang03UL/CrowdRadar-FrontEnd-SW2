@@ -46,6 +46,7 @@ class PushDeviceService {
     required String sessionToken,
     required String deviceToken,
     required String registrationId,
+    int? generation,
   }) async {
     final response = await http
         .delete(
@@ -57,6 +58,12 @@ class PushDeviceService {
           }),
         )
         .timeout(const Duration(seconds: 15));
+    if (response.statusCode == 401 && generation != null) {
+      SessionService.rejectIfCurrent(
+        token: sessionToken,
+        generation: generation,
+      );
+    }
     if (response.statusCode != 204) {
       throw StateError('No se pudo desactivar este dispositivo para alertas.');
     }
