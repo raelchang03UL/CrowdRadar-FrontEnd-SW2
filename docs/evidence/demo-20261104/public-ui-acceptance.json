@@ -1,0 +1,23 @@
+{
+  "date": "2026-11-04",
+  "operator": "Codex assisted QA authorized by Rael",
+  "browser": "in-app browser",
+  "web": "https://crowdradar-demo-web.vercel.app",
+  "api": "https://crowdradar-demo-api.vercel.app",
+  "frontendSource": "a4919f021157632a4e6500855c6d32acff2f0ab9",
+  "backendSource": "7780db488892a0dc3c45edfc7a9622b846e71847",
+  "account": "explicitly authorized generated QA account; credentials excluded",
+  "checks": [
+    {"name":"Login through public Flutter form", "result":"PASS"},
+    {"name":"Five demo places and OpenStreetMap tiles rendered", "result":"PASS", "screenshot":"web-public-map.png"},
+    {"name":"Add Museo Amano from map and list favorite", "result":"PASS", "screenshot":"web-public-favorite.png"},
+    {"name":"Open favorite detail and place history", "result":"PASS", "screenshot":"web-public-history.png"},
+    {"name":"Remove favorite from detail and return to empty list", "result":"PASS", "screenshot":"web-public-favorites-empty.png"},
+    {"name":"Submit one additional MODERADO QA report through public UI", "result":"PASS", "screenshot":"web-public-report-success.png"},
+    {"name":"Own history shows both API and UI reports at Museo Amano", "result":"PASS", "screenshot":"web-public-own-reports.png"}
+  ],
+  "additionalUiWrites": {"favoriteCreates":1,"favoriteRemovals":1,"reports":1,"placeId":-2001,"level":"MODERADO"},
+  "uiReportDisplayedAt": "2026-11-04 17:31 America/Lima",
+  "finalDisplayedKarma":20,
+  "noSmtpOrPushAcceptanceFromThisEvidence":true
+}
