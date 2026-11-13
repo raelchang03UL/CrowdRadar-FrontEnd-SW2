@@ -1,8 +1,12 @@
 # CrowdRadar Frontend
 
-## Continuidad de sesión Web — preparación de publicación autorizada, 13/11/2026
+## Continuidad de sesión Web — publicada y verificada por HTTP, 13/11/2026
 
-**Preparación de publicación autorizada; despliegue pendiente.** Rael autorizó integrar en `develop` y actualizar la Web. El código quedó en `be308424b9178a5e5371c1f0cafa75fa9c4a1752`, rama `fix/web-session-reload-20261113`, desde `ba40207812a64af6b68c5ddc0d5374ff7e091d85`. Este corte aún no acredita publicación, integración ni despliegue; la ejecución final sobre SHA limpio está pendiente.
+El [PR #33](https://github.com/raelchang03UL/CrowdRadar-FrontEnd-SW2/pull/33) quedó fusionado en `develop` mediante `2e7c33d433ddee53269ba16ec0c2ebfba387c5c6`, con padres `ba40207812a64af6b68c5ddc0d5374ff7e091d85` y `9e72ec067360ca0e663f8b03a1d779b4485f686a`. Su árbol `ced1818c4a0d09d2de7075077068c277634e0c04` es idéntico al probado. La [Web pública](https://crowdradar-demo-web.vercel.app) ya sirve ese candidato compilado, despliegue `dpl_D7icCscCXuzPg327CQQZX7HdavnC` en `READY`, con alias asignado y **37/37 comprobaciones HTTP públicas aprobadas**. El paquete se publicó sin recompilar. [Evidencia versionable](docs/evidence/session-reload-20261113/release-verification.json).
+
+La nueva ejecución sobre SHA limpio `9e72ec0`, Flutter 3.41.9/Dart 3.11.5, terminó con análisis sin incidencias (**54,4 s**), **843 pruebas aprobadas, 0 fallidas y 2 opt-in omitidas** (**41 s**) y build Web de **39,4 s**. Se compiló para `https://crowdradar-demo-api.vercel.app` y la configuración pública Firebase de la demo. El control público sin autenticación verificó 28 archivos estáticos, TLS y hash del JS. La API y la base de datos no se modificaron al publicar este frontend. [Detalle y reversión](docs/ESTADO_ACTUAL.md).
+
+**Sesión comprobada en el dominio público con el navegador integrado:** login de cuenta sintética autorizada, mapa con cinco lugares, perfil con 60 puntos, recarga conservando ese perfil sin nuevas credenciales, logout y otra recarga permaneciendo en login con campos vacíos. [Aceptación pública](docs/evidence/session-reload-20261113/public-browser-acceptance.json) y [captura tras recargar](docs/evidence/session-reload-20261113/public-profile-after-reload.png). Este recorrido no acredita Chrome normal nuevo, entrega FCM/correo, control ON/OFF de alertas ni Android/iOS; la interrupción/reintento de API se conserva como prueba local.
 
 Al recargar la misma pestaña, Web recupera un registro de `sessionStorage` con el JWT y la decisión de alertas; comprueba primero un perfil fresco en la API y solo entonces permite entrar. No guarda una copia del usuario ni la contraseña, no renueva el JWT y mantiene su vencimiento original de dos horas. Android/iOS conservan la sesión en memoria.
 

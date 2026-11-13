@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-11-13T21:15:59.975Z",
+  "deploymentId": "dpl_D7icCscCXuzPg327CQQZX7HdavnC",
+  "compiledSourceSha": "9e72ec067360ca0e663f8b03a1d779b4485f686a",
+  "featureMergeSha": "2e7c33d433ddee53269ba16ec0c2ebfba387c5c6",
+  "webOrigin": "https://crowdradar-demo-web.vercel.app",
+  "apiOrigin": "https://crowdradar-demo-api.vercel.app",
+  "mainDartJsSha256": "bd7cb14e8cc32842015955265e4f3eaecea4826c75ebcce2ff451241b4be4029",
+  "browser": "ChatGPT in-app browser on user computer",
+  "account": "Existing authorized synthetic QA account from 2026-11-04; no personal Rael credentials used",
+  "observations": [
+    {
+      "case": "login",
+      "observedAt": "2026-11-13T21:13:28.635Z",
+      "url": "https://crowdradar-demo-web.vercel.app/#/map",
+      "result": "Authenticated map rendered with five places",
+      "method": "Browser UI"
+    },
+    {
+      "case": "profile-before-reload",
+      "observedAt": "2026-11-13T21:13:52.783Z",
+      "url": "https://crowdradar-demo-web.vercel.app/#/profile",
+      "result": "Existing synthetic QA account profile and 60 points rendered",
+      "method": "Browser UI"
+    },
+    {
+      "case": "profile-after-reload",
+      "observedAt": "2026-11-13T21:14:30.395Z",
+      "url": "https://crowdradar-demo-web.vercel.app/#/profile",
+      "result": "Same QA profile and 60 points, without entering credentials again",
+      "method": "Browser UI",
+      "screenshot": "public-profile-after-reload.png"
+    },
+    {
+      "case": "logout",
+      "observedAt": "2026-11-13T21:14:37.848Z",
+      "url": "https://crowdradar-demo-web.vercel.app/#/login",
+      "result": "Login form displayed with empty credential fields",
+      "method": "Browser UI"
+    },
+    {
+      "case": "reload-after-logout",
+      "recordedAt": "2026-11-13T21:15:59.975Z",
+      "url": "https://crowdradar-demo-web.vercel.app/#/login",
+      "result": "Login form remains visible with empty email/password fields after reload",
+      "method": "Browser UI; final AX state observed before completion"
+    }
+  ],
+  "results": {
+    "login": true,
+    "profile": true,
+    "sameProfileAfterReloadWithoutNewCredentials": true,
+    "logout": true,
+    "loginRemainsAfterLogoutReload": true
+  },
+  "notes": [
+    "The first programmatic setValue attempt left the Flutter controls empty; the form rejected the empty fields locally. Entering via typeText completed the actual login.",
+    "The existing profile had 60 points before and after reload; this run submitted no report or score change.",
+    "Observed UI state proves this browser flow; no production database query, JWT extraction or network payload capture was performed."
+  ],
+  "limitations": [
+    "No fresh FCM delivery, push activation/deactivation, email, Android/iOS, multitab synchronization or prolonged browser restart tested.",
+    "Offline/retry was verified previously in local QA; production API was not interrupted."
+  ],
+  "credentialsIncluded": false,
+  "extraMutationsPerformed": false
+}

@@ -1,0 +1,973 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-11-13T21:11:56.866782Z",
+  "scope": "Verified production Web deployment and anonymous HTTP checks; browser acceptance is separate",
+  "source": {
+    "compiledCommit": "9e72ec067360ca0e663f8b03a1d779b4485f686a",
+    "integratedDevelopCommit": "2e7c33d433ddee53269ba16ec0c2ebfba387c5c6",
+    "tree": "ced1818c4a0d09d2de7075077068c277634e0c04",
+    "mergeParents": [
+      "ba40207812a64af6b68c5ddc0d5374ff7e091d85",
+      "9e72ec067360ca0e663f8b03a1d779b4485f686a"
+    ],
+    "pullRequest": "https://github.com/raelchang03UL/CrowdRadar-FrontEnd-SW2/pull/33",
+    "pullRequestState": "MERGED",
+    "compiledTreeEqualsIntegrationTree": true
+  },
+  "pipeline": {
+    "cleanSource": true,
+    "flutter": "3.41.9",
+    "dart": "3.11.5",
+    "analysis": {
+      "issues": 0,
+      "seconds": 54.4
+    },
+    "tests": {
+      "passed": 843,
+      "failed": 0,
+      "optInSkipped": 2,
+      "seconds": 41
+    },
+    "build": {
+      "seconds": 39.4,
+      "apiOrigin": "https://crowdradar-demo-api.vercel.app",
+      "firebasePublicConfigurationIncluded": true,
+      "pwaStrategy": "none",
+      "mainDartJsSha256": "bd7cb14e8cc32842015955265e4f3eaecea4826c75ebcce2ff451241b4be4029",
+      "recompiledDuringPublication": false,
+      "originalBuildManifestDeployed": false,
+      "originalBuildManifestPreserved": true
+    }
+  },
+  "deployment": {
+    "id": "dpl_D7icCscCXuzPg327CQQZX7HdavnC",
+    "url": "https://crowdradar-demo-dcx00yhd2-raelchang03-8069.vercel.app",
+    "productionOrigin": "https://crowdradar-demo-web.vercel.app",
+    "projectId": "prj_aPtBbu9Y9oAlxHqH2kU7gYrC8Jdj",
+    "readyState": "READY",
+    "method": "Prebuilt artifact; production alias assigned after artifact verification",
+    "aliasAssignedToThisDeployment": true,
+    "anonymousPublicAccessVerified": true,
+    "temporaryAccessChangesReverted": true
+  },
+  "http": {
+    "checkedAt": "2026-11-13T21:11:00.888Z",
+    "authenticated": false,
+    "redirectsFollowed": false,
+    "tlsValidation": true,
+    "publicStaticFilesChecked": 28,
+    "passed": 37,
+    "failed": 0,
+    "payloadSha256": "3256f4db3d8d867e5ca395be3607761d7e66910d5a6c8b5d8bf7a355b01f59f6",
+    "results": [
+      {
+        "path": "/",
+        "protocol": "https:",
+        "status": 200,
+        "expectedStatus": 200,
+        "bytes": 678,
+        "sha256": "c02e82d5a36488654a015bdf728dfbdef047b82bb05935fb0431442e5d3ff4f7",
+        "matchesArtifact": true,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "text/html; charset=utf-8",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/assets/AssetManifest.bin",
+        "protocol": "https:",
+        "status": 200,
+        "expectedStatus": 200,
+        "bytes": 341,
+        "sha256": "b3b74fd67f20b9b5968e809a9a7568cca9cf488dbf96da6a843416de9f8384ac",
+        "matchesArtifact": true,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "application/octet-stream",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/assets/AssetManifest.bin.json",
+        "protocol": "https:",
+        "status": 200,
+        "expectedStatus": 200,
+        "bytes": 458,
+        "sha256": "4c13cb823fcbdc29b9da8a79af73965e6d63287a7dc6f776c7ef8835464a2803",
+        "matchesArtifact": true,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "application/json; charset=utf-8",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/assets/FontManifest.json",
+        "protocol": "https:",
+        "status": 200,
+        "expectedStatus": 200,
+        "bytes": 208,
+        "sha256": "cd7e03645bc44b2dd47b7cb626f51c4ecbf55a197ab77241628b47ac165fbe21",
+        "matchesArtifact": true,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "application/json; charset=utf-8",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/assets/NOTICES",
+        "protocol": "https:",
+        "status": 200,
+        "expectedStatus": 200,
+        "bytes": 1355999,
+        "sha256": "41679fa747e43247e3ee144fc607f74ccce77f3d2915b7bb6b4ce0f7e6dd96c9",
+        "matchesArtifact": true,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "application/octet-stream",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/assets/assets/images/crowdradar-logo-transparent.png",
+        "protocol": "https:",
+        "status": 200,
+        "expectedStatus": 200,
+        "bytes": 53280,
+        "sha256": "ebfd2c8dad97d1f86fc67cc9ece8684007d44d4a5c30be36cbb263a7313dba45",
+        "matchesArtifact": true,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "image/png",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/assets/fonts/MaterialIcons-Regular.otf",
+        "protocol": "https:",
+        "status": 200,
+        "expectedStatus": 200,
+        "bytes": 13852,
+        "sha256": "b6dccb3e3735786695c8a05c11d35046e67e204be4accd6811c488c9e5370321",
+        "matchesArtifact": true,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "font/otf",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/assets/packages/cupertino_icons/assets/CupertinoIcons.ttf",
+        "protocol": "https:",
+        "status": 200,
+        "expectedStatus": 200,
+        "bytes": 1472,
+        "sha256": "3d90c370aa4cf00dc57ee2b902f6652147c0f81e03e483df584a9c08b1687c9d",
+        "matchesArtifact": true,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "font/ttf",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/assets/packages/flutter_map/lib/assets/flutter_map_logo.png",
+        "protocol": "https:",
+        "status": 200,
+        "expectedStatus": 200,
+        "bytes": 2424,
+        "sha256": "6051ae42fb505931a833e58f9209a9f96669a4d0e4b3f06f6d82cde12a0e0401",
+        "matchesArtifact": true,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "image/png",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/assets/shaders/ink_sparkle.frag",
+        "protocol": "https:",
+        "status": 200,
+        "expectedStatus": 200,
+        "bytes": 8890,
+        "sha256": "5aee0e4ff369c0559eaa7af6d64dce812bab67afd9888d1d7d27046293b39ab5",
+        "matchesArtifact": true,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "application/octet-stream",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/assets/shaders/stretch_effect.frag",
+        "protocol": "https:",
+        "status": 200,
+        "expectedStatus": 200,
+        "bytes": 6737,
+        "sha256": "c723fbb5b9a3456b101073825ab5d34de312a39f32bf5de42aae0cda605d0a1a",
+        "matchesArtifact": true,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "application/octet-stream",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/canvaskit/canvaskit.js",
+        "protocol": "https:",
+        "status": 200,
+        "expectedStatus": 200,
+        "bytes": 86859,
+        "sha256": "931ae3f02e76e8ac58a1c1435d754a8740c87958b52edb9037d66e32be53eb40",
+        "matchesArtifact": true,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "application/javascript; charset=utf-8",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/canvaskit/canvaskit.wasm",
+        "protocol": "https:",
+        "status": 200,
+        "expectedStatus": 200,
+        "bytes": 7155824,
+        "sha256": "42e392d69fd05a8540cb1b2cd9b88ab2115659c9378c136d1377b3595e703839",
+        "matchesArtifact": true,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "application/wasm",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/canvaskit/chromium/canvaskit.js",
+        "protocol": "https:",
+        "status": 200,
+        "expectedStatus": 200,
+        "bytes": 86496,
+        "sha256": "ff8dcd85cee325699499ee23ffd7567bc8086e9592c24d4d8d411f951c16bda4",
+        "matchesArtifact": true,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "application/javascript; charset=utf-8",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/canvaskit/chromium/canvaskit.wasm",
+        "protocol": "https:",
+        "status": 200,
+        "expectedStatus": 200,
+        "bytes": 5686880,
+        "sha256": "2bf5ea09d70b8eadb22bb0471c9edfd7b2bee909dbf84456c32480d944660418",
+        "matchesArtifact": true,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "application/wasm",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/canvaskit/skwasm.js",
+        "protocol": "https:",
+        "status": 200,
+        "expectedStatus": 200,
+        "bytes": 63437,
+        "sha256": "d52e58007af740833faa088c1f68672e410dc385bbeb3e50a5e5bc285fc3fc9a",
+        "matchesArtifact": true,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "application/javascript; charset=utf-8",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/canvaskit/skwasm.wasm",
+        "protocol": "https:",
+        "status": 200,
+        "expectedStatus": 200,
+        "bytes": 3549782,
+        "sha256": "f8bab54ad143745fb699ff1b534b1295b31a67f1a9e98d72db5b0a5c9200d3a8",
+        "matchesArtifact": true,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "application/wasm",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/canvaskit/skwasm_heavy.js",
+        "protocol": "https:",
+        "status": 200,
+        "expectedStatus": 200,
+        "bytes": 63550,
+        "sha256": "7a1aa20e765441b28f4be0cd397f95573a3ecd72adc80ba32dd2cb959a09a41d",
+        "matchesArtifact": true,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "application/javascript; charset=utf-8",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/canvaskit/skwasm_heavy.wasm",
+        "protocol": "https:",
+        "status": 200,
+        "expectedStatus": 200,
+        "bytes": 5140187,
+        "sha256": "33f5c52d1612df0af41d12204fd54ec276e436f7e3319c2871a689dee18f82d1",
+        "matchesArtifact": true,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "application/wasm",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/canvaskit/wimp.js",
+        "protocol": "https:",
+        "status": 200,
+        "expectedStatus": 200,
+        "bytes": 57623,
+        "sha256": "fa58b2c534ef9c66dff68df1ea28c1739bb02ce34cc8eca459f716527d9b5cae",
+        "matchesArtifact": true,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "application/javascript; charset=utf-8",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/canvaskit/wimp.wasm",
+        "protocol": "https:",
+        "status": 200,
+        "expectedStatus": 200,
+        "bytes": 3461893,
+        "sha256": "acefbd1d04dc92f01655f1872148f3cc59f9a9c85804e9c0123c6744939cd500",
+        "matchesArtifact": true,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "application/wasm",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/crowdradar-push.js",
+        "protocol": "https:",
+        "status": 200,
+        "expectedStatus": 200,
+        "bytes": 3230,
+        "sha256": "f9420154cf3440b7a977f891233c23b1e6b5d776fede585e4c99435eb8a7a260",
+        "matchesArtifact": true,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "application/javascript; charset=utf-8",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/flutter.js",
+        "protocol": "https:",
+        "status": 200,
+        "expectedStatus": 200,
+        "bytes": 9553,
+        "sha256": "a483fd28f51ed2fadd0da3fade5b672eba56310d549d736ce62eabf624a6a578",
+        "matchesArtifact": true,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "application/javascript; charset=utf-8",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/flutter_bootstrap.js",
+        "protocol": "https:",
+        "status": 200,
+        "expectedStatus": 200,
+        "bytes": 9833,
+        "sha256": "43ffc23ed8136adb51c187499b09eabcc3106082e60daaa84239640410da1263",
+        "matchesArtifact": true,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "application/javascript; charset=utf-8",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/flutter_service_worker.js",
+        "protocol": "https:",
+        "status": 200,
+        "expectedStatus": 200,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "matchesArtifact": true,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "application/javascript; charset=utf-8",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/index.html",
+        "protocol": "https:",
+        "status": 200,
+        "expectedStatus": 200,
+        "bytes": 678,
+        "sha256": "c02e82d5a36488654a015bdf728dfbdef047b82bb05935fb0431442e5d3ff4f7",
+        "matchesArtifact": true,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "text/html; charset=utf-8",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/main.dart.js",
+        "protocol": "https:",
+        "status": 200,
+        "expectedStatus": 200,
+        "bytes": 3170607,
+        "sha256": "bd7cb14e8cc32842015955265e4f3eaecea4826c75ebcce2ff451241b4be4029",
+        "matchesArtifact": true,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "application/javascript; charset=utf-8",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/push/firebase-messaging-sw.js",
+        "protocol": "https:",
+        "status": 200,
+        "expectedStatus": 200,
+        "bytes": 1856,
+        "sha256": "f360ccde6cc6488f0d64dda38cc169956149b7f43b61e1ec9ec1b06920a9fab7",
+        "matchesArtifact": true,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "application/javascript; charset=utf-8",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/version.json",
+        "protocol": "https:",
+        "status": 200,
+        "expectedStatus": 200,
+        "bytes": 90,
+        "sha256": "b03cd61909593f18c2a86dd70e44370453e94eaad5b6be16553da74203f310f0",
+        "matchesArtifact": true,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "application/json; charset=utf-8",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/__qa_missing_20261104",
+        "protocol": "https:",
+        "status": 404,
+        "expectedStatus": 404,
+        "bytes": 79,
+        "sha256": "bb63c1b19ef527af16efd09a75a4e74c63ff401762575c6727c6ec9ef9adc0f8",
+        "matchesArtifact": null,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "text/plain; charset=utf-8",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/.env",
+        "protocol": "https:",
+        "status": 404,
+        "expectedStatus": 404,
+        "bytes": 79,
+        "sha256": "a6543cfc174023b9c39b8f96dbb8aeccd4c13118c7ee0ea2626a7f40c0c65b0f",
+        "matchesArtifact": null,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "text/plain; charset=utf-8",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/.git/config",
+        "protocol": "https:",
+        "status": 404,
+        "expectedStatus": 404,
+        "bytes": 79,
+        "sha256": "04acd050529c3a8b46e8e3399f6ce18c34b7a88362e08f10ae51622011c8cf91",
+        "matchesArtifact": null,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "text/plain; charset=utf-8",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/lib/main.dart",
+        "protocol": "https:",
+        "status": 404,
+        "expectedStatus": 404,
+        "bytes": 79,
+        "sha256": "da71d49413790f255a9f9c36b2f354f960c18782869f9391ac6dd88a90cfd245",
+        "matchesArtifact": null,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "text/plain; charset=utf-8",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/package.json",
+        "protocol": "https:",
+        "status": 404,
+        "expectedStatus": 404,
+        "bytes": 79,
+        "sha256": "1de9bf56cfb3c1686b05d5961679da1e1497e3ee7238ae2c54a520a314a4f695",
+        "matchesArtifact": null,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "text/plain; charset=utf-8",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/vercel.json",
+        "protocol": "https:",
+        "status": 404,
+        "expectedStatus": 404,
+        "bytes": 79,
+        "sha256": "fd4bfa388c5c92d79dc02408369b3bdb410f64b85a1550b59998ee5ec34b1da6",
+        "matchesArtifact": null,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "text/plain; charset=utf-8",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/push/missing.js",
+        "protocol": "https:",
+        "status": 404,
+        "expectedStatus": 404,
+        "bytes": 79,
+        "sha256": "7061c32deba9033ad16e4709224734936742f94cb47b712488b18004228657d5",
+        "matchesArtifact": null,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "text/plain; charset=utf-8",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "hsts": "max-age=63072000; includeSubDomains; preload",
+          "contentTypeOptions": "nosniff",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "location": null
+        },
+        "tls": {
+          "authorized": true,
+          "protocol": "TLSv1.3",
+          "hostnameVerified": true
+        }
+      },
+      {
+        "path": "/",
+        "protocol": "http:",
+        "status": 308,
+        "expectedStatus": 308,
+        "bytes": 14,
+        "sha256": "cd23991b4e02a17e5a224a1f8265c5a187ab366b40b8f8a14608371feb8f6e25",
+        "matchesArtifact": null,
+        "pass": true,
+        "responseHeaders": {
+          "contentType": "text/plain",
+          "cacheControl": null,
+          "hsts": null,
+          "contentTypeOptions": null,
+          "referrerPolicy": null,
+          "location": "https://crowdradar-demo-web.vercel.app/"
+        },
+        "tls": null
+      }
+    ],
+    "limits": [
+      "HTTP/static verification only; browser rendering and API/data flows are verified separately.",
+      "No notification permission or message delivery is exercised."
+    ]
+  },
+  "unchanged": {
+    "apiRedeployed": false,
+    "databaseChanged": false,
+    "mainBranchChanged": false,
+    "apiReadinessStatus": 200
+  },
+  "rollback": {
+    "deploymentId": "dpl_4BcTtyyXUAfXxztGv2dDgLsS2sy9",
+    "scope": "Reassign the same production alias to the previous frontend deployment; verify its public hashes afterwards",
+    "apiOrDatabaseRollbackRequired": false,
+    "performed": false
+  },
+  "browserAcceptance": {
+    "status": "pending_at_this_publication_check",
+    "sourceStatus": "pending, recorded separately",
+    "separateEvidenceRequired": true,
+    "subsequentEvidence": "public-browser-acceptance.json",
+    "subsequentEvidenceRecordedAt": "2026-11-13T21:15:59.975Z"
+  },
+  "evidenceRecords": [
+    {
+      "name": "publication-result.json",
+      "sha256": "5ce2db27c5b04474dd7b7c56fb426a7a828d60786e1572270830f6296c8440f3",
+      "fullRecordLocation": "Local release/qa; not part of the published repository"
+    },
+    {
+      "name": "frontend-public-http-smoke-dpl_D7icCscCXuzPg327CQQZX7HdavnC.json",
+      "sha256": "11d86d12df3fd489a9698142027521046b23d75ec7ebde3df1eeae7b1561f54a",
+      "fullRecordLocation": "Local release/qa; not part of the published repository"
+    },
+    {
+      "name": "release-analyze.log",
+      "sha256": "3b9f613d08e5c5e8f30e48268b319c725f0d899efbe31f6ae07d910f52118c3f",
+      "fullRecordLocation": "Local release/qa; not part of the published repository"
+    },
+    {
+      "name": "release-test.log",
+      "sha256": "2c2f84406450b5928902e9b4f294e604bdbbf531bee57cb96fd156c304389da2",
+      "fullRecordLocation": "Local release/qa; not part of the published repository"
+    },
+    {
+      "name": "release-build.log",
+      "sha256": "2425ee628cc1e861d8d922a92b2259e9d459d466b087e9dc1fd4a5806af5d652",
+      "fullRecordLocation": "Local release/qa; not part of the published repository"
+    },
+    {
+      "name": "release-build-manifest.json",
+      "sha256": "417ef4519d865a81ea0a602f17f93576a430bc0f2fb27495aabc2034042c7ec3",
+      "fullRecordLocation": "Local release/qa; not part of the published repository"
+    }
+  ],
+  "limitations": [
+    "HTTP/static checks do not prove rendered session recovery or notification delivery.",
+    "Local browser acceptance is preserved separately and is not relabeled as public-domain acceptance.",
+    "No real FCM/email delivery, Android/iOS, multitab synchronization or prolonged browser restart is claimed by this record.",
+    "No credentials, authentication headers, private log content or absolute filesystem paths are published."
+  ]
+}
