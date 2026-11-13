@@ -10,6 +10,7 @@ import '../pages/places/place_search_page.dart';
 import '../pages/places/place_detail_page.dart';
 
 import '../pages/login/login_page.dart';
+import '../pages/login/session_restore_page.dart';
 import '../pages/register/register_page.dart';
 import '../pages/login/forgot_password_page.dart';
 import '../pages/login/reset_password_page.dart';
@@ -39,6 +40,24 @@ GoRouter createAppRouter({
   initialLocation: initialLocation,
   refreshListenable: SessionService.changes,
   redirect: (context, state) {
+    final restoring = SessionService.restoreStatus != SessionRestoreStatus.idle;
+    final isRestorePage = state.uri.path == '/session-restore';
+    if (restoring) {
+      return isRestorePage
+          ? null
+          : Uri(
+              path: '/session-restore',
+              queryParameters: {'returnTo': state.uri.toString()},
+            ).toString();
+    }
+    if (isRestorePage) {
+      if (!SessionService.isAuthenticated) {
+        return SessionService.wasRejected
+            ? '/login?notice=sessionExpired'
+            : '/login';
+      }
+      return _restoredDestination(state.uri.queryParameters['returnTo']);
+    }
     final isPublic =
         state.uri.path == '/login' ||
         state.uri.path == '/register' ||
@@ -49,6 +68,9 @@ GoRouter createAppRouter({
           ? '/login?notice=sessionExpired'
           : '/login';
     }
+    if (SessionService.isAuthenticated && state.uri.path == '/login') {
+      return '/map';
+    }
     if ((state.uri.path == '/admin' || state.uri.path.startsWith('/admin/')) &&
         SessionService.currentUser?.rol != 'ADMIN') {
       return '/profile';
@@ -56,6 +78,10 @@ GoRouter createAppRouter({
     return null;
   },
   routes: [
+    GoRoute(
+      path: '/session-restore',
+      builder: (context, state) => const SessionRestorePage(),
+    ),
     GoRoute(
       path: '/admin/reports',
       builder: (context, state) => AdminReportsPage(
@@ -180,3 +206,21 @@ GoRouter createAppRouter({
     ),
   ],
 );
+
+// Resume only an internal route. Authentication/role redirects still apply to
+// the destination; a query parameter is never an authorization decision.
+String _restoredDestination(String? value) {
+  final uri = value == null ? null : Uri.tryParse(value);
+  if (uri == null ||
+      uri.hasScheme ||
+      uri.hasAuthority ||
+      !uri.path.startsWith('/') ||
+      uri.path.startsWith('//') ||
+      uri.path.contains('\\') ||
+      uri.path == '/' ||
+      uri.path == '/login' ||
+      uri.path == '/session-restore') {
+    return '/map';
+  }
+  return uri.toString();
+}

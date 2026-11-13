@@ -60,6 +60,7 @@ class PushNotificationService {
   Future<void> _registrationQueue = Future.value();
   bool _webTokenModeReady = false;
   bool _webTokenRequested = false;
+  (int, bool)? _handledWebSession;
 
   ValueListenable<PushAlertStatus> get status => _status;
 
@@ -129,6 +130,17 @@ class PushNotificationService {
   }
 
   void _onSessionChanged() {
+    if (_isWeb) {
+      final session = (
+        SessionService.generation,
+        SessionService.isAuthenticated,
+      );
+      // La restauración y initialize pueden observar la misma sesión validada.
+      // Solo el primer aviso inicia el alta; los cambios de estado pendientes
+      // no deben renovar el binding ni volver a purgar sus alertas pendientes.
+      if (_handledWebSession == session) return;
+      _handledWebSession = session;
+    }
     final attempt = ++_sessionAttempt;
     _fcmAttempt = null;
     _finishEnable(false);
@@ -137,7 +149,15 @@ class PushNotificationService {
     _clearLocalAuthorization();
     _setStatus(PushAlertStatus.inactive);
     if (previous != null) {
-      unawaited(_unregister(previous));
+      unawaited(_queueUnregister(previous));
+    }
+    if (_isWeb &&
+        SessionService.isAuthenticated &&
+        SessionService.alertsEnabledForReload) {
+      // Conserva el token FCM cacheado. La sesión ya fue validada por restore;
+      // aquí solo se comprueba el permiso existente, sin solicitar otro.
+      unawaited(_enableForCurrentSession(resume: true));
+      return;
     }
     unawaited(_stopFcmRegistration());
     if (!SessionService.isAuthenticated || _isWeb) return;
@@ -145,6 +165,7 @@ class PushNotificationService {
   }
 
   void unregisterForLogout() {
+    _rememberAlertsForReload(false);
     ++_sessionAttempt;
     _fcmAttempt = null;
     _finishEnable(false);
@@ -152,14 +173,16 @@ class PushNotificationService {
     _pendingDisable = null;
     _clearLocalAuthorization();
     _setStatus(PushAlertStatus.inactive);
-    if (previous != null) unawaited(_unregister(previous));
+    if (previous != null) unawaited(_queueUnregister(previous));
     unawaited(_stopFcmRegistration());
   }
 
   bool get isConfigured =>
       _messaging != null && (!_isWeb || _vapidKey.isNotEmpty);
 
-  Future<bool> enableForCurrentSession() async {
+  Future<bool> enableForCurrentSession() => _enableForCurrentSession();
+
+  Future<bool> _enableForCurrentSession({bool resume = false}) async {
     if (!isConfigured ||
         _disposed ||
         !SessionService.isAuthenticated ||
@@ -181,7 +204,9 @@ class PushNotificationService {
 
     // El plazo incluye el permiso del navegador, no solo el evento de registro.
     unawaited(
-      _registerForCurrentSession(attempt).then<void>((registered) {
+      _registerForCurrentSession(attempt, resume: resume).then<void>((
+        registered,
+      ) {
         if (!registered) failIfCurrent();
       }, onError: (Object error, StackTrace stack) => failIfCurrent()),
     );
@@ -211,6 +236,9 @@ class PushNotificationService {
         device.userId != SessionService.currentUser?.id) {
       return false;
     }
+    // Persistir OFF antes de la red: un timeout de baja tampoco autoriza
+    // reanudar alertas automáticamente al recargar la pestaña.
+    _rememberAlertsForReload(false);
     final attempt = ++_sessionAttempt;
     _fcmAttempt = null;
     _pendingDisable = device;
@@ -244,7 +272,10 @@ class PushNotificationService {
     }
   }
 
-  Future<bool> _registerForCurrentSession(int attempt) async {
+  Future<bool> _registerForCurrentSession(
+    int attempt, {
+    bool resume = false,
+  }) async {
     final sessionToken = SessionService.token;
     final userId = SessionService.currentUser?.id;
     final generation = SessionService.generation;
@@ -252,12 +283,17 @@ class PushNotificationService {
       return false;
     }
     try {
-      final authorization = await _messaging!.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
-      if (authorization.authorizationStatus == AuthorizationStatus.denied) {
+      final authorization = resume
+          ? await _messaging!.getNotificationSettings()
+          : await _messaging!.requestPermission(
+              alert: true,
+              badge: true,
+              sound: true,
+            );
+      if ((resume &&
+              authorization.authorizationStatus !=
+                  AuthorizationStatus.authorized) ||
+          authorization.authorizationStatus == AuthorizationStatus.denied) {
         debugPrint('El usuario no autorizó las alertas push.');
         return false;
       }
@@ -272,7 +308,10 @@ class PushNotificationService {
           if (!current()) return null;
           if (!_webTokenModeReady) {
             // Transición única de la API FID anterior; después solo getToken/deleteToken.
-            if (await _hasFidRegistration()) await _messaging!.unregister();
+            // Una recarga con opt-in ya confirmado usa el token FCM anterior.
+            if (!resume && await _hasFidRegistration()) {
+              await _messaging!.unregister();
+            }
             _webTokenModeReady = true;
           }
           if (!current()) return null;
@@ -394,6 +433,13 @@ class PushNotificationService {
         return;
       }
       _registered = registration;
+      if (_isWeb) {
+        SessionService.setAlertsEnabledForReload(
+          true,
+          token: sessionToken,
+          generation: generation,
+        );
+      }
       _finishEnable(true);
     } catch (error) {
       debugPrint('No se pudo registrar el dispositivo para alertas push.');
@@ -417,10 +463,29 @@ class PushNotificationService {
   }
 
   bool _isCurrentSession(int attempt, String token, int userId) =>
+      !_disposed &&
       attempt == _sessionAttempt &&
       SessionService.isAuthenticated &&
       SessionService.token == token &&
       SessionService.currentUser?.id == userId;
+
+  void _rememberAlertsForReload(bool value) {
+    final token = SessionService.token;
+    if (!_isWeb || token == null) return;
+    SessionService.setAlertsEnabledForReload(
+      value,
+      token: token,
+      generation: SessionService.generation,
+    );
+  }
+
+  Future<void> _queueUnregister(_RegisteredDevice device) {
+    if (!_isWeb) return _unregister(device);
+    // Las altas tardías se compensan dentro de esta misma cola antes de que
+    // otra sesión registre el mismo token y reciba un RID nuevo.
+    _registrationQueue = _registrationQueue.then((_) => _unregister(device));
+    return _registrationQueue;
+  }
 
   Future<void> _unregister(_RegisteredDevice device) async {
     try {
