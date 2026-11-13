@@ -1,8 +1,27 @@
 # Estado actual
 
-## Continuidad de sesión Web: preparación de publicación autorizada — 13/11/2026
+## Continuidad de sesión Web integrada y publicada — 13/11/2026
 
-**Despliegue pendiente.** Rael autorizó integrar en `develop` y actualizar la Web. El código de `fix/web-session-reload-20261113` quedó en `be308424b9178a5e5371c1f0cafa75fa9c4a1752`, desde `ba40207812a64af6b68c5ddc0d5374ff7e091d85`. Este corte no acredita aún publicación, integración ni despliegue; la ejecución final sobre SHA limpio está pendiente.
+El [PR frontend #33](https://github.com/raelchang03UL/CrowdRadar-FrontEnd-SW2/pull/33) está fusionado en `develop` mediante `2e7c33d433ddee53269ba16ec0c2ebfba387c5c6`. Padres: base `ba40207812a64af6b68c5ddc0d5374ff7e091d85` y candidato `9e72ec067360ca0e663f8b03a1d779b4485f686a`; ambos árboles finales coinciden en `ced1818c4a0d09d2de7075077068c277634e0c04`. El código de recuperación procede de `be308424b9178a5e5371c1f0cafa75fa9c4a1752`, seguido de documentación/evidencias. La [Web pública](https://crowdradar-demo-web.vercel.app) sirve el paquete compilado de `9e72ec0`, despliegue **`dpl_D7icCscCXuzPg327CQQZX7HdavnC`**, estado **READY**, después de asignarle el alias habitual. La publicación reutilizó el paquete, sin recompilar. [Verificación versionable](evidence/session-reload-20261113/release-verification.json).
+
+La nueva ejecución se realizó sobre el SHA limpio `9e72ec0`, antes del merge, con Flutter 3.41.9/Dart 3.11.5. El contenido incorporado por el merge es idéntico; no se presenta como otra ejecución posterior a la integración.
+
+| Comprobación del paquete de producción publicado | Resultado |
+| --- | --- |
+| Análisis completo | Sin incidencias, **54,4 s**. |
+| Suite Flutter completa | **843 aprobadas, 0 fallidas y 2 opt-in omitidas**, **41 s**. |
+| Build Web | Correcto en **39,4 s**, API `https://crowdradar-demo-api.vercel.app` y configuración pública Firebase de la demo. |
+| Huella de `main.dart.js` | SHA256 `bd7cb14e8cc32842015955265e4f3eaecea4826c75ebcce2ff451241b4be4029`. |
+| HTTP público posterior a asignar el alias | **37 aprobadas, 0 fallidas**, a las **21:11:00.888 UTC** del 13/11: raíz y 28 archivos estáticos coincidentes, siete rutas ausentes/privadas 404 y HTTP→HTTPS 308. Sin autenticación ni seguimiento de redirecciones; TLS válido. |
+| Protección y API | Cabeceras de caché/nosniff/Referrer-Policy/HSTS verificadas; acceso público anónimo comprobado y cambios temporales de acceso retirados. Readiness de la API 200; sin redespliegue de API, cambios de base de datos ni de `main`. |
+
+Los registros completos `release-analyze.log`, `release-test.log`, `release-build.log`, `release-build-manifest.json`, `publication-result.json` y el smoke HTTP por deployment permanecen en `release/qa`. La [evidencia versionable](evidence/session-reload-20261113/release-verification.json) conserva sus huellas y resultados saneados. El manifiesto original de compilación mantiene `deployed: false` como antecedente inmutable; la publicación se acredita por el registro posterior, no reescribiendo el manifiesto.
+
+**Recorrido de sesión público aprobado en el navegador integrado (IAB)**, registrado el 13/11 a las **21:15:59.975 UTC**: login con cuenta sintética ya existente y autorizada → mapa con cinco lugares → perfil con 60 puntos → recarga mostrando el mismo perfil y saldo sin introducir credenciales → logout a login vacío → recarga que conserva login vacío. [Aceptación pública y métodos](evidence/session-reload-20261113/public-browser-acceptance.json) y [captura del perfil tras recargar](evidence/session-reload-20261113/public-profile-after-reload.png). No se enviaron reportes ni se cambió el saldo, y no se extrajeron JWT ni se consultó la base de producción para este recorrido.
+
+Este resultado corresponde a IAB, no a una nueva prueba en Chrome normal. No se verificaron entrega FCM/correo, ON/OFF de alertas, Android/iOS, multitab ni reinicio prolongado. La API pública no se interrumpió: espera/reintento conserva su evidencia local inferior. El campo `pending_at_this_publication_check` del registro HTTP describe el momento anterior a la GUI; la aceptación posterior se enlaza por separado y no cambia los 37 resultados originales.
+
+Reversión disponible: reasignar el mismo alias a **`dpl_4BcTtyyXUAfXxztGv2dDgLsS2sy9`** y comprobar después los hashes públicos de ese despliegue anterior. No requiere cambiar API ni SQL. La reversión no se ejecutó en este corte.
 
 ### Validación local previa a la publicación
 
