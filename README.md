@@ -1,5 +1,17 @@
 # CrowdRadar Frontend
 
+## Continuidad de sesión Web — preparación de publicación autorizada, 13/11/2026
+
+**Preparación de publicación autorizada; despliegue pendiente.** Rael autorizó integrar en `develop` y actualizar la Web. El código quedó en `be308424b9178a5e5371c1f0cafa75fa9c4a1752`, rama `fix/web-session-reload-20261113`, desde `ba40207812a64af6b68c5ddc0d5374ff7e091d85`. Este corte aún no acredita publicación, integración ni despliegue; la ejecución final sobre SHA limpio está pendiente.
+
+Al recargar la misma pestaña, Web recupera un registro de `sessionStorage` con el JWT y la decisión de alertas; comprueba primero un perfil fresco en la API y solo entonces permite entrar. No guarda una copia del usuario ni la contraseña, no renueva el JWT y mantiene su vencimiento original de dos horas. Android/iOS conservan la sesión en memoria.
+
+Si la API no responde o devuelve un fallo temporal, se muestra una pantalla de espera/reintento sin abrir datos protegidos. Un 401 vigente, logout o cambio de cuenta invalida la recuperación; las respuestas antiguas no restauran otra sesión. El almacenamiento puede estar bloqueado: la app sigue funcionando en memoria y trata de retirar cualquier registro anterior. Si también falla el borrado, no garantiza su eliminación física. [Decisión, límites de seguridad y pruebas de sesión](docs/SESION_WEB.md).
+
+**Validación local anterior a la publicación:** Flutter 3.41.9/Dart 3.11.5, **843 pruebas aprobadas, 0 fallidas y 2 opt-in omitidas**, análisis sin incidencias y build Web de **63,7 s**, configurado para API `http://127.0.0.1:3067` con Firebase deshabilitado. Backend QA `55fee83bdf09e19afe01e2523522c6ca8ac4bdb9`. Se ejecutó antes del commit, sobre el mismo código ahora conservado en `be308424`; no se presenta como una ejecución nueva sobre SHA limpio. [Resumen versionable y huellas](docs/evidence/session-reload-20261113/local-validation.json).
+
+En Chrome local se comprobó la recarga conservando el perfil, el bloqueo sin datos al interrumpir la API y el retorno mediante **Reintentar** sin credenciales. Tras logout, el usuario confirmó que recargar mantiene **Iniciar sesión**. [Aceptación local versionable](docs/evidence/session-reload-20261113/browser-session-acceptance.json) y [recorridos y procedencia](docs/SESION_WEB.md#recorrido-en-chrome-local). No se probaron FCM/correo real, control ON/OFF de alertas en GUI, Android/iOS, multitab ni cierre prolongado del navegador. [Estado técnico](docs/ESTADO_ACTUAL.md). Los cortes siguientes conservan sus resultados históricos y no describen una publicación de esta continuidad de sesión.
+
 ## Demo pública vigente — 04/11/2026
 
 [Abrir CrowdRadar](https://crowdradar-demo-web.vercel.app). La Web sirve el frontend `8ce8510123bba400b5ed628ba96c67f18a47b57c` con el pulido visual, control de activar/desactivar alertas por dispositivo y contexto histórico anterior → nuevo al abrir una alerta. La API conserva el backend `7780db488892a0dc3c45edfc7a9622b846e71847`. La ficha identifica «Cambio que originó esta alerta»; no consulta ni muestra un nivel actual nuevo.
@@ -69,13 +81,13 @@ El valor predeterminado sigue siendo `http://10.0.2.2:3000` cuando no se envía 
 1. La app abre `/login`.
 2. Desde login se accede a `/register`.
 3. Un registro exitoso vuelve al login.
-4. Un login exitoso guarda el JWT en memoria y abre `/map`.
+4. Un login exitoso guarda el JWT en memoria y abre `/map`. El candidato Web del 13/11 añade el registro de pestaña descrito en [SESION_WEB](docs/SESION_WEB.md); el flujo nativo conserva la memoria.
 5. La sección `/profile` consulta `GET /api/users/profile`.
 6. `/profile/edit` envía los cambios con `PUT /api/users/profile`.
 
 ## HU 2.4 — cierre de sesión local
 
-Desde Perfil, **Cerrar sesión** borra el token y el usuario en memoria. El router redirige a `/login` y bloquea `/map`, `/validar`, `/favoritos`, `/profile` y `/profile/edit` sin sesión, incluso después del cierre. Login y registro son públicos. No se añade persistencia ni revocación del JWT en el backend.
+Desde Perfil, **Cerrar sesión** borra el token y el usuario en memoria. En el candidato Web del 13/11 también invalida cualquier restauración pendiente e intenta borrar el registro de `sessionStorage` antes de notificar el cambio. El router redirige a `/login` y bloquea `/map`, `/validar`, `/favoritos`, `/profile` y `/profile/edit` sin sesión, incluso después del cierre. Login y registro son públicos. El cierre local no revoca por sí mismo el JWT en el backend; los límites del almacenamiento están en [SESION_WEB](docs/SESION_WEB.md).
 
 ## HU 2.3 — cambiar contraseña
 
@@ -170,6 +182,8 @@ Una vez activo, el control ofrece **Desactivar alertas** con confirmación. Solo
 
 Web usa el registro FCM devuelto por `getToken` y lo declara como `targetType: fcm-token`; al salir revoca con `deleteToken`. Es la API de compatibilidad deprecada del SDK, retenida tras comprobar recepción en el control aislado y en la aplicación final. Nativo conserva `register/onRegistered` y `targetType: fid`; FID, registro FCM y JWT son identificadores distintos. Al primer uso Web se comprueba, con una lectura de presencia por appId en el esquema IndexedDB del SDK13.1.0, si quedó metadata FID anterior: solo entonces se revoca ese registro antes de obtener el token. No se crea una base ausente ni se leen FID/token/auth en esa comprobación. Se conserva la caché token existente cuando no hay metadata FID. Un binding activo se reutiliza sin otra petición de permiso o registro; después de desactivar se obtiene el token al reactivar. El stream Web onTokenRefresh del plugin es vacío. No se mezclan las dos API de administración después de la migración.
 
-El cliente conserva JWT y binding de dispositivo solo en memoria; Firebase mantiene su caché normal de registro en IndexedDB. El worker consulta una pestaña autenticada viva antes de mostrar una alerta y antes de enfocar/abrir el detalle. Logout, cambio de cuenta o recarga invalidan el binding; una notificación antigua no abre información de una sesión posterior. Cerrar todas las pestañas no garantiza alertas: esta política evita persistir una sesión sin aprobación. Los permisos y la entrega dependen del navegador y FCM.
+En el candidato Web del 13/11, el JWT y el flag de alertas se guardan en `sessionStorage`; el binding y el contexto histórico siguen solo en memoria. Firebase conserva su caché normal de registro en IndexedDB. Tras validar la sesión recuperada, únicamente un opt-in guardado y un permiso ya concedido permiten reanudar sin pedir permiso: se obtiene el token cacheado y se hace una sola alta para la generación, con un `registrationId` nuevo. Esa alta conserva el contrato existente de purgar el outbox asociado al registro anterior, incluidos pendientes. Desactivar guarda OFF antes de enviar la baja. [Detalles y límites](docs/SESION_WEB.md).
+
+El worker consulta una pestaña autenticada viva antes de mostrar una alerta y antes de enfocar/abrir el detalle. Logout, cambio de cuenta o recarga invalidan el binding anterior; una notificación antigua no abre información de una sesión posterior. Cerrar todas las pestañas no garantiza alertas ni continuidad indefinida de sesión. Los permisos y la entrega dependen del navegador y FCM; la reanudación de este candidato solo tiene pruebas simuladas por ahora.
 
 Para comprobar el aislamiento del worker sin Firebase: `node --test tool/test_push_web.mjs`. Son dobles de navegador, no prueba de entrega real. La demo publicada utiliza la ejecución programada ya documentada para revisar cambios y vencimiento de la ventana de saturación; un temporizador permanente no es una garantía en Vercel. Consultar [despliegue, operación y límites actuales](docs/DEMO_WEB.md), separando las verificaciones del paquete de la recepción humana de alertas.
