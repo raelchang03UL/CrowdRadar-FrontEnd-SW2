@@ -100,15 +100,15 @@ class _BusquedaState extends State<_Busqueda> {
                           ),
                           const SizedBox(height: 8),
                           for (final lugar in state.places)
-                            DecoratedBox(
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.surface,
-                                border: Border(
-                                  bottom: BorderSide(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.outlineVariant,
-                                  ),
+                            // Material (no DecoratedBox) para que el ListTile pinte
+                            // su efecto al tocar sobre el mismo fondo y borde.
+                            Material(
+                              color: Theme.of(context).colorScheme.surface,
+                              shape: Border(
+                                bottom: BorderSide(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.outlineVariant,
                                 ),
                               ),
                               child: ListTile(
