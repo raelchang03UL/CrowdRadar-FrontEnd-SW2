@@ -1,5 +1,32 @@
 # Estado actual
 
+## Continuidad de sesión Web: preparación de publicación autorizada — 13/11/2026
+
+**Despliegue pendiente.** Rael autorizó integrar en `develop` y actualizar la Web. El código de `fix/web-session-reload-20261113` quedó en `be308424b9178a5e5371c1f0cafa75fa9c4a1752`, desde `ba40207812a64af6b68c5ddc0d5374ff7e091d85`. Este corte no acredita aún publicación, integración ni despliegue; la ejecución final sobre SHA limpio está pendiente.
+
+### Validación local previa a la publicación
+
+Los resultados siguientes se ejecutaron antes del commit sobre el mismo código conservado en `be308424`, con backend QA `55fee83bdf09e19afe01e2523522c6ca8ac4bdb9`. Las huellas de las 14 fuentes/pruebas coinciden con el manifiesto anterior al commit; no se atribuyen los resultados al SHA base sin el parche ni a una nueva ejecución posterior. [Resumen versionable y huellas](evidence/session-reload-20261113/local-validation.json). Los cortes anteriores conservan sus versiones y evidencias originales.
+
+Web conserva el JWT y la decisión ON/OFF en un registro versionado de `sessionStorage`, asociado al valor exacto de API_BASE_URL. No guarda una copia del usuario ni la contraseña. La recarga bloquea las rutas hasta validar un perfil fresco por GET/Bearer con clave anticaché; no renueva el JWT de dos horas. Red, timeout, 503 o perfil inválido mantienen el candidato privado con reintento. Un 401 vigente, logout o cambio de cuenta limpia/invalida; un 200/401 antiguo no afecta una sesión posterior. Almacenamiento corrupto se descarta; si falla la escritura se intenta borrar el registro previo, y si también se bloquea el borrado no se garantiza su eliminación física. Nativo conserva memoria. [Contrato local, decisión y riesgos](SESION_WEB.md).
+
+Reanudación de alertas probada con dobles de Firebase/HTTP: requiere sesión validada, opt-in persistido y permiso ya concedido; no solicita permiso al recargar. Usa el token cacheado y una sola alta por generación, con binding nuevo. El contrato backend de cada POST conserva la purga del outbox anterior, incluidos pendientes. OFF se persiste antes del DELETE; un fallo de baja no vuelve a activar la preferencia al recargar. No hay recepción FCM real nueva acreditada.
+
+| Comprobación local anterior al commit | Resultado y evidencia versionable |
+| --- | --- |
+| Análisis Flutter completo | Sin incidencias, 7,8 s; [resumen y hash del log](evidence/session-reload-20261113/local-validation.json). |
+| Suite Flutter completa | **843 aprobadas, 0 fallidas, 2 opt-in omitidas**, 48 s; [resumen y hash del log](evidence/session-reload-20261113/local-validation.json). |
+| Nuevos casos, incluidos en la suite | **48** sobre las 795 pruebas de la base: 30 en `session_restore_test.dart`, 4 en `session_restore_route_test.dart` y 14 en `push_session_reload_test.dart`. Las corridas dirigidas solapadas no se suman otra vez. |
+| Build Web local | Correcto en **63,7 s**, Flutter 3.41.9/Dart 3.11.5, API `http://127.0.0.1:3067`, Firebase sin configurar; [resultado y hash de main.dart.js](evidence/session-reload-20261113/local-validation.json). El aviso de deprecación de `--pwa-strategy` no impidió compilar. |
+| API/PostgreSQL QA local | 12 solicitudes verificadas: login/perfil, clave anticaché, rechazo de expiración/versión antigua y recuperación por correo deshabilitada (503). [Resumen saneado](evidence/session-reload-20261113/local-validation.json). SMTP, FCM, worker y cron deshabilitados; sin base remota. |
+| Chrome: perfil tras recarga | Login y perfil QA observados; el usuario confirmó conservar el perfil sin volver a iniciar sesión. GET de comprobación con `_sessionCheck` respondió 200 a las **19:34:03.506 y 19:34:04.411 UTC**. [Aceptación local](evidence/session-reload-20261113/browser-session-acceptance.json). |
+| Chrome: interrupción y reintento | Con la API propia 3067 detenida, recargar mostró `/session-restore?returnTo=/profile`, «No pudimos comprobar tu sesión» y Reintentar, sin datos del perfil. Reiniciar la API y pulsar Reintentar recuperó el perfil sin credenciales; GET de comprobación 200 a las **19:38:59.297 UTC**. [Aceptación local](evidence/session-reload-20261113/browser-session-acceptance.json). |
+| Chrome: logout y recarga posterior | Cerrar sesión llevó a `/login` con campos vacíos. La automatización no completó la última recarga por URL indeterminada; el usuario la hizo y confirmó que seguía mostrando **Iniciar sesión**. [Aceptación local](evidence/session-reload-20261113/browser-session-acceptance.json). |
+
+Los logs completos `analyze-final.log`, `tests-final.log`, `build-final.log`, `api-smoke-final-evidence.json` y `startup-final-evidence.json` permanecen en la carpeta QA local de este corte; no se publican ni se enlazan como archivos del repositorio. El resumen conserva nombres y hashes de los tres logs del pipeline local.
+
+Los tres recorridos de sesión anteriores están comprobados sobre el build local con observación automatizada y confirmación humana. **No se probaron el control ON/OFF de alertas en GUI, entrega FCM ni correo reales, Android/iOS, cierre/reapertura prolongada del navegador o continuidad entre pestañas** en este incremento. Los 14 casos nuevos de alertas siguen siendo simulados. Los resultados humanos del 04/11 permanecen históricos y no se reatribuyen a la recuperación nueva. [Matriz por comportamiento y archivos](SESION_WEB.md).
+
 ## Pulido visual publicado y ciclo de alertas aceptado — 04/11/2026
 
 La URL [crowdradar-demo-web.vercel.app](https://crowdradar-demo-web.vercel.app) sirve el frontend `8ce8510123bba400b5ed628ba96c67f18a47b57c`, despliegue `dpl_4BcTtyyXUAfXxztGv2dDgLsS2sy9` en estado `READY`. La API conserva `7780db488892a0dc3c45edfc7a9622b846e71847`. La rama `ux/demo-alertas-20261104` parte de `ea05ae6d7452bd60cd750f66a65898d9733091d5`: `e006709f2c65e2adf36ccc3a56a7bdb23e789cf6` traslada las 21 fuentes de presentación y cuatro archivos de pruebas del pulido del 03/11; `769093227556898a7d2dedb291010069312c11dc` incorpora el control por dispositivo y la transición histórica; `8ce8510123bba400b5ed628ba96c67f18a47b57c` precisa dos imports de pruebas. No cambian backend, workers, dependencias ni configuración Firebase.
