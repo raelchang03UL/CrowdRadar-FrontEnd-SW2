@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-11-13T19:42:46.73Z",
+  "scope": "Local Web candidate only; no deployment",
+  "frontendBase": "ba40207812a64af6b68c5ddc0d5374ff7e091d85",
+  "frontendBranch": "fix/web-session-reload-20261113",
+  "frontendWorkingTreePatch": true,
+  "sourceCommit": "be308424b9178a5e5371c1f0cafa75fa9c4a1752",
+  "executedBeforeSourceCommit": true,
+  "sourceAndTestFilesMatchPreCommitManifest": true,
+  "backendHead": "55fee83bdf09e19afe01e2523522c6ca8ac4bdb9",
+  "mainDartJsSha256": "1d643e69cce552454bb1556d515b20257f6265bcd83ae3b57e813b0435712172",
+  "webOrigin": "http://127.0.0.1:5567",
+  "apiOrigin": "http://127.0.0.1:3067",
+  "observations": [
+    {
+      "case": "login-profile",
+      "observedAt": "2026-11-13T17:51:29.591Z",
+      "expectedUrl": "http://127.0.0.1:5567/#/profile"
+    },
+    {
+      "case": "offline-reload",
+      "observedAt": "2026-11-13T19:38:37.062Z",
+      "url": "http://127.0.0.1:5567/#/session-restore?returnTo=/profile",
+      "result": "No pudimos comprobar tu sesión; Reintentar visible; protected profile not displayed",
+      "method": "native Chrome screenshot"
+    },
+    {
+      "case": "retry-restores-profile",
+      "observedAt": "2026-11-13T19:39:13.745Z",
+      "url": "http://127.0.0.1:5567/#/profile",
+      "result": "QA Recarga visible after Reintentar, no login or password entry",
+      "serverEvidence": "GET /api/users/profile with sessionCheck 200 at 2026-11-13T19:38:59.297Z",
+      "method": "native Chrome screenshot and safe API log"
+    },
+    {
+      "case": "logout",
+      "observedAt": "2026-11-13T19:39:30.948Z",
+      "url": "http://127.0.0.1:5567/#/login",
+      "result": "Login form after Cerrar sesión, empty email and password",
+      "method": "native Chrome screenshot"
+    }
+  ],
+  "humanConfirmations": [
+    {
+      "case": "valid-reload",
+      "quote": "Sí, recargué y sigo viendo QA Recarga sin volver a iniciar sesión. Continúa con lo que falta.",
+      "source": "User message in this Codex chat",
+      "messageTimestampNotAvailable": true,
+      "corroboration": "Fresh profile checks returned 200 at 2026-11-13T19:34:03.506Z and 2026-11-13T19:34:04.411Z; exact message-to-request attribution not asserted"
+    },
+    {
+      "case": "logout-reload",
+      "quote": "Sí, recargué y sigue mostrando «Iniciar sesión». Continúa y termina lo que falta.",
+      "source": "User message in this Codex chat",
+      "messageTimestampNotAvailable": true,
+      "corroboration": "Agent observed logout -> login before human reload; last reload was manual because native UI stopped on URL confidence"
+    }
+  ],
+  "results": {
+    "loginAndProtectedProfile": true,
+    "validReloadWithoutNewLogin": true,
+    "offlineReloadHidesProfileAndOffersRetry": true,
+    "retryRestoresProfileWithoutNewCredentials": true,
+    "logoutShowsLogin": true,
+    "reloadAfterLogoutStaysLogin": true
+  },
+  "limitations": [
+    "The human performed and confirmed the final valid reload and logout reload; no automated screenshot after the final logout reload.",
+    "Firebase, SMTP, background worker and cron were disabled in this candidate. FCM reload decisions have mocked unit tests only.",
+    "No real ON/OFF GUI toggle, Android/iOS, multitab logout synchronization or prolonged browser restart tested.",
+    "No sessionStorage inspection or credentials are included in this evidence."
+  ],
+  "provenance": "Sanitized copy of the local QA browser-session-acceptance.json record; original methods, observations and human confirmations retained; no private log content"
+}

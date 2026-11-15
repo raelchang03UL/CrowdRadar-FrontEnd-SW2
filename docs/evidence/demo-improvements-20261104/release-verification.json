@@ -1,0 +1,308 @@
+{
+  "schema": 1,
+  "date": "2026-11-04",
+  "recordedAt": "2026-11-04T23:50:47.948Z",
+  "scope": "Public static release verification; complete new human GUI acceptance pending",
+  "web": "https://crowdradar-demo-web.vercel.app",
+  "api": "https://crowdradar-demo-api.vercel.app",
+  "source": {
+    "frontend": "8ce8510123bba400b5ed628ba96c67f18a47b57c",
+    "frontendTree": "0474edacfea9d5db4f44ef904df19ce4ca8a0c35",
+    "backend": "7780db488892a0dc3c45edfc7a9622b846e71847",
+    "branch": "ux/demo-alertas-20261104",
+    "commits": [
+      {
+        "sha": "e006709f2c65e2adf36ccc3a56a7bdb23e789cf6",
+        "change": "Verified visual polish transferred from the 03 November candidate"
+      },
+      {
+        "sha": "769093227556898a7d2dedb291010069312c11dc",
+        "change": "Device alert control and historical notification transition"
+      },
+      {
+        "sha": "8ce8510123bba400b5ed628ba96c67f18a47b57c",
+        "change": "Narrow two Firebase platform imports in tests"
+      }
+    ]
+  },
+  "pipeline": {
+    "flutter": "3.41.9",
+    "dart": "3.11.5",
+    "flutterRevision": "00b0c91f06209d9e4a41f71b7a512d6eb3b9c694",
+    "startedAt": "2026-11-04T23:36:15.313Z",
+    "completedAt": "2026-11-04T23:37:42.786Z",
+    "sourceClean": true,
+    "analyze": {
+      "result": "PASS",
+      "issues": 0,
+      "seconds": 5.4
+    },
+    "tests": {
+      "result": "PASS",
+      "passed": 737,
+      "failed": 0,
+      "skipped": 2,
+      "skipKind": "existing opt-in integrations"
+    },
+    "build": {
+      "result": "PASS",
+      "seconds": 46.4,
+      "pwaStrategy": "none",
+      "staticFiles": 28,
+      "staticBytes": 29982782,
+      "remoteRebuild": false
+    },
+    "buildManifestDeployedValue": false,
+    "note": "The manifest deployed:false field describes compilation and remains unchanged; deployment verification is a separate record."
+  },
+  "deployment": {
+    "id": "dpl_4BcTtyyXUAfXxztGv2dDgLsS2sy9",
+    "state": "READY",
+    "alias": "crowdradar-demo-web.vercel.app",
+    "previousDeployment": "dpl_cWMnw46YkbA893DRGNmkwokhTZv2",
+    "aliasAssignment": "Explicit assign_alias after createDeployment reached READY",
+    "payloadSha256": "5c2cd401159e5c90db24a0c497d625566d9f7e2b2f5a146f23de5b1b5b79e62a",
+    "transfers": {
+      "newUploadsAccepted": 4,
+      "reusedImmutableCanvasKitBlobs": 9,
+      "inlineFilesIncludingConfiguration": 16,
+      "reuseCheckedAt": "2026-11-04T23:42:03.855Z",
+      "reuseVerification": "Fresh Vercel source-tree listing; SHA1, SHA256 and byte size matched in prior and current manifests"
+    }
+  },
+  "beforeAlias": {
+    "checkedAt": "2026-11-04T23:44:39.053Z",
+    "passed": 35,
+    "failed": 2,
+    "mismatchedPaths": [
+      "/assets/fonts/MaterialIcons-Regular.otf",
+      "/main.dart.js"
+    ],
+    "cause": "The habitual alias still served the prior deployment; this result is retained separately from the successful recheck"
+  },
+  "publicHttp": {
+    "checkedAt": "2026-11-04T23:45:18.099Z",
+    "authenticated": false,
+    "redirectsFollowed": false,
+    "tlsValidation": true,
+    "passed": 37,
+    "failed": 0,
+    "publicStaticFilesChecked": 28,
+    "rootPlusStaticResponsesMatched": 29,
+    "missingRoutes404": 7,
+    "httpToHttpsStatus": 308,
+    "responseHeaders": [
+      "no-cache, no-store, must-revalidate",
+      "nosniff",
+      "strict-origin-when-cross-origin",
+      "HSTS"
+    ],
+    "note": "HTTP resources and hashes were verified; no rendering or notification delivery is inferred from these checks"
+  },
+  "assets": [
+    {
+      "path": "assets/AssetManifest.bin",
+      "bytes": 341,
+      "sha256": "b3b74fd67f20b9b5968e809a9a7568cca9cf488dbf96da6a843416de9f8384ac"
+    },
+    {
+      "path": "assets/AssetManifest.bin.json",
+      "bytes": 458,
+      "sha256": "4c13cb823fcbdc29b9da8a79af73965e6d63287a7dc6f776c7ef8835464a2803"
+    },
+    {
+      "path": "assets/FontManifest.json",
+      "bytes": 208,
+      "sha256": "cd7e03645bc44b2dd47b7cb626f51c4ecbf55a197ab77241628b47ac165fbe21"
+    },
+    {
+      "path": "assets/NOTICES",
+      "bytes": 1355999,
+      "sha256": "41679fa747e43247e3ee144fc607f74ccce77f3d2915b7bb6b4ce0f7e6dd96c9"
+    },
+    {
+      "path": "assets/assets/images/crowdradar-logo-transparent.png",
+      "bytes": 53280,
+      "sha256": "ebfd2c8dad97d1f86fc67cc9ece8684007d44d4a5c30be36cbb263a7313dba45"
+    },
+    {
+      "path": "assets/fonts/MaterialIcons-Regular.otf",
+      "bytes": 13852,
+      "sha256": "b6dccb3e3735786695c8a05c11d35046e67e204be4accd6811c488c9e5370321"
+    },
+    {
+      "path": "assets/packages/cupertino_icons/assets/CupertinoIcons.ttf",
+      "bytes": 1472,
+      "sha256": "3d90c370aa4cf00dc57ee2b902f6652147c0f81e03e483df584a9c08b1687c9d"
+    },
+    {
+      "path": "assets/packages/flutter_map/lib/assets/flutter_map_logo.png",
+      "bytes": 2424,
+      "sha256": "6051ae42fb505931a833e58f9209a9f96669a4d0e4b3f06f6d82cde12a0e0401"
+    },
+    {
+      "path": "assets/shaders/ink_sparkle.frag",
+      "bytes": 8890,
+      "sha256": "5aee0e4ff369c0559eaa7af6d64dce812bab67afd9888d1d7d27046293b39ab5"
+    },
+    {
+      "path": "assets/shaders/stretch_effect.frag",
+      "bytes": 6737,
+      "sha256": "c723fbb5b9a3456b101073825ab5d34de312a39f32bf5de42aae0cda605d0a1a"
+    },
+    {
+      "path": "canvaskit/canvaskit.js",
+      "bytes": 86859,
+      "sha256": "931ae3f02e76e8ac58a1c1435d754a8740c87958b52edb9037d66e32be53eb40"
+    },
+    {
+      "path": "canvaskit/canvaskit.wasm",
+      "bytes": 7155824,
+      "sha256": "42e392d69fd05a8540cb1b2cd9b88ab2115659c9378c136d1377b3595e703839"
+    },
+    {
+      "path": "canvaskit/chromium/canvaskit.js",
+      "bytes": 86496,
+      "sha256": "ff8dcd85cee325699499ee23ffd7567bc8086e9592c24d4d8d411f951c16bda4"
+    },
+    {
+      "path": "canvaskit/chromium/canvaskit.wasm",
+      "bytes": 5686880,
+      "sha256": "2bf5ea09d70b8eadb22bb0471c9edfd7b2bee909dbf84456c32480d944660418"
+    },
+    {
+      "path": "canvaskit/skwasm.js",
+      "bytes": 63437,
+      "sha256": "d52e58007af740833faa088c1f68672e410dc385bbeb3e50a5e5bc285fc3fc9a"
+    },
+    {
+      "path": "canvaskit/skwasm.wasm",
+      "bytes": 3549782,
+      "sha256": "f8bab54ad143745fb699ff1b534b1295b31a67f1a9e98d72db5b0a5c9200d3a8"
+    },
+    {
+      "path": "canvaskit/skwasm_heavy.js",
+      "bytes": 63550,
+      "sha256": "7a1aa20e765441b28f4be0cd397f95573a3ecd72adc80ba32dd2cb959a09a41d"
+    },
+    {
+      "path": "canvaskit/skwasm_heavy.wasm",
+      "bytes": 5140187,
+      "sha256": "33f5c52d1612df0af41d12204fd54ec276e436f7e3319c2871a689dee18f82d1"
+    },
+    {
+      "path": "canvaskit/wimp.js",
+      "bytes": 57623,
+      "sha256": "fa58b2c534ef9c66dff68df1ea28c1739bb02ce34cc8eca459f716527d9b5cae"
+    },
+    {
+      "path": "canvaskit/wimp.wasm",
+      "bytes": 3461893,
+      "sha256": "acefbd1d04dc92f01655f1872148f3cc59f9a9c85804e9c0123c6744939cd500"
+    },
+    {
+      "path": "crowdradar-push.js",
+      "bytes": 3230,
+      "sha256": "f9420154cf3440b7a977f891233c23b1e6b5d776fede585e4c99435eb8a7a260"
+    },
+    {
+      "path": "flutter.js",
+      "bytes": 9553,
+      "sha256": "a483fd28f51ed2fadd0da3fade5b672eba56310d549d736ce62eabf624a6a578"
+    },
+    {
+      "path": "flutter_bootstrap.js",
+      "bytes": 9833,
+      "sha256": "43ffc23ed8136adb51c187499b09eabcc3106082e60daaa84239640410da1263"
+    },
+    {
+      "path": "flutter_service_worker.js",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "index.html",
+      "bytes": 678,
+      "sha256": "c02e82d5a36488654a015bdf728dfbdef047b82bb05935fb0431442e5d3ff4f7"
+    },
+    {
+      "path": "main.dart.js",
+      "bytes": 3161350,
+      "sha256": "7930fc77f900dd796157a91620fa169ab842fbb6b209f7792abc13e9d4c1d867"
+    },
+    {
+      "path": "push/firebase-messaging-sw.js",
+      "bytes": 1856,
+      "sha256": "f360ccde6cc6488f0d64dda38cc169956149b7f43b61e1ec9ec1b06920a9fab7"
+    },
+    {
+      "path": "version.json",
+      "bytes": 90,
+      "sha256": "b03cd61909593f18c2a86dd70e44370453e94eaad5b6be16553da74203f310f0"
+    }
+  ],
+  "guiAcceptance": {
+    "status": "PENDING_COMPLETE_HUMAN_REVIEW",
+    "newScreenshotsRecorded": false,
+    "pending": [
+      "New layout walkthrough and screenshots",
+      "Real device alert deactivation and reactivation",
+      "Real notification receipt/opening showing historical previous-to-new transition"
+    ],
+    "notClaimed": [
+      "Current saturation level queried or displayed by the detail page",
+      "Android/iOS",
+      "App-closed delivery",
+      "Screen-reader validation"
+    ]
+  },
+  "historicalEvidence": {
+    "immutableDirectory": "../demo-20261104/",
+    "frontend": "a4919f021157632a4e6500855c6d32acff2f0ab9",
+    "backend": "7780db488892a0dc3c45edfc7a9622b846e71847",
+    "note": "Earlier GUI, SMTP and FCM human acceptance remains attributed to that pair; it is not reattributed to the new release"
+  },
+  "rollback": {
+    "targetDeployment": "dpl_cWMnw46YkbA893DRGNmkwokhTZv2",
+    "action": "Reassign the same Web alias to the preserved deployment, then verify public access and hashes against its manifest",
+    "databaseChanges": false,
+    "apiChanges": false,
+    "executed": false
+  },
+  "diagnosticHistory": {
+    "preserved": true,
+    "note": "The initial analysis reported two test-import issues, later corrected. Integration fixture initialization/async cleanup attempts were retained. They are not runtime failures; final successful checks are separate."
+  },
+  "evidenceDigests": [
+    {
+      "name": "final-analyze.log",
+      "sha256": "35d72968d79000611a56c573a41199c3b54e6350c4b212cbad68c32de12b7342"
+    },
+    {
+      "name": "final-test.log",
+      "sha256": "4168fa6d9caa4d6f3ef809a0a8c3797a5eb83ab3274e9494b6918532cba8504c"
+    },
+    {
+      "name": "final-build.log",
+      "sha256": "9fd91f4f8638d4913fb09d020a1ae32c877c27259a861c1a7de3202caffe7508"
+    },
+    {
+      "name": "phase-bc-integration-final.log",
+      "sha256": "0e95b054691ed77e322fb5ffc8aa298b28b4dee19f3e950d3f2cc17955355a11"
+    },
+    {
+      "name": "frontend-public-http-smoke-dpl_4BcTtyyXUAfXxztGv2dDgLsS2sy9.json",
+      "sha256": "37d6ac5fe424e3759349f916b4342553e528fc161e796f0934e255c3ac8d9b2a"
+    },
+    {
+      "name": "frontend-public-http-before-alias-dpl_4BcTtyyXUAfXxztGv2dDgLsS2sy9.json",
+      "sha256": "aafad7dd4020fc3af596af4c6f4c5b926bd2b4e1f0b016b63cbce89efc694d22"
+    },
+    {
+      "name": "frontend-reused-remote-files.json",
+      "sha256": "b3a26be097944d4289eac78409c59959c3ab1c6c676d85d2569fbcd273c847b9"
+    }
+  ],
+  "secretsIncluded": false,
+  "localAbsolutePathsIncluded": false
+}

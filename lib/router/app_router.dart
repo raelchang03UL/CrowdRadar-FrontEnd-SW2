@@ -1,41 +1,199 @@
 import 'package:go_router/go_router.dart';
+import 'package:flutter/widgets.dart';
 
 import '../models/user_model.dart';
+import '../services/session_service.dart';
+import '../services/recovery_service.dart';
+import '../services/place_service.dart';
+import '../services/push_message_guard.dart';
+import '../pages/places/place_search_page.dart';
+import '../pages/places/place_detail_page.dart';
 
 import '../pages/login/login_page.dart';
+import '../pages/login/session_restore_page.dart';
 import '../pages/register/register_page.dart';
+import '../pages/login/forgot_password_page.dart';
+import '../pages/login/reset_password_page.dart';
 import '../pages/map/map_page.dart';
 import '../pages/validar/validar_page.dart';
 import '../pages/favoritos/favoritos_page.dart';
 import '../pages/profile/profile_page.dart';
 import '../pages/profile/edit_profile_page.dart';
+import '../pages/profile/change_password_page.dart';
+import '../pages/reports/report_history_page.dart';
+import '../pages/reports/report_review_page.dart';
+import '../pages/places/place_history_page.dart';
+import '../pages/admin/admin_users_page.dart';
+import '../pages/admin/admin_user_detail_page.dart';
+import '../services/admin_user_service.dart';
+import '../pages/admin/admin_reports_page.dart';
+import '../pages/admin/admin_report_detail_page.dart';
 
-final appRouter = GoRouter(
-  initialLocation: '/login',
+final appRouter = createAppRouter();
+
+GoRouter createAppRouter({
+  String initialLocation = '/login',
+  RecoveryService? recoveryService,
+  PlaceService? placeService,
+  AdminUserService? adminUserService,
+}) => GoRouter(
+  initialLocation: initialLocation,
+  refreshListenable: SessionService.changes,
+  redirect: (context, state) {
+    final restoring = SessionService.restoreStatus != SessionRestoreStatus.idle;
+    final isRestorePage = state.uri.path == '/session-restore';
+    if (restoring) {
+      return isRestorePage
+          ? null
+          : Uri(
+              path: '/session-restore',
+              queryParameters: {'returnTo': state.uri.toString()},
+            ).toString();
+    }
+    if (isRestorePage) {
+      if (!SessionService.isAuthenticated) {
+        return SessionService.wasRejected
+            ? '/login?notice=sessionExpired'
+            : '/login';
+      }
+      return _restoredDestination(state.uri.queryParameters['returnTo']);
+    }
+    final isPublic =
+        state.uri.path == '/login' ||
+        state.uri.path == '/register' ||
+        state.uri.path == '/forgot-password' ||
+        state.uri.path == '/reset-password';
+    if (!SessionService.isAuthenticated && !isPublic) {
+      return SessionService.wasRejected
+          ? '/login?notice=sessionExpired'
+          : '/login';
+    }
+    if (SessionService.isAuthenticated && state.uri.path == '/login') {
+      return '/map';
+    }
+    if ((state.uri.path == '/admin' || state.uri.path.startsWith('/admin/')) &&
+        SessionService.currentUser?.rol != 'ADMIN') {
+      return '/profile';
+    }
+    return null;
+  },
   routes: [
     GoRoute(
+      path: '/session-restore',
+      builder: (context, state) => const SessionRestorePage(),
+    ),
+    GoRoute(
+      path: '/admin/reports',
+      builder: (context, state) => AdminReportsPage(
+        key: ValueKey(state.uri.toString()),
+        authorId: state.uri.queryParameters.containsKey('authorId')
+            ? int.tryParse(state.uri.queryParameters['authorId']!) ?? 0
+            : null,
+      ),
+    ),
+    GoRoute(
+      path: '/admin/reports/:id',
+      builder: (context, state) => AdminReportDetailPage(
+        key: ValueKey(state.uri.path),
+        id: state.pathParameters['id'] ?? '',
+      ),
+    ),
+    GoRoute(
+      path: '/admin/users',
+      builder: (context, state) => AdminUsersPage(service: adminUserService),
+    ),
+    GoRoute(
+      path: '/admin/users/:id',
+      builder: (context, state) => AdminUserDetailPage(
+        key: ValueKey(state.uri.path),
+        id: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
+        service: adminUserService,
+      ),
+    ),
+    GoRoute(
       path: '/login',
-      builder: (context, state) => const LoginPage(),
+      builder: (context, state) => LoginPage(
+        notice: switch (state.uri.queryParameters['notice']) {
+          'passwordChanged' => LoginNotice.passwordChanged,
+          'passwordReset' => LoginNotice.passwordReset,
+          'sessionExpired' => LoginNotice.sessionExpired,
+          _ => null,
+        },
+      ),
     ),
     GoRoute(
       path: '/register',
       builder: (context, state) => const RegisterPage(),
     ),
     GoRoute(
-      path: '/map',
-      builder: (context, state) => const MapPage(),
+      path: '/forgot-password',
+      builder: (context, state) => ForgotPasswordPage(service: recoveryService),
     ),
     GoRoute(
-      path: '/validar',
-      builder: (context, state) => const ValidarPage(),
+      path: '/reset-password',
+      builder: (context, state) => ResetPasswordPage(
+        token: state.uri.queryParameters['token'] ?? '',
+        service: recoveryService,
+      ),
     ),
+    GoRoute(
+      path: '/map',
+      builder: (context, state) => MapPage(service: placeService),
+    ),
+    GoRoute(
+      path: '/places/search',
+      builder: (context, state) => PlaceSearchPage(service: placeService),
+    ),
+    GoRoute(
+      path: '/places/:id',
+      builder: (context, state) {
+        final id = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+        final extra = state.extra;
+        return PlaceDetailPage(
+          id: id,
+          service: placeService,
+          pushTransition:
+              extra is AuthorizedPushTransition && extra.isCurrentForPlace(id)
+              ? extra
+              : null,
+        );
+      },
+    ),
+    GoRoute(
+      path: '/reports/:id',
+      builder: (context, state) => ReportReviewPage(
+        key: ValueKey(state.uri.path),
+        id: state.pathParameters['id'] ?? '',
+      ),
+    ),
+    GoRoute(
+      path: '/profile/reports/:id/validation',
+      builder: (context, state) => ReportReviewPage(
+        key: ValueKey(state.uri.path),
+        id: state.pathParameters['id'] ?? '',
+        ownOnly: true,
+      ),
+    ),
+    GoRoute(
+      path: '/places/:id/history',
+      builder: (context, state) => PlaceHistoryPage(
+        key: ValueKey(state.uri.path),
+        id: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
+      ),
+    ),
+    GoRoute(path: '/validar', builder: (context, state) => const ValidarPage()),
     GoRoute(
       path: '/favoritos',
       builder: (context, state) => const FavoritosPage(),
     ),
+    GoRoute(path: '/profile', builder: (context, state) => const ProfilePage()),
     GoRoute(
-      path: '/profile',
-      builder: (context, state) => const ProfilePage(),
+      path: '/profile/reports',
+      builder: (context, state) => const ReportHistoryPage(),
+    ),
+    GoRoute(
+      path: '/profile/password',
+      builder: (context, state) => const ChangePasswordPage(),
     ),
     GoRoute(
       path: '/profile/edit',
@@ -48,3 +206,21 @@ final appRouter = GoRouter(
     ),
   ],
 );
+
+// Resume only an internal route. Authentication/role redirects still apply to
+// the destination; a query parameter is never an authorization decision.
+String _restoredDestination(String? value) {
+  final uri = value == null ? null : Uri.tryParse(value);
+  if (uri == null ||
+      uri.hasScheme ||
+      uri.hasAuthority ||
+      !uri.path.startsWith('/') ||
+      uri.path.startsWith('//') ||
+      uri.path.contains('\\') ||
+      uri.path == '/' ||
+      uri.path == '/login' ||
+      uri.path == '/session-restore') {
+    return '/map';
+  }
+  return uri.toString();
+}

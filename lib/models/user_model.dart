@@ -9,6 +9,7 @@ class UserModel {
   final String? status;
   final String? createdAt;
   final String? updatedAt;
+  final int karmaPoints;
 
   const UserModel({
     this.id,
@@ -21,33 +22,36 @@ class UserModel {
     this.status,
     this.createdAt,
     this.updatedAt,
+    this.karmaPoints = 0,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) => UserModel(
-        id: json['id'] as int?,
-        nombre: json['nombre'] as String?,
-        apellido: json['apellido'] as String?,
-        email: json['email'] as String?,
-        telefono: json['telefono'] as String?,
-        rol: json['rol'] as String?,
-        distrito: json['distrito'] as String?,
-        status: json['status'] as String?,
-        createdAt: json['createdAt'] as String?,
-        updatedAt: json['updatedAt'] as String?,
-      );
+    id: json['id'] as int?,
+    nombre: json['nombre'] as String?,
+    apellido: json['apellido'] as String?,
+    email: json['email'] as String?,
+    telefono: json['telefono'] as String?,
+    rol: json['rol'] as String?,
+    distrito: json['distrito'] as String?,
+    status: json['status'] as String?,
+    createdAt: json['createdAt'] as String?,
+    updatedAt: json['updatedAt'] as String?,
+    karmaPoints: (json['karmaPoints'] as num?)?.toInt() ?? 0,
+  );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'nombre': nombre,
-        'apellido': apellido,
-        'email': email,
-        'telefono': telefono,
-        'rol': rol,
-        'distrito': distrito,
-        'status': status,
-        'createdAt': createdAt,
-        'updatedAt': updatedAt,
-      };
+    'id': id,
+    'nombre': nombre,
+    'apellido': apellido,
+    'email': email,
+    'telefono': telefono,
+    'rol': rol,
+    'distrito': distrito,
+    'status': status,
+    'createdAt': createdAt,
+    'updatedAt': updatedAt,
+    'karmaPoints': karmaPoints,
+  };
 
   UserModel copyWith({
     int? id,
@@ -60,6 +64,7 @@ class UserModel {
     String? status,
     String? createdAt,
     String? updatedAt,
+    int? karmaPoints,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -72,6 +77,7 @@ class UserModel {
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      karmaPoints: karmaPoints ?? this.karmaPoints,
     );
   }
 }

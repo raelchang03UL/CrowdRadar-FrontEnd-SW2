@@ -1,12 +1,59 @@
-# CrowdRadar Frontend - Sprint 1
+# CrowdRadar Frontend
 
-Aplicación móvil Flutter para las historias del Sprint 1: registro de ciudadano, inicio de sesión, visualización del perfil y actualización del perfil.
+## Continuidad de sesión Web — publicada y verificada por HTTP, 13/11/2026
+
+El [PR #33](https://github.com/raelchang03UL/CrowdRadar-FrontEnd-SW2/pull/33) quedó fusionado en `develop` mediante `2e7c33d433ddee53269ba16ec0c2ebfba387c5c6`, con padres `ba40207812a64af6b68c5ddc0d5374ff7e091d85` y `9e72ec067360ca0e663f8b03a1d779b4485f686a`. Su árbol `ced1818c4a0d09d2de7075077068c277634e0c04` es idéntico al probado. La [Web pública](https://crowdradar-demo-web.vercel.app) ya sirve ese candidato compilado, despliegue `dpl_D7icCscCXuzPg327CQQZX7HdavnC` en `READY`, con alias asignado y **37/37 comprobaciones HTTP públicas aprobadas**. El paquete se publicó sin recompilar. [Evidencia versionable](docs/evidence/session-reload-20261113/release-verification.json).
+
+La nueva ejecución sobre SHA limpio `9e72ec0`, Flutter 3.41.9/Dart 3.11.5, terminó con análisis sin incidencias (**54,4 s**), **843 pruebas aprobadas, 0 fallidas y 2 opt-in omitidas** (**41 s**) y build Web de **39,4 s**. Se compiló para `https://crowdradar-demo-api.vercel.app` y la configuración pública Firebase de la demo. El control público sin autenticación verificó 28 archivos estáticos, TLS y hash del JS. La API y la base de datos no se modificaron al publicar este frontend. [Detalle y reversión](docs/ESTADO_ACTUAL.md).
+
+**Sesión comprobada en el dominio público con el navegador integrado:** login de cuenta sintética autorizada, mapa con cinco lugares, perfil con 60 puntos, recarga conservando ese perfil sin nuevas credenciales, logout y otra recarga permaneciendo en login con campos vacíos. [Aceptación pública](docs/evidence/session-reload-20261113/public-browser-acceptance.json) y [captura tras recargar](docs/evidence/session-reload-20261113/public-profile-after-reload.png). Este recorrido no acredita Chrome normal nuevo, entrega FCM/correo, control ON/OFF de alertas ni Android/iOS; la interrupción/reintento de API se conserva como prueba local.
+
+Al recargar la misma pestaña, Web recupera un registro de `sessionStorage` con el JWT y la decisión de alertas; comprueba primero un perfil fresco en la API y solo entonces permite entrar. No guarda una copia del usuario ni la contraseña, no renueva el JWT y mantiene su vencimiento original de dos horas. Android/iOS conservan la sesión en memoria.
+
+Si la API no responde o devuelve un fallo temporal, se muestra una pantalla de espera/reintento sin abrir datos protegidos. Un 401 vigente, logout o cambio de cuenta invalida la recuperación; las respuestas antiguas no restauran otra sesión. El almacenamiento puede estar bloqueado: la app sigue funcionando en memoria y trata de retirar cualquier registro anterior. Si también falla el borrado, no garantiza su eliminación física. [Decisión, límites de seguridad y pruebas de sesión](docs/SESION_WEB.md).
+
+**Validación local anterior a la publicación:** Flutter 3.41.9/Dart 3.11.5, **843 pruebas aprobadas, 0 fallidas y 2 opt-in omitidas**, análisis sin incidencias y build Web de **63,7 s**, configurado para API `http://127.0.0.1:3067` con Firebase deshabilitado. Backend QA `55fee83bdf09e19afe01e2523522c6ca8ac4bdb9`. Se ejecutó antes del commit, sobre el mismo código ahora conservado en `be308424`; no se presenta como una ejecución nueva sobre SHA limpio. [Resumen versionable y huellas](docs/evidence/session-reload-20261113/local-validation.json).
+
+En Chrome local se comprobó la recarga conservando el perfil, el bloqueo sin datos al interrumpir la API y el retorno mediante **Reintentar** sin credenciales. Tras logout, el usuario confirmó que recargar mantiene **Iniciar sesión**. [Aceptación local versionable](docs/evidence/session-reload-20261113/browser-session-acceptance.json) y [recorridos y procedencia](docs/SESION_WEB.md#recorrido-en-chrome-local). No se probaron FCM/correo real, control ON/OFF de alertas en GUI, Android/iOS, multitab ni cierre prolongado del navegador. [Estado técnico](docs/ESTADO_ACTUAL.md). Los cortes siguientes conservan sus resultados históricos y no describen una publicación de esta continuidad de sesión.
+
+## Demo pública vigente — 04/11/2026
+
+[Abrir CrowdRadar](https://crowdradar-demo-web.vercel.app). La Web sirve el frontend `8ce8510123bba400b5ed628ba96c67f18a47b57c` con el pulido visual, control de activar/desactivar alertas por dispositivo y contexto histórico anterior → nuevo al abrir una alerta. La API conserva el backend `7780db488892a0dc3c45edfc7a9622b846e71847`. La ficha identifica «Cambio que originó esta alerta»; no consulta ni muestra un nivel actual nuevo.
+
+Análisis limpio, **737 pruebas aprobadas / 2 opt-in omitidas**, build Web de 46,4 s y **37/37 comprobaciones HTTP públicas** del paquete publicado. El ciclo real de baja/reactivación quedó aceptado en Chrome: cero envíos al desactivar, una alerta al reactivar y abrir Kennedy con «Moderado → Saturado», y cero envíos en el siguiente ciclo sin cambio. [Aceptación humana y correlación](docs/evidence/demo-improvements-20261104/push-toggle-human-acceptance.json). Quedan pendientes las capturas y el recorrido visual ampliado tras detenerse el control del navegador con Esc, además de la revisión independiente del PR. [Evidencia de publicación](docs/evidence/demo-improvements-20261104/release-verification.json), [operación y reversión](docs/DEMO_WEB.md) y [estado técnico](docs/ESTADO_ACTUAL.md). Los cortes fechados siguientes conservan sus antecedentes; correo y FCM del cierre anterior mantienen su par y alcance originales.
+
+## Candidato HU7 para revisión — 28/10/2026
+
+Esta rama incorpora Perfil ADMIN → Administrar usuarios y Revisar reportes denunciados, con búsqueda, acciones confirmadas e historiales persistidos. Necesita el backend HU7 y sus migraciones explícitas008/009. [Recorridos y evidencia](docs/CIERRE_HU7.md); contrato canónico en el backend compañero. Publicación, revisión e integración son pasos separados; el par exacto se acredita en Git/PR. Los cortes inferiores son históricos y no describen el alcance HU7 de esta rama.
+
+Corte20/10/2026:verificación de aceptación Web en PR#21 y backend#39,pendiente de revisión ajena/merge. Las2integracionesopt-in ya ejecutadas contra PostgreSQLaislado;procedimiento en CONFIGURACION_LOCALbackend,perfilcierre/API3053/Web5553. Demo3043/5543conservada. [Resultados actuales](docs/CIERRE_WEB_R01_S03.md). HU7/8siguen pendientes.
+
+## Revisión Web R01/S3 y demo local — 19/10/2026
+
+Rama `integration/cierre-web-r01-s03-20261019`, desde `18cec26` más pendientes F3/C2/F11. La publicación se acredita por el PR y su par exacto; **no implica integración en develop, aceptación ni despliegue**. Flutter Android/Web; Web es la plataforma comprobada en este cierre. [Resultados y procedencia](docs/CIERRE_WEB_R01_S03.md).
+
+Con backend demo3043 iniciado según el [procedimiento canónico](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/blob/integration/cierre-web-r01-s03-20261019/docs/CATALOGO_DEMO_LOCAL.md), ejecutar desde la raíz de tu clon frontend:
+
+```powershell
+flutter pub get --enforce-lockfile
+$demoBuild = Join-Path (Get-Location).Path ("build/demo-web-" + (Get-Date -Format 'yyyyMMdd-HHmmss'))
+flutter build web --no-pub --dart-define=API_BASE_URL=http://127.0.0.1:3043 --output="$demoBuild"
+node tool/serve_demo_web.mjs "$demoBuild"
+```
+
+Abrir http://127.0.0.1:5543/#/login. Cinco lugares reales/observaciones demostrativas, **sin monitoreo en tiempo real**. Crear cuenta sintética propia; sin usuarios/contraseñas predeterminados. SMTP demo deshabilitado. JWT en memoria: recargar exige login. Salida absoluta nueva para evitar fallo de shaders con ruta relativa y no reemplazar evidencias. build/ ignorado; servidor solo loopback, no producción. No iniciar dos servidores en5543 ni detener uno ajeno. No se instalaron paquetes en el cierre; pub get con lock es un paso para otra PC.
+
+Incluye I1(sesión vigente/antigua),I2(reporte confirmado/cooldown/incertidumbre),I3/C2(catálogo plegable,selección ID,filtros AND,perfil/puntos) y F11(Historial→Perfil). Conserva aportes/autoría de Nick/Manu/Diego, tema y OSM; no usa el experimento visual rechazado.
+
+Lugares/filtros, reportes/karma/historial propio y, ahora, Validar con votos/confiabilidad/denuncias; detalle con historial horario/comparación/horarios suficientes. HU7/8 siguen fuera del alcance; Favoritos aún es placeholder. Tema publicado conservado; experimento visual rechazado excluido.
+
+Lee [CONTRIBUTING](CONTRIBUTING.md), [arquitectura](docs/ARQUITECTURA.md), [guía visual](docs/GUIA_VISUAL.md) y [pruebas](docs/ESTADO_ACTUAL.md). Clonar la rama de integración publicada descarga el candidato, no los datos/secretos/SDK. Clonar develop obtiene solo lo integrado allí. SMTP real requiere otro entorno y autorización, no instalar “Brevo” ni compartir contraseñas.
 
 ## Requisitos
 
-- Flutter con una versión de Dart compatible con `^3.11.5`.
-- Android Studio o Android SDK y un emulador Android configurado.
-- Backend CrowdRadar en ejecución.
+- Flutter 3.41.9 estable (Dart 3.11.5), coincidente con `.metadata` y compatible con `pubspec.lock`.
+- Para Web: navegador compatible y backend CrowdRadar en ejecución; no se necesita Android SDK.
+- Solo para Android: Android SDK y emulador/dispositivo; Java 21, Platform 36 / Build-Tools 36 según la compilación histórica comprobada. No es requisito para ejecutar Web.
 
 Comprueba el entorno antes de ejecutar:
 
@@ -19,8 +66,10 @@ flutter devices
 
 ```powershell
 flutter pub get
+flutter analyze
 flutter test
-flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000
+flutter build apk --debug
+flutter run -d emulator-5554 --dart-define=API_BASE_URL=http://10.0.2.2:3000
 ```
 
 `10.0.2.2` permite que el emulador Android acceda al `localhost` de la PC. Para un dispositivo físico, reemplaza la URL por la IP de la PC en la misma red, por ejemplo:
@@ -29,16 +78,34 @@ flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000
 flutter run --dart-define=API_BASE_URL=http://192.168.1.20:3000
 ```
 
-El valor predeterminado sigue siendo `http://10.0.2.2:3000` cuando no se envía `API_BASE_URL`.
+El valor predeterminado sigue siendo `http://10.0.2.2:3000` cuando no se envía `API_BASE_URL`. Desde Android, `localhost` apunta al propio dispositivo, no a la PC.
 
 ## Flujo del Sprint 1
 
 1. La app abre `/login`.
 2. Desde login se accede a `/register`.
 3. Un registro exitoso vuelve al login.
-4. Un login exitoso guarda el JWT en memoria y abre `/map`.
+4. Un login exitoso guarda el JWT en memoria y abre `/map`. El candidato Web del 13/11 añade el registro de pestaña descrito en [SESION_WEB](docs/SESION_WEB.md); el flujo nativo conserva la memoria.
 5. La sección `/profile` consulta `GET /api/users/profile`.
 6. `/profile/edit` envía los cambios con `PUT /api/users/profile`.
+
+## HU 2.4 — cierre de sesión local
+
+Desde Perfil, **Cerrar sesión** borra el token y el usuario en memoria. En el candidato Web del 13/11 también invalida cualquier restauración pendiente e intenta borrar el registro de `sessionStorage` antes de notificar el cambio. El router redirige a `/login` y bloquea `/map`, `/validar`, `/favoritos`, `/profile` y `/profile/edit` sin sesión, incluso después del cierre. Login y registro son públicos. El cierre local no revoca por sí mismo el JWT en el backend; los límites del almacenamiento están en [SESION_WEB](docs/SESION_WEB.md).
+
+## HU 2.3 — cambiar contraseña
+
+Perfil → Cambiar contraseña (`/profile/password`, protegida). Escribe la actual, la nueva y su confirmación. Mínimo 8 caracteres Unicode y máximo 72 bytes UTF-8; no se recorta ni se permite reutilizar la actual. Tras éxito, todas las sesiones anteriores quedan invalidadas **en PostgreSQL/backend** mediante versión persistente y la app vuelve al login. El cierre local HU 2.4, por separado, sigue sin revocar JWT.
+
+Antes de arrancar esta versión backend, ejecuta allí `npm run db:migrate`: añade explícitamente la versión de sesión y reproduce `users` en bases nuevas. No hay DDL al arrancar. Los JWT previos a esta versión requieren iniciar sesión de nuevo. Consulta el [contrato de la rama compañera](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/blob/feature/hu-2-3-cambio-password/docs/CONTRATO_API.md).
+
+## HU 2.1–2.2 — avance de recuperación/restablecimiento
+
+Login → Recuperar contraseña (`/forgot-password`, pública). El mensaje no distingue cuentas existentes/inexistentes. El enlace abre `/#/reset-password?token=…`; el token se valida antes de mostrar el formulario y se consume una sola vez al guardar. Después exige login nuevo, sin inicio automático, e invalida sesiones anteriores en backend.
+
+**Correo:** adaptador SMTP/Brevo integrado; sin configuración privada la API responde503 uniforme. Transporte en memoria solo para pruebas. No publicar enlaces, tokens ni claves. Recepción real de esta PC no ejecutada.
+
+Esta rama requiere la migración 003 y el [contrato C compañero](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/blob/feature/hu-2-1-2-recuperacion/docs/CONTRATO_API.md). Chrome/Android del estado final siguen pendientes de recorrido manual. No hay deep links Android verificados: el enlace Web no acredita apertura automática de la app nativa.
 
 Archivos principales:
 
@@ -50,10 +117,77 @@ Archivos principales:
 - `lib/services/user_service.dart`
 - `lib/configs/api_config.dart`
 
-## Pruebas
+## Antecedente HU3.1 — 07/10/2026 (no describe el alcance final)
 
-El proyecto incluye `test/widget_test.dart`, que comprueba que la app muestra la pantalla de inicio de sesión. En la revisión local del 20/09/2026 no se ejecutó porque Flutter y Dart no estaban instalados en la PC. La presencia del código no se considera evidencia de compilación.
+La HU3.1 original mostraba nombre/categoría. El candidato actual añade detalle,búsqueda,filtros,consulta de saturación,reportes e historiales; no leer las limitaciones de ese incremento aislado como funciones ausentes hoy. Conserva flutter_map,OSM y guardas de sesión.
+
+En el backend de esta misma rama, configura `.env` para `crowdradar_dev` y ejecuta:
+
+```powershell
+npm run db:migrate
+# Opcional: datos DEMOSTRATIVOS, no lugares realmente monitoreados.
+npm run db:seed:demo
+npm start
+```
+
+En el frontend, con paquetes ya resueltos:
+
+```powershell
+flutter analyze --no-pub
+flutter test --no-pub
+flutter run -d emulator-5554 --no-pub --dart-define=API_BASE_URL=http://10.0.2.2:3000
+```
+
+En una clonación nueva ejecuta antes `flutter pub get` con el lockfile existente. No se añadieron ni actualizaron dependencias. Validación Web del 07/10/2026: análisis correcto y **69/69 pruebas**. El recorrido Android anterior del mismo día comprobó mapa/selección/error/reintento; no se reejecutó Android tras las últimas mejoras de formularios. Detalle en [ESTADO_ACTUAL.md](docs/ESTADO_ACTUAL.md).
+
+## Configuración histórica Web3000/5500 (alternativa, no demo3043/5543)
+
+Con PostgreSQL y backend en `http://localhost:3000`, abre una segunda terminal:
+
+```powershell
+flutter run -d chrome --web-hostname=localhost --web-port=5500 --no-pub --dart-define=API_BASE_URL=http://localhost:3000
+```
+
+Abre **http://localhost:5500/#/login**. El `#/` corresponde al router Flutter. En esta PC Oracle conserva IPv4 `127.0.0.1:5500` y Flutter sirve por IPv6 `::1:5500` al usar localhost; no detener Oracle ni desactivar la seguridad de Chrome. Si se cierran los procesos, repite `npm start` en Backend y el comando anterior en Frontend.
+
+Para registrarte usa nombre/apellido/distrito de 2 caracteres o más, correo válido único, contraseña propia de mínimo 8 caracteres y máximo 72 bytes UTF-8, teléfono de exactamente 9 dígitos. Todos son obligatorios en el formulario. No hay contraseña ni cuenta predeterminada. Después del aviso de éxito, inicia sesión con lo que elegiste. Mostrar/ocultar contraseña es temporal; no se almacena automáticamente. Las solicitudes deshabilitan envíos dobles sin retirar el formulario. Errores de conexión/credenciales se muestran en español sin detalles técnicos.
+
+Para compilar Web:
+
+```powershell
+flutter analyze --no-pub
+flutter test --no-pub
+flutter build web --no-pub --dart-define=API_BASE_URL=http://localhost:3000
+```
+
+`build/web` está ignorado. La sesión solo vive en memoria: recargar una ruta protegida vuelve a login. Entradas públicas: `/#/login`, `/#/register`, `/#/forgot-password` y `/#/reset-password` (esta última exige enlace vigente). Esos resultados corresponden a la base histórica indicada; usar la entrada demo superior para revisar el candidato actual sin conflictos de puertos.
+
+## Pruebas anteriores
+
+El proyecto incluye `test/widget_test.dart`, que comprueba que la app muestra el inicio de sesión. El 22/09/2026 pasaron `flutter analyze`, `flutter test` (1 prueba) y `flutter build apk --debug`. El APK se instaló en un emulador Android 16 y se comprobó el flujo con `crowdradar_dev`. El estado y las capturas están en [docs/ESTADO_ACTUAL.md del backend](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/blob/develop/docs/ESTADO_ACTUAL.md).
+
+La validación local del 05/10/2026 añade `test/session_service_test.dart` y `test/auth_navigation_test.dart`: 20 pruebas aprobadas en total y análisis sin problemas. Los resultados y el recorrido Android de la HU 2.4 están en [docs/ESTADO_ACTUAL.md](docs/ESTADO_ACTUAL.md).
+
+La revisión del 06/10/2026 conserva ese trabajo y añade `test/session_async_test.dart`: 25 pruebas aprobadas. Se corrigieron respuestas pendientes tras el cierre y se repitió el recorrido Android; no se actualizaron dependencias.
 
 ## Alcance
 
-Esta entrega conserva el diseño móvil y se limita al Sprint 1. Las pantallas de mapa, validación y favoritos no se amplían como parte de esta revisión.
+El candidato conserva HU1–7 e integra agregar, consultar, abrir y quitar favoritos propios. Las alertas Web reutilizan Firebase/FCM existente. El30/10, Chrome con el build final1384AA47 confirmó el flujo principal HU8.3: reportes reales → cambio de saturación → FCM → recepción → apertura del lugar correcto. También se verificó que logout elimina el registro y su alerta pendiente y que reactivar crea un binding distinto con sesión vigente. El control aislado anterior ayudó a identificar la ruta de registro FCM mediante getToken; es una evidencia distinta del recorrido de la aplicación. Ver [estado técnico](docs/ESTADO_ACTUAL.md).
+
+## Configuración de alertas Web HU8
+
+Las opciones públicas se inyectan al ejecutar o compilar: `FIREBASE_API_KEY`, `FIREBASE_WEB_APP_ID`, `FIREBASE_MESSAGING_SENDER_ID`, `FIREBASE_PROJECT_ID`, `FIREBASE_AUTH_DOMAIN` y `FIREBASE_WEB_VAPID_KEY`. Usar un archivo local ignorado con `--dart-define-from-file`; no versionar configuraciones locales ni credenciales del servidor. Estas opciones Web no sustituyen la credencial Firebase Admin que configura exclusivamente el backend.
+
+En Favoritos, **Activar alertas** solicita permiso mediante una acción del usuario y registra el dispositivo para la sesión vigente. El intento tiene un plazo total de20s, incluido el permiso; una respuesta tardía no activa un intento vencido. Requiere HTTPS o localhost, navegador compatible, permiso concedido y acceso a Firebase. `web/push/firebase-messaging-sw.js` recibe la misma configuración pública mediante su URL; usa Firebase JS13.1.0, correspondiente a `firebase_core_web4.1.0` del lock. Su ámbito `/push/` evita sustituir el worker de Flutter en `/`.
+
+Una vez activo, el control ofrece **Desactivar alertas** con confirmación. Solo afecta a este dispositivo: conserva sesión y favoritos. Al comenzar la baja se bloquean aquí los mensajes; el éxito se muestra cuando la API confirma la eliminación. Si falla o vence el plazo, aparece **Reintentar desactivación**. Volver a Favoritos conserva el estado confirmado de esta sesión; no solicita permiso por sí solo.
+
+**Ver lugar** abre la ficha y, si la alerta contiene niveles válidos, muestra «Cambio que originó esta alerta» y el nivel anterior → nuevo. Es información histórica: no modifica las estimaciones actuales. Una alerta incompleta abre la ficha normal; otra sesión o un registro ya desactivado no autoriza la apertura.
+
+Web usa el registro FCM devuelto por `getToken` y lo declara como `targetType: fcm-token`; al salir revoca con `deleteToken`. Es la API de compatibilidad deprecada del SDK, retenida tras comprobar recepción en el control aislado y en la aplicación final. Nativo conserva `register/onRegistered` y `targetType: fid`; FID, registro FCM y JWT son identificadores distintos. Al primer uso Web se comprueba, con una lectura de presencia por appId en el esquema IndexedDB del SDK13.1.0, si quedó metadata FID anterior: solo entonces se revoca ese registro antes de obtener el token. No se crea una base ausente ni se leen FID/token/auth en esa comprobación. Se conserva la caché token existente cuando no hay metadata FID. Un binding activo se reutiliza sin otra petición de permiso o registro; después de desactivar se obtiene el token al reactivar. El stream Web onTokenRefresh del plugin es vacío. No se mezclan las dos API de administración después de la migración.
+
+En el candidato Web del 13/11, el JWT y el flag de alertas se guardan en `sessionStorage`; el binding y el contexto histórico siguen solo en memoria. Firebase conserva su caché normal de registro en IndexedDB. Tras validar la sesión recuperada, únicamente un opt-in guardado y un permiso ya concedido permiten reanudar sin pedir permiso: se obtiene el token cacheado y se hace una sola alta para la generación, con un `registrationId` nuevo. Esa alta conserva el contrato existente de purgar el outbox asociado al registro anterior, incluidos pendientes. Desactivar guarda OFF antes de enviar la baja. [Detalles y límites](docs/SESION_WEB.md).
+
+El worker consulta una pestaña autenticada viva antes de mostrar una alerta y antes de enfocar/abrir el detalle. Logout, cambio de cuenta o recarga invalidan el binding anterior; una notificación antigua no abre información de una sesión posterior. Cerrar todas las pestañas no garantiza alertas ni continuidad indefinida de sesión. Los permisos y la entrega dependen del navegador y FCM; la reanudación de este candidato solo tiene pruebas simuladas por ahora.
+
+Para comprobar el aislamiento del worker sin Firebase: `node --test tool/test_push_web.mjs`. Son dobles de navegador, no prueba de entrega real. La demo publicada utiliza la ejecución programada ya documentada para revisar cambios y vencimiento de la ventana de saturación; un temporizador permanente no es una garantía en Vercel. Consultar [despliegue, operación y límites actuales](docs/DEMO_WEB.md), separando las verificaciones del paquete de la recepción humana de alertas.

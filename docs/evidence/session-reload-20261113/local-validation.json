@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-11-13T19:53:13.2019134Z",
+  "scope": "Historical local validation before publication; no deployed release claimed",
+  "publicationState": "Preparation authorized; deployment pending",
+  "source": {
+    "branch": "fix/web-session-reload-20261113",
+    "frontendBase": "ba40207812a64af6b68c5ddc0d5374ff7e091d85",
+    "sourceCommit": "be308424b9178a5e5371c1f0cafa75fa9c4a1752",
+    "backendQaCommit": "55fee83bdf09e19afe01e2523522c6ca8ac4bdb9",
+    "executedBeforeSourceCommit": true,
+    "workingTreePatchDuringExecution": true,
+    "sourceAndTestFilesMatchingPreCommitManifest": 14,
+    "cleanShaReleasePipeline": "pending"
+  },
+  "environment": {
+    "flutter": "3.41.9",
+    "dart": "3.11.5",
+    "webOrigin": "http://127.0.0.1:5567",
+    "apiOrigin": "http://127.0.0.1:3067",
+    "firebaseEnabled": false,
+    "smtpEnabled": false,
+    "pushWorkerEnabled": false,
+    "cronEnabled": false,
+    "remoteDatabaseUsed": false
+  },
+  "analysis": {
+    "passed": true,
+    "issues": 0,
+    "durationSeconds": 7.8
+  },
+  "tests": {
+    "passed": 843,
+    "failed": 0,
+    "optInSkipped": 2,
+    "durationSeconds": 48,
+    "baselinePassed": 795,
+    "newCases": 48,
+    "newCasesIncludedInTotal": true,
+    "focusedRunsAreNotAddedAgain": true,
+    "newCasesByFile": {
+      "test/session_restore_test.dart": 30,
+      "test/session_restore_route_test.dart": 4,
+      "test/push_session_reload_test.dart": 14
+    }
+  },
+  "build": {
+    "target": "web",
+    "passed": true,
+    "durationSeconds": 63.7,
+    "mainDartJsSha256": "1d643e69cce552454bb1556d515b20257f6265bcd83ae3b57e813b0435712172",
+    "configuration": "Local API; Firebase not configured",
+    "warning": "Deprecated --pwa-strategy option; compilation succeeded",
+    "releaseDeploymentEvidence": false
+  },
+  "localApi": {
+    "requests": 12,
+    "loginAndProfile": true,
+    "cacheBusterSupported": true,
+    "expiredAndOldVersionRejected": true,
+    "localLogoutNeedsNoBackendEndpoint": true,
+    "mailRecoveryDisabledStatus": 503,
+    "sourceRecord": "api-smoke-final-evidence.json, retained in local QA"
+  },
+  "fullLogs": [
+    {
+      "name": "analyze-final.log",
+      "sha256": "5dee3b143a51e1cf42955f9f5b553e0043518730451a56e64f325fdb97fbca87",
+      "distribution": "Full log retained in local QA only; contents not published"
+    },
+    {
+      "name": "tests-final.log",
+      "sha256": "7df031d08c887d15dd496eab5c9dbebdbf1ba91cfc671401eedbbbc249f1887b",
+      "distribution": "Full log retained in local QA only; contents not published"
+    },
+    {
+      "name": "build-final.log",
+      "sha256": "f986580c72da78c024ffa9c7f3afac655f1c24613a1c864b13fa731252cbc7b9",
+      "distribution": "Full log retained in local QA only; contents not published"
+    }
+  ],
+  "browserEvidence": "browser-session-acceptance.json",
+  "limitations": [
+    "Local build and browser acceptance precede the code commit; identical code does not constitute a new clean-SHA pipeline run.",
+    "Firebase/HTTP behavior for alert resumption is covered by 14 mocked tests; no real ON/OFF GUI or FCM delivery was tested.",
+    "No real email delivery, Android/iOS, multitab synchronization or prolonged browser restart tested.",
+    "No credentials, JWTs, private log contents, absolute filesystem paths or build files are included."
+  ]
+}

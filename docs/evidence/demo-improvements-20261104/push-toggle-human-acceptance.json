@@ -1,0 +1,125 @@
+{
+  "schema": 1,
+  "recordedAt": "2026-11-04T23:59:50.120Z",
+  "result": "PASS",
+  "scope": "User-confirmed Chrome flow on the published Web; real report API, automatic cron and read-only database correlation",
+  "web": "https://crowdradar-demo-web.vercel.app",
+  "api": "https://crowdradar-demo-api.vercel.app",
+  "frontendSha": "8ce8510123bba400b5ed628ba96c67f18a47b57c",
+  "backendSha": "7780db488892a0dc3c45edfc7a9622b846e71847",
+  "deploymentId": "dpl_4BcTtyyXUAfXxztGv2dDgLsS2sy9",
+  "place": {
+    "id": -2005,
+    "name": "Parque John F. Kennedy"
+  },
+  "disabledPhase": {
+    "humanConfirmedInactiveControl": true,
+    "readOnlyVerifiedAt": "2026-11-04T23:52:37.618Z",
+    "eligibleDevices": 0,
+    "favoritePreserved": true,
+    "sessionPreserved": true,
+    "reportIds": [
+      "9",
+      "10",
+      "11"
+    ],
+    "reportLevel": "MODERADO",
+    "lastReportAt": "2026-11-04T23:53:05.839Z",
+    "apiAfter": {
+      "level": "MODERADO",
+      "reportCount": 3
+    },
+    "automaticRun": {
+      "recordedAt": "2026-11-04T23:54:00.177Z",
+      "status": 200,
+      "configured": true,
+      "sent": 0
+    },
+    "readOnlyAfterAt": "2026-11-04T23:54:28.593Z",
+    "humanOutboxCount": 0,
+    "qaOutboxCount": 0
+  },
+  "reactivatedPhase": {
+    "humanConfirmedActiveControl": true,
+    "readOnlyVerifiedAt": "2026-11-04T23:56:24.002Z",
+    "eligibleWebDevices": 1,
+    "newBindingVerified": true,
+    "favoritePreserved": true,
+    "sessionPreserved": true,
+    "minimumReportIntervalMinutes": 3,
+    "reportIds": [
+      "12",
+      "13",
+      "14"
+    ],
+    "reportLevel": "SATURADO",
+    "lastReportAt": "2026-11-04T23:56:54.851Z",
+    "apiAfter": {
+      "level": "SATURADO",
+      "reportCount": 3
+    },
+    "automaticRun": {
+      "recordedAt": "2026-11-04T23:57:00.465Z",
+      "status": 200,
+      "configured": true,
+      "sent": 1
+    },
+    "event": {
+      "id": "3",
+      "previousLevel": "MODERADO",
+      "newLevel": "SATURADO",
+      "status": "SENT",
+      "attempts": 1,
+      "lastErrorCode": null,
+      "createdAt": "2026-11-04T23:57:00.131Z",
+      "sentAt": "2026-11-04T23:57:00.454Z",
+      "bindingMatchesCurrentDevice": true
+    },
+    "qaOutboxCount": 0
+  },
+  "humanAcceptance": {
+    "quote": "Sí, llegó y muestra «Moderado → Saturado»",
+    "questionConfirmed": [
+      "Alert received in Chrome",
+      "Opening led to Parque John F. Kennedy",
+      "Historical banner says Cambio que originó esta alerta and Moderado → Saturado"
+    ],
+    "automatedScreenshot": false
+  },
+  "nextUnchangedRun": {
+    "recordedAt": "2026-11-04T23:58:00.146Z",
+    "status": 200,
+    "configured": true,
+    "sent": 0,
+    "totalSentOutboxRows": 1
+  },
+  "execution": {
+    "reportPosts": 6,
+    "existingQaAccounts": 3,
+    "newAccounts": 0,
+    "manualDispatchCalls": 0,
+    "sqlWritesByQaScripts": 0,
+    "databaseChecks": "READ ONLY, verified target/provenance/TLS",
+    "favoriteChangesByQaScripts": 0
+  },
+  "intermediateObservation": "An active replacement registration was observed after the first reported disable. No reports were sent then; the disabled phase began only after a repeated user confirmation and a fresh read-only check showed zero eligible devices. The cause of that intermediate registration was not established.",
+  "evidenceSources": [
+    "snapshot-activation-A-2026-11-04T23-49-25-631Z-48ba73f4.json",
+    "snapshot-off-after-disable-2026-11-04T23-51-00-496Z-21a9e167.json",
+    "snapshot-off-after-disable-2026-11-04T23-52-35-368Z-17620300.json",
+    "fcm-kennedy-off-20261104.json",
+    "snapshot-after-off-reports-2026-11-04T23-54-26-301Z-4f89d41b.json",
+    "cron-after-off.json",
+    "snapshot-on-reactivated-2026-11-04T23-56-21-755Z-f637a6a4.json",
+    "fcm-kennedy-on-20261104.json",
+    "snapshot-after-on-reports-2026-11-04T23-57-25-759Z-6da73baa.json",
+    "cron-after-on.json",
+    "cron-after-on-no-change.json"
+  ],
+  "limits": [
+    "An authenticated live browser tab is required; closed browser and Android/iOS not tested",
+    "Database SENT alone is provider acceptance; delivery/opening above additionally relies on the user's explicit confirmation",
+    "New public-design screenshots and expanded visual inspection remain pending after the user stopped computer control with Escape",
+    "Deleting/replacing a device can remove its outbox rows; snapshots were retained before each change rather than treating total row counts as permanent history"
+  ]
+}

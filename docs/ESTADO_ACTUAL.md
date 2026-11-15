@@ -1,0 +1,619 @@
+# Estado actual
+
+## Continuidad de sesión Web integrada y publicada — 13/11/2026
+
+El [PR frontend #33](https://github.com/raelchang03UL/CrowdRadar-FrontEnd-SW2/pull/33) está fusionado en `develop` mediante `2e7c33d433ddee53269ba16ec0c2ebfba387c5c6`. Padres: base `ba40207812a64af6b68c5ddc0d5374ff7e091d85` y candidato `9e72ec067360ca0e663f8b03a1d779b4485f686a`; ambos árboles finales coinciden en `ced1818c4a0d09d2de7075077068c277634e0c04`. El código de recuperación procede de `be308424b9178a5e5371c1f0cafa75fa9c4a1752`, seguido de documentación/evidencias. La [Web pública](https://crowdradar-demo-web.vercel.app) sirve el paquete compilado de `9e72ec0`, despliegue **`dpl_D7icCscCXuzPg327CQQZX7HdavnC`**, estado **READY**, después de asignarle el alias habitual. La publicación reutilizó el paquete, sin recompilar. [Verificación versionable](evidence/session-reload-20261113/release-verification.json).
+
+La nueva ejecución se realizó sobre el SHA limpio `9e72ec0`, antes del merge, con Flutter 3.41.9/Dart 3.11.5. El contenido incorporado por el merge es idéntico; no se presenta como otra ejecución posterior a la integración.
+
+| Comprobación del paquete de producción publicado | Resultado |
+| --- | --- |
+| Análisis completo | Sin incidencias, **54,4 s**. |
+| Suite Flutter completa | **843 aprobadas, 0 fallidas y 2 opt-in omitidas**, **41 s**. |
+| Build Web | Correcto en **39,4 s**, API `https://crowdradar-demo-api.vercel.app` y configuración pública Firebase de la demo. |
+| Huella de `main.dart.js` | SHA256 `bd7cb14e8cc32842015955265e4f3eaecea4826c75ebcce2ff451241b4be4029`. |
+| HTTP público posterior a asignar el alias | **37 aprobadas, 0 fallidas**, a las **21:11:00.888 UTC** del 13/11: raíz y 28 archivos estáticos coincidentes, siete rutas ausentes/privadas 404 y HTTP→HTTPS 308. Sin autenticación ni seguimiento de redirecciones; TLS válido. |
+| Protección y API | Cabeceras de caché/nosniff/Referrer-Policy/HSTS verificadas; acceso público anónimo comprobado y cambios temporales de acceso retirados. Readiness de la API 200; sin redespliegue de API, cambios de base de datos ni de `main`. |
+
+Los registros completos `release-analyze.log`, `release-test.log`, `release-build.log`, `release-build-manifest.json`, `publication-result.json` y el smoke HTTP por deployment permanecen en `release/qa`. La [evidencia versionable](evidence/session-reload-20261113/release-verification.json) conserva sus huellas y resultados saneados. El manifiesto original de compilación mantiene `deployed: false` como antecedente inmutable; la publicación se acredita por el registro posterior, no reescribiendo el manifiesto.
+
+**Recorrido de sesión público aprobado en el navegador integrado (IAB)**, registrado el 13/11 a las **21:15:59.975 UTC**: login con cuenta sintética ya existente y autorizada → mapa con cinco lugares → perfil con 60 puntos → recarga mostrando el mismo perfil y saldo sin introducir credenciales → logout a login vacío → recarga que conserva login vacío. [Aceptación pública y métodos](evidence/session-reload-20261113/public-browser-acceptance.json) y [captura del perfil tras recargar](evidence/session-reload-20261113/public-profile-after-reload.png). No se enviaron reportes ni se cambió el saldo, y no se extrajeron JWT ni se consultó la base de producción para este recorrido.
+
+Este resultado corresponde a IAB, no a una nueva prueba en Chrome normal. No se verificaron entrega FCM/correo, ON/OFF de alertas, Android/iOS, multitab ni reinicio prolongado. La API pública no se interrumpió: espera/reintento conserva su evidencia local inferior. El campo `pending_at_this_publication_check` del registro HTTP describe el momento anterior a la GUI; la aceptación posterior se enlaza por separado y no cambia los 37 resultados originales.
+
+Reversión disponible: reasignar el mismo alias a **`dpl_4BcTtyyXUAfXxztGv2dDgLsS2sy9`** y comprobar después los hashes públicos de ese despliegue anterior. No requiere cambiar API ni SQL. La reversión no se ejecutó en este corte.
+
+### Validación local previa a la publicación
+
+Los resultados siguientes se ejecutaron antes del commit sobre el mismo código conservado en `be308424`, con backend QA `55fee83bdf09e19afe01e2523522c6ca8ac4bdb9`. Las huellas de las 14 fuentes/pruebas coinciden con el manifiesto anterior al commit; no se atribuyen los resultados al SHA base sin el parche ni a una nueva ejecución posterior. [Resumen versionable y huellas](evidence/session-reload-20261113/local-validation.json). Los cortes anteriores conservan sus versiones y evidencias originales.
+
+Web conserva el JWT y la decisión ON/OFF en un registro versionado de `sessionStorage`, asociado al valor exacto de API_BASE_URL. No guarda una copia del usuario ni la contraseña. La recarga bloquea las rutas hasta validar un perfil fresco por GET/Bearer con clave anticaché; no renueva el JWT de dos horas. Red, timeout, 503 o perfil inválido mantienen el candidato privado con reintento. Un 401 vigente, logout o cambio de cuenta limpia/invalida; un 200/401 antiguo no afecta una sesión posterior. Almacenamiento corrupto se descarta; si falla la escritura se intenta borrar el registro previo, y si también se bloquea el borrado no se garantiza su eliminación física. Nativo conserva memoria. [Contrato local, decisión y riesgos](SESION_WEB.md).
+
+Reanudación de alertas probada con dobles de Firebase/HTTP: requiere sesión validada, opt-in persistido y permiso ya concedido; no solicita permiso al recargar. Usa el token cacheado y una sola alta por generación, con binding nuevo. El contrato backend de cada POST conserva la purga del outbox anterior, incluidos pendientes. OFF se persiste antes del DELETE; un fallo de baja no vuelve a activar la preferencia al recargar. No hay recepción FCM real nueva acreditada.
+
+| Comprobación local anterior al commit | Resultado y evidencia versionable |
+| --- | --- |
+| Análisis Flutter completo | Sin incidencias, 7,8 s; [resumen y hash del log](evidence/session-reload-20261113/local-validation.json). |
+| Suite Flutter completa | **843 aprobadas, 0 fallidas, 2 opt-in omitidas**, 48 s; [resumen y hash del log](evidence/session-reload-20261113/local-validation.json). |
+| Nuevos casos, incluidos en la suite | **48** sobre las 795 pruebas de la base: 30 en `session_restore_test.dart`, 4 en `session_restore_route_test.dart` y 14 en `push_session_reload_test.dart`. Las corridas dirigidas solapadas no se suman otra vez. |
+| Build Web local | Correcto en **63,7 s**, Flutter 3.41.9/Dart 3.11.5, API `http://127.0.0.1:3067`, Firebase sin configurar; [resultado y hash de main.dart.js](evidence/session-reload-20261113/local-validation.json). El aviso de deprecación de `--pwa-strategy` no impidió compilar. |
+| API/PostgreSQL QA local | 12 solicitudes verificadas: login/perfil, clave anticaché, rechazo de expiración/versión antigua y recuperación por correo deshabilitada (503). [Resumen saneado](evidence/session-reload-20261113/local-validation.json). SMTP, FCM, worker y cron deshabilitados; sin base remota. |
+| Chrome: perfil tras recarga | Login y perfil QA observados; el usuario confirmó conservar el perfil sin volver a iniciar sesión. GET de comprobación con `_sessionCheck` respondió 200 a las **19:34:03.506 y 19:34:04.411 UTC**. [Aceptación local](evidence/session-reload-20261113/browser-session-acceptance.json). |
+| Chrome: interrupción y reintento | Con la API propia 3067 detenida, recargar mostró `/session-restore?returnTo=/profile`, «No pudimos comprobar tu sesión» y Reintentar, sin datos del perfil. Reiniciar la API y pulsar Reintentar recuperó el perfil sin credenciales; GET de comprobación 200 a las **19:38:59.297 UTC**. [Aceptación local](evidence/session-reload-20261113/browser-session-acceptance.json). |
+| Chrome: logout y recarga posterior | Cerrar sesión llevó a `/login` con campos vacíos. La automatización no completó la última recarga por URL indeterminada; el usuario la hizo y confirmó que seguía mostrando **Iniciar sesión**. [Aceptación local](evidence/session-reload-20261113/browser-session-acceptance.json). |
+
+Los logs completos `analyze-final.log`, `tests-final.log`, `build-final.log`, `api-smoke-final-evidence.json` y `startup-final-evidence.json` permanecen en la carpeta QA local de este corte; no se publican ni se enlazan como archivos del repositorio. El resumen conserva nombres y hashes de los tres logs del pipeline local.
+
+Los tres recorridos de sesión anteriores están comprobados sobre el build local con observación automatizada y confirmación humana. **No se probaron el control ON/OFF de alertas en GUI, entrega FCM ni correo reales, Android/iOS, cierre/reapertura prolongada del navegador o continuidad entre pestañas** en este incremento. Los 14 casos nuevos de alertas siguen siendo simulados. Los resultados humanos del 04/11 permanecen históricos y no se reatribuyen a la recuperación nueva. [Matriz por comportamiento y archivos](SESION_WEB.md).
+
+## Pulido visual publicado y ciclo de alertas aceptado — 04/11/2026
+
+La URL [crowdradar-demo-web.vercel.app](https://crowdradar-demo-web.vercel.app) sirve el frontend `8ce8510123bba400b5ed628ba96c67f18a47b57c`, despliegue `dpl_4BcTtyyXUAfXxztGv2dDgLsS2sy9` en estado `READY`. La API conserva `7780db488892a0dc3c45edfc7a9622b846e71847`. La rama `ux/demo-alertas-20261104` parte de `ea05ae6d7452bd60cd750f66a65898d9733091d5`: `e006709f2c65e2adf36ccc3a56a7bdb23e789cf6` traslada las 21 fuentes de presentación y cuatro archivos de pruebas del pulido del 03/11; `769093227556898a7d2dedb291010069312c11dc` incorpora el control por dispositivo y la transición histórica; `8ce8510123bba400b5ed628ba96c67f18a47b57c` precisa dos imports de pruebas. No cambian backend, workers, dependencias ni configuración Firebase.
+
+La baja requiere confirmación y HTTP 204, bloquea de inmediato mensajes/aperturas locales y distingue un resultado incierto de una eliminación confirmada. Los errores permiten reintentar sin afectar otra cuenta; activar un binding vigente es idempotente. La ficha recibe únicamente un contexto tipado autorizado por usuario/generación/binding/lugar y niveles conocidos. Identifica «Cambio que originó esta alerta» y advierte que el nivel actual puede ser distinto; no añade una consulta ni un panel de nivel actual en esa ficha. No reconstruye una transición desde la URL ni muestra texto arbitrario del mensaje. Al desactivar o cambiar de sesión se ocultan el aviso push y el banner histórico.
+
+Validación del SHA servido, Flutter 3.41.9/Dart 3.11.5: análisis sin problemas (5,4 s), **737 aprobadas, 0 fallidas y 2 opt-in omitidas**, build Web de **46,4 s**. Las pruebas dirigidas cubren errores/timeout/doble clic, limpieza antigua, 401 vigente/antiguo, avisos ajenos, ruta/contexto, móvil a 360 y texto 2×; la integración HTTP/Firebase simulada aprobó 25/25. El primer análisis detectó dos imports de pruebas y hubo correcciones de fixtures asíncronos; sus registros se conservan como diagnósticos y no acreditan fallos de runtime. El resultado válido final está separado de esos intentos.
+
+La comprobación pública del 04/11 a las 23:45:18 UTC aprobó **37/37**, sin autenticación: raíz y 28 recursos estáticos con tamaño/SHA256 coincidentes, siete rutas ausentes o privadas con 404 y redirección HTTP→HTTPS 308. TLS y cabeceras de respuesta verificados. `createDeployment` alcanzó `READY` sin mover el alias habitual: antes de asignarlo explícitamente el control dio 35/37, con JS y fuente de iconos anteriores; tras `assign_alias` al nuevo despliegue pasó 37/37. Se conserva `dpl_cWMnw46YkbA893DRGNmkwokhTZv2` para reversión del mismo alias, sin cambios SQL/API y con comprobación de hashes posterior. [Evidencia pública saneada](evidence/demo-improvements-20261104/release-verification.json) y [procedimiento](DEMO_WEB.md).
+
+**Ciclo real de alertas aceptado en Chrome sobre esta versión.** Rael confirmó alta, baja y reactivación. SQL de solo lectura verificó cero dispositivos elegibles tras la baja, conservando sesión y favorito Kennedy. Tres reportes QA (9–11) produjeron MODERADO; el cron de 23:54 UTC envió cero alertas. Tras reactivar con un binding nuevo y cumplir el intervalo de tres minutos, los reportes 12–14 produjeron SATURADO. El cron de 23:57 creó/envió únicamente el evento 3, `MODERADO→SATURADO`, en un intento y sin error; Rael confirmó «Sí, llegó y muestra «Moderado → Saturado»» al preguntarle por recepción, apertura de Kennedy y banner histórico. El ciclo de 23:58 envió cero alertas adicionales. Las cuentas QA no recibieron eventos. [Aceptación y correlación](evidence/demo-improvements-20261104/push-toggle-human-acceptance.json).
+
+Antes de la fase apagada se observó un registro activo intermedio: se detuvo la prueba sin reportes y se repitió la confirmación/lectura hasta verificar cero dispositivos. No se atribuye una causa a ese registro. **Pendientes: capturas nuevas del dominio y recorrido visual ampliado**, pues el usuario detuvo el control del navegador con Esc, además de la revisión independiente del PR. Los resultados de correo/FCM y capturas del siguiente corte conservan el par anterior; no se reatribuyen a esta versión. Android/iOS, aplicación cerrada y lector de pantalla siguen sin comprobación nueva. [Alcance visual](GUIA_VISUAL.md) y [diseño de las alertas](ARQUITECTURA.md).
+
+## Demo Web publicada y verificada — 04/11/2026
+
+La demo está disponible en [crowdradar-demo-web.vercel.app](https://crowdradar-demo-web.vercel.app), con API [crowdradar-demo-api.vercel.app](https://crowdradar-demo-api.vercel.app). Despliegue Web `dpl_cWMnw46YkbA893DRGNmkwokhTZv2`, estado `READY`, origen frontend `a4919f021157632a4e6500855c6d32acff2f0ab9` compilado con Flutter 3.41.9/Dart 3.11.5. Parte de develop `c3148628b4cbf148254cb4b77d9fddc4f64be67a`, que incorpora F#29. La preparación y publicación no modificaron interfaz, fuentes de la aplicación ni dependencias. Backend publicado `7780db488892a0dc3c45edfc7a9622b846e71847`: `/` y `/health/ready` públicos respondieron HTTP 200.
+
+La comprobación pública sin autenticación ni cookies aprobó **37/37**: raíz y 28 recursos HTTP 200 con tamaños/SHA256 coincidentes, siete rutas ausentes o privadas HTTP 404 y HTTP→HTTPS 308. TLS válido, tipos de contenido correctos y cabeceras de caché/nosniff/Referrer-Policy/HSTS verificadas. Incluye `main.dart.js`, worker push, logo, fuentes y WASM. La pantalla de login se renderizó en navegador; captura local `tmp/cierre-demo-web-20261104/qa/web-public-login.png`. Los resultados completos se conservan fuera de Git en esa carpeta: `frontend-public-http-smoke.json`, `frontend-deployment-verification.json` y `api-public-readiness-http.json`.
+
+El empaquetador exige SHA limpio, API HTTPS y seis opciones públicas verificadas de `crowdradar-hu8-web`. El build conserva el worker push, deja vacío el worker de caché Flutter y no convierte recursos ausentes en HTML. Seis controles Node del empaquetador aprobados; su manifest `deployed: false` permanece como evidencia de compilación, separado de la publicación posterior. [Procedimiento, estrategia de publicación y límites](DEMO_WEB.md).
+
+Recorrido real en el navegador integrado: **7/7** en login público, mapa con cinco lugares y teselas, agregar/listar favorito de Museo Amano, abrir detalle e historial, retirar hasta lista vacía, enviar reporte MODERADO y consultar reportes propios. Saldo final mostrado: 20. Evidencia versionada: [registro GUI](evidence/demo-20261104/public-ui-acceptance.json), [mapa](evidence/demo-20261104/web-public-map.png), [favoritos](evidence/demo-20261104/web-public-favorite.png) e [historial](evidence/demo-20261104/web-public-history.png); las otras capturas referenciadas permanecen en QA local. Es el alcance concreto comprobado en hosting, no una repetición exhaustiva de todas las historias.
+
+**FCM con recepción y apertura confirmadas en Chrome normal:** tres reportes reales HTTP 201 produjeron `SATURADO→MODERADO` en Parque John F. Kennedy. Cron Supabase→API Vercel entregó outbox 2 a las 22:46:00 UTC (17:46:00 Lima), un intento/sin error; Rael confirmó «Sí, llegó y abrió Parque Kennedy». Diez ejecuciones previas sin cambio enviaron cero alertas. El [registro de aceptación humana](evidence/demo-20261104/public-push-human-acceptance.json) conserva confirmación y referencias del mismo par publicado; los logs referenciados siguen en QA local. El primer intento de las 17:35 Lima no acredita recepción humana: el usuario aclaró su incertidumbre y solicitó repetirlo. Se mantuvo una pestaña autenticada viva; aplicación cerrada, Android/iOS y lector de pantalla siguen sin validación nueva.
+
+**SMTP con recepción, recuperación y acceso confirmados:** la solicitud de las 22:47:57 UTC fue seguida por la confirmación de Rael «Sí, llegaron ambos y pude entrar»: correo de recuperación, cambio personal de contraseña, aviso de cambio y login correcto. SQL de solo lectura observó `sessionVersion` 0→1, token consumido a las 22:50:15 UTC, dispositivos elegibles de la sesión anterior 1→0 y favorito Kennedy conservado. El [registro de aceptación](evidence/demo-20261104/public-recovery-human-acceptance.json) contiene las comprobaciones del mismo par sin contraseñas, hashes, valores de token ni enlaces privados. SMTP conserva envío diferido sin cola durable ni reintentos automáticos garantizados. Las evidencias inferiores mantienen su fecha y alcance; no determinan el estado administrativo del backlog.
+
+## Corrección local HU8.1 — respuesta tardía de favorito, 01/11/2026
+
+Rama `fix/hu8-favorito-respuesta-tardia`, base `ebc43eb5b6505752f9db747fdc57ccab7390a04a` de origin/develop. Registro de validación previo a publicación; el SHA final se identifica en el PR de esta rama hacia develop. PlacesCubit mantiene una revisión de favorito por ID: una consulta anterior a un alta confirmada conserva el favorito vigente y actualiza los demás campos; una consulta posterior y las de otros lugares siguen aplicándose normalmente. Se conservan selectionKey y las guardas de sesión/generación. No cambian widgets, estilos, backend ni dependencias.
+
+Regresión determinista con Completer: antes del arreglo falló (esperado true, recibido false); después la misma prueba pasó y las nueve regresiones completas también. Cubren éxito/duplicado, lectura durante el alta, rechazo sin falso favorito, lectura posterior false, otro lugar y respuestas tardías tras logout/cambio de cuenta con mismo JWT. Validación final: analyze limpio, **683 pruebas aprobadas + 2 opt-in omitidas**, build Web con configuración existente correcto en66,9s y diff-check limpio. SHA256 main.dart.js `51677D0C59BB182D3CA548E932B0A7130019571E9D319393AEC4ADE9561B344C`.
+
+Las respuestas de la regresión son simuladas; no hubo recorrido manual nuevo porque API3053/Web5553/PostgreSQL55488 estaban apagados. No se iniciaron servicios ni se repitieron backend/SMTP/FCM reales. Se conserva la evidencia Web real anterior de alertas. Rael autorizó commit, publicación de la rama y PR desde raelchang03UL; revisión e integración siguen pendientes, sin autorización de merge. No se da por cerrado HU8/Sprint4/proyecto.
+
+## Antecedente de implementación y validación HU8
+
+## HU8 integrada localmente para revisión — 30/10/2026
+
+Rama `feature/hu-8-4-eliminar-favoritos`. Base `origin/develop` comprobada: `679cc3f6d8fdf15a546c501181de1c1700ec48d8`. Merges locales conservan commits/autores de F#25, #26 y #27 sobre el aporte F#28, incorporando develop; no se reabrieron F#24 ni se creó un PR duplicado. Correcciones: colaboración delegada asistida por Codex, con identidad Git configurada de Rael Chang, sin atribuirlas a los autores originales. Implementación inicial F`d75c6b1b8ce6ee2dbc934088006da7a36b838a8a` y corrección de activación F`6d77cd5b73b715631c8490f487feaef0959b5c11`; compañero B`f33db103ae105bd25440ef9dfd7dca8e5d258a18`. Primera publicación en F#28/B#46; revisión ajena e integración siguen pendientes. Consultar los heads de los PR para identificar el par publicado final.
+
+- HU8.1: mapa e información del lugar muestran estado y agregan por ID. La confirmación201 exige que placeId corresponda al solicitado; duplicado409 muestra texto público fijo y actualiza estado. HTTP pertenece a PlaceService. El mapa conserva cámara/selección al actualizar favorito; guardar A mientras se selecciona B no marca B.
+- HU8.2: lista propia con carga, vacío, error/reintento; abre `/places/:id` y vuelve a consultar la API autenticada. No confía en un modelo pasado por navegación. Volver del detalle renueva el estado de ese lugar y la lista.
+- HU8.4: borrar desde lista o detalle, prevenir doble envío, conservar el lugar al fallar, actualizar estado/vacío y permitir agregar nuevamente. Un refresh no interrumpe una eliminación pendiente; la navegación de ese elemento se desactiva durante el envío.
+- Sesión: rejectIfCurrent recibe token/generación en favoritos y registro push. Un401 vigente retira sesión; uno antiguo no cierra la nueva. Red, timeout o503 la conservan. Respuestas tardías tras logout/cambio de cuenta no muestran datos antiguos. El observable notifica cada generación, incluso cuentaA→B sin logout intermedio.
+- HU8.3 Web: habilitación explícita desde Favoritos, configuración por entorno, registro FCM obtenido por getToken y targetType=fcm-token; nativo mantiene register/onRegistered con targetType=fid. Backend entrega registrationId en ambos casos. La lectura readonly de presencia FID por appId, acotada al esquema Firebase JS13.1.0, solo revoca el registro FID anterior si existe antes del primer getToken; conserva caché token válida y no crea BD ni lee identificadores/auth. Después Web solo administra getToken/deleteToken, con renovación a demanda. Cola SDK y cola HTTP protegen obtención/baja tardías A→B; las bajas HTTP incluyen binding exacto. Foreground/click validan usuario/binding/generación; worker data-only con texto genérico exige una pestaña autenticada viva. El worker usa `/push/`, separado del worker Flutter, y su activación precede a getToken. No se persisten JWT ni binding por la aplicación; Firebase mantiene su caché normal de registro.
+
+### Comprobaciones ejecutadas
+
+Flutter3.41.9 / Dart3.11.5, sin actualización de SDK. `flutter pub get --enforce-lockfile` inicialmente falló: lock aportado por HU8.3 incompatible con las versiones fijadas por este SDK. `flutter pub get` ajustó únicamente matcher0.12.20→0.12.19, meta1.19.0→1.17.0, test_api0.7.12→0.7.10 y vector_math2.4.4→2.2.0. Se conservaron firebase_core5.1.0 y firebase_messaging17.0.1 declarados en el aporte original; no se añadieron paquetes.
+
+| Comando / recorrido | Resultado |
+| --- | --- |
+| `flutter analyze --no-pub` | Sin problemas, código0. |
+| `flutter test --no-pub` | 674 aprobadas, cero fallidas, dos integraciones anteriores opt-in omitidas; ejecución final21s tras la adaptación a registro FCM Web. |
+| `node --test tool/test_push_web.mjs` | 9/9; binding, cuenta distinta, app cerrada, click exacto, activación/limpieza del worker y migración FID por presencia readonly del appId sin crear BD. Dobles de navegador, sin FCM real. |
+| `flutter build web --no-pub --dart-define=API_BASE_URL=http://localhost:3053 --dart-define-from-file=<configuración pública local>` | Correcto,51,8s con Firebase configurado; build ignorado y sin assets de diagnóstico QA. main.dart.js SHA256 `1384AA47750AFE75C560B0FF33E12E4AE46D1900B2D8E6BFC0FEEEBDEEDEBEB4`. |
+| `git diff --check` | Sin errores. |
+| `GET http://localhost:5553/push/firebase-messaging-sw.js` |200 application/javascript. SHA256 fuente=build: `F360CCDE6CC6488F0D64DDA38CC169956149B7F43B61E1EC9EC1B06920A9FAB7`. |
+| Chrome real, aplicación build1384AA47 | Flujo principal HU8.3 confirmado por Rael: tres reportes HTTP201 → transición SIN_DATOS/SATURADO mediante cálculo original → outbox29 con targetType=fcm-token → dispatch original sent1 → recepción y apertura del lugar7 «HU8 FCM Chrome». |
+| Logout y reactivación final en Chrome | Registro22 y alerta pendiente30 eliminados al salir; registro23 con binding distinto y sesión FCM vigente al reingresar/activar. Cero pendientes; Rael confirmó la reactivación. |
+
+Las regresiones nuevas cubren GET/POST/DELETE favoritos con401 vigente/antiguo, mismo JWT y distinta generación, red/timeout/503, éxito tardío, logout, cambio directo de cuenta, doble envío, refresh concurrente, borrar/reagregar, confirmación para otro ID, selecciónA→B pendiente y layouts360/390/1440 con texto2x. Pruebas Firebase con dobles mantienen onRegistered duplicado en nativo y el plazo total de20s incluyendo permiso pendiente. En Web reproducen caché legacy conservada, token renovado a demanda, migración FID previa una sola vez, fallo de migración sin fallback, permiso tardío sin alta, getToken A tardío cuya baja precede a B y alta HTTP A tardía eliminada por su registrationId exacto antes de confirmar B. No son una comprobación de entrega real.
+
+Recorrido real coordinado con el agente principal: navegador IAB → API3053 → PostgreSQL aislado `crowdradar_hu8_test` en127.0.0.1:55488. Registro/login de dos cuentas QA; agregar desde detalle, lista abre nombre/ID correcto, quitar desde detalle y lista hasta vacío, reagregar, logout y ruta protegida bloqueada, segunda cuenta con lista vacía. PostgreSQL confirmó una asociación en cuenta17 y cero en cuenta18. Repetición sobre build70,5s: mapa selecciona lugar2 → detalle quita favorito → volver conserva selección2 y ofrece Agregar; agregar actualiza estado sin reconstruir mapa; favoritos vuelve a mostrar lugar2. Consola sin errores/avisos en ese recorrido. El tamaño real observado fue928×884: la solicitud de viewport no cambió el navegador; los anchos móviles corresponden a widgets, no a una captura móvil real. Capturas mostradas en el chat de coordinación, sin archivos exportados ni evidencia histórica reemplazada.
+
+### Límites de aceptación
+
+HU8.1/8.2/8.4 tienen recorrido Web/API/PostgreSQL local. El titular completó la configuración autorizada de Firebase: proyecto Spark exclusivo `crowdradar-hu8-web`, app Web, VAPID pública y credencial mínima de envío fuera de Git. La sesión temporal de Google Cloud SDK fue revocada. La ruta FID anterior no produjo recepción observable en Chrome, aun coincidiendo proyecto, VAPID y dispositivo. El control aislado posterior en localhost5556, con getToken SDK13.1.0 y Admin token, sí obtuvo ACK y eventos worker-push/window-message correlacionados a las03:58:36UTC del31/10 (30/10 Lima); el destino tenía142 caracteres y no era FID/JWT. Evidencia local de coordinación: qa/legacy-ab/run-20261030-2251/evidence.json, sin identificador original. Ese control motivó la adaptación Web a registro FCM y se conserva como diagnóstico separado.
+
+El flujo principal HU8.3 de la aplicación final está comprobado: en Chrome, build1384AA47, tres reportes HTTP201 produjeron la transición de saturación mediante el cálculo original y outbox29 para un registro FCM de142 caracteres, no FID/JWT. El dispatch original devolvió sent1; Rael confirmó manualmente que llegó la alerta y abrió el lugar7 «HU8 FCM Chrome». Esta evidencia sí incluye recepción y apertura del detalle correcto, además del ACK del proveedor. Los ensayos previos sin cambio no generaron alerta adicional y la cuenta sin favorito no recibió filas del outbox.
+
+La comprobación final tras logout, reingreso y reactivación también terminó: antes de enviar una segunda transición quedó la alerta pendiente30 del dispositivo22; logout eliminó ambos. La nueva activación creó el dispositivo23 con binding distinto y sesión FCM vigente, sin pendientes, y Rael confirmó que estaba activo. Se conservaron la evidencia del envío/apertura anterior y el historial. Fuente de coordinación: qa/product-token-logout-verify.json. Las regresiones con dobles A→B y las comprobaciones SQL anteriores siguen identificadas por separado; no se presentan como una prueba manual Android ni como recepción en otra cuenta.
+
+La sesión es efímera: recargar cierra sesión y cerrar todas las pestañas impide la validación del binding en el worker; se descarta esa alerta. Android final, lector de pantalla, revisión ajena del par e integración siguen pendientes. Un futuro despliegue necesita su configuración por entorno y un disparador programado/cola para vencimientos de saturación; no se garantiza un temporizador permanente en Vercel. No se desplegó ni se usaron bases personales, Sprint1 o Supabase histórica, ni correo real como efecto de QA.
+
+## HU7 para revisión — 28/10/2026
+
+Rama feature/hu-7-moderacion-kou; Nicolás Kou / kowisprox. [Frontend23](https://github.com/raelchang03UL/CrowdRadar-FrontEnd-SW2/pull/23), compañero [backend42](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/pull/42). Par vigente: heads de ambos PR. Publicado para revisión; pendiente revisión ajena e integración.
+
+- Perfil ADMIN → Administrar usuarios / Revisar reportes denunciados. Lista y detalle separados, búsqueda literal y filtros, confirmaciones, historiales con fecha Lima y paginación. Suspensión con motivo; reactivación con observación opcional.
+- Reportes: total antes de motivos agrupados, incluido Sin motivo; conservar/retirar con motivo. Nueva denuncia reabre Pendiente sin perder historial. Retiro conserva consulta privada del autor y puntos; el backend excluye información y cálculos públicos.
+- Login reconoce403 ACCOUNT_SUSPENDED y presenta un mensaje público fijo sin iniciar sesión. El backend exige contraseña válida antes de informar suspensión.401 mantiene el mensaje genérico;403 desconocidos o malformados no exponen cuerpos del servidor.
+- Se conservan tema, dependencias, locks, RequestCubit/ApiJsonClient y guardas de sesión. Doble envío/salida bloqueados durante guardado; conflicto o respuesta incierta exige actualizar sin reenvío automático.
+- Flutter3.41.9/Dart3.11.5:615 aprobadas, cero fallidas, dos opt-in anteriores omitidas; análisis limpio. Backend200/200 y18 bloques SQL/HTTP HU7 reales. Los tres casos nuevos verifican mensaje de suspensión, errores desconocidos y pantalla sin sesión.
+- [Recorrido y capturas](CIERRE_HU7.md). Requiere backend HU7 y migraciones008/009. Android, lectores de pantalla y aceptación del equipo pendientes. Sites conserva el boceto previo.
+
+## Antecedentes anteriores a HU7
+
+Los cortes inferiores conservan su fecha y alcance originales. El estado vigente de HU7 es el resumen superior; sus iteraciones previas se conservan en Git.
+
+## Vigente: verificación Web de aceptación — 20/10/2026
+
+Par funcional B`5d467ca66adb7a9dc26d2d0e13b87c957258e69d` / F`1ef1b9b7312bd8d57d508c10888427bb2cb1d005`,documentación posterior sin cambios funcionales. PR39backend/21frontend requieren revisión ajena antes de merge. No equivale a develop actualizado ni aceptación del conjunto.
+
+Analyze sin problemas;562pruebas generales y2opt-in ejecutadas aparte1/1cadauna;Web58s/API3053. Opt-inscon destinos/puertos fijos y procedencia declarada del hijo recovery,conservando sus aserciones. El smoke primero esperó un título fuera del viewport;se corrigió la espera a identidadQA y scroll a la acción:1/1final.
+
+PostgreSQLR01fresh/legacy6/6,S3fresh7/7+legacy7/7,recovery6bloques. Únicamente2basesnuevasde cierre autorizadas;demo/históricas/QAanteriores intactas. CorreoRAM,no recepción nueva;SMTPDiego16/10evidencia histórica aplicable al código sin cambios.
+
+Recorrido5553:alta/login,buscar/seleccionar,reporte+10,historial→perfil,ciclo inverso,voto/denuncia ajenos,estado persistido,historia/comparación/horario10:00/3días,logout/rutas. Capturas en CIERRE_WEB_R01_S03. Rael aprobó dirección ausente explícitaHU3.3 y«cercanos»como catálogo disponible sinGPS/radioHU3.5/3.6;HU1.1/2.1uniforme ratificado. Aceptación global pendiente de revisión ajena,merge ysmoke develop. Sin contador nuevo,HU7/8/Favoritos ni rediseño. Android/Chrome normal/manual200%/lector no ejecutados. Cortes inferiores históricos.
+
+## Vigente: cierre Web para revisión — 19/10/2026
+
+Rama `integration/cierre-web-r01-s03-20261019`, desde `18cec26` más F3/C2/F11. Publicación/par exacto acreditados por PR; no integración en develop,aceptación ni despliegue. [Resumen verificable/capturas](CIERRE_WEB_R01_S03.md).
+
+- F11:CrBottomNav solo ignora el índice activo si la ruta efectiva coincide. Historial→Perfil vuelve a /profile sin reescribir router/Favoritos.7regresiones:historial→perfil,ciclo perfil/historial,mapa/logout/rutas y200/401antiguos sin restaurar datos/cambiar sesión. Antes1aprobada/6fallidas;después7/7.
+- Final:analyze0problemas(42s),**562aprobadas/0fallidas/2opt-in omitidas**(16s),Web correcto31,2s para API3043. Intento relativo falló al escribir shaders; solo se repitió build con salida absoluta nueva, sin tocar fuentes ni evidencias. Main.dart.js SHA256 `4ae6c604b64025361b874ffe9504ff8438b39c99cf8c119b8ffd622e8ccc4fc8`.
+- IAB real:alta/login sintéticos,búsqueda Kennedy,selección,plegado/Enter conserva búsqueda/selección,reporte MODERADO→+10,historial1,Perfil directo y ciclo completo,mapa,logout y acceso directo a historial/mapa devuelve login. Carreras200/401antiguos/doble envío/incertidumbre se verifican en widgets/dobles, no se atribuyen al navegador.
+- SQL demo:cuenta2pasa0/0/0→1reporte/1premio/10puntos; datos previos de otra cuenta conservados. SMTP apagado,API3043/Web5543,sin instalar/actualizar/Gradle ni contraseñas en evidencia.
+- Entrada portátil:README/CATALOGO_DEMO_LOCAL backend,ejemplo privado vacío,locks,aprovisionamiento manual sin QA,migraciones/seed,puertos y cuenta propia. Sin tmp de Rael.
+
+Sin nuevo rediseño:I1/I2/mapa/perfil conservados. Pendientes de aceptación:2opt-in,QA R01 desde cero,SMTP real,Android/Chrome normal/manual2×/lector,revisión/catálogo/plataformas,integración/nube.360×640 conserva poco mapa con ficha abierta; no se declara resuelto. Cortes siguientes históricos, incluidas sus brechas previas.
+
+## Corte anterior: catálogo demo y usabilidad — 19/10/2026, 17:39 America/Lima
+
+Mismos HEAD candidatos del corte inferior B`eeff38b`/F`18cec26` y ramas fix, más pendientes previos y este paquete sin commit. C0 coincide byte a byte con F3; originales/experimento intactos. [Informe, C0/C1/C2, diffs y capturas](../../../../tmp/catalogo-ux-20261019). La cabecera I1–I3 inferior es antecedente, no fue sobrescrita.
+
+- Escritorio: Ocultar/Mostrar catálogo libera300dp de mapa sin recrear FlutterMapState, consultar de nuevo, perder ID/filtros/centro/zoom. Clave estable de mapa y estado local de visibilidad;2 pruebas nuevas en map_journey_ux. Búsqueda previa queda en Más opciones; la principal sigue Buscar/Enter.
+- Móvil: controles compactos, Ver lista bajo demanda y ficha expandible existente. Vista previa de ubicación en una línea con acceso al valor completo en Más información. Nombre/categoría/estado/fecha conservan API. Reportar/detalle/historiales fuera del desplegable; Agregar reporte no se duplica al seleccionar. Singular en mapa e historial.
+- CitizenPointsCard presenta únicamente el saldo del DTO:0/1/37 en tests,0→10 en API real; política aprobada10 por reporte aceptado una vez, sin extra por cooldown. Rol/Estado siguen en modelo/backend y no aparecen en perfil ciudadano. Teléfono,distrito,edición,historial,cambio/logout conservados; registro/edición sin controles de privilegios.10 pruebas nuevas de perfil.
+- **Flutter3.41.9/Dart3.11.5:** analyze0 problemas; **555 aprobadas/0 fallidas/2 opt-in omitidas**,21s; Web44,5s con API3043. Backend172/172. No dependencias/locks/Gradle nuevos. Suite final sin avisos de hit-test ni excepciones. Fallos intermedios de pruebas de scroll corregidos usando scrollUntilVisible y conservando aserciones; logs diagnósticos retenidos.
+- Dobles/widgets: semántica AND,vacío,error/reintento,ID/selección/foco/cámara,360/390/1440,texto1×/2× y las regresiones I1/I2 (401 vigente/antiguo,doble envío,cooldown/incertidumbre). No equivalen a SMTP/Android manual ni transporte real.
+- IAB real127.0.0.1:5543 + API3043 + PostgreSQL `crowdradar_demo_local`: alta/login sintéticos; Kennedy+búsqueda/categoría/nivel,vacío y recuperación; lista Escape devuelve foco,Enter reabre; escritorio Enter reabre catálogo y mantiene selección. Reporte201→+10,segundo intento cooldown sin premio; historial1Reporte/1Tranquilo y perfil10. SQL antes1usuario/0reportes/0premios/0puntos→después1/1/1/10. No datos de negocio reales.
+- Capturas comparables antes/después: mismo catálogo5,Kennedy,0 observaciones,1440×900/390×844; perfil misma cuenta0puntos. Registro manual posterior identificado por separado. CatálogoQA9→demo5 no se presenta como mejora visual. Compilaciones externas baseline-build/final-build no reemplazan build/web de QA5533.
+
+**Límites/hallazgos:** móvil360×640 con ficha abierta deja una franja de mapa; cerrar ficha recupera toda su área, información extendida requiere scroll. En historial, Perfil está marcado currentIndex3 y pulsarlo no navega: comportamiento preexistente de CrBottomNav, observado, no corregido en este alcance; volver atrás funciona. Pendiente paquete específico con regresión. No aceptación humana de UI/catálogo ni Release01/Sprint3,QA R01 desde cero/2 opt-in/SMTP autorizado/Android/Chrome normal/lector/manual2×/integración/nube. No tocar Favoritos/HU7/8. Sin cambios GitHub, commits ni publicaciones.
+
+## Anterior: paquete local I1–I3 — 19/10/2026, 17:00 America/Lima
+
+Frontend `fix/mapa-reportes-ux-20261018`, HEAD `18cec26d0f2da755b9e436f04b715f431f54563d` **más estado de trabajo**, backend B0 `fix/pruebas-reproducibles-20261018` / `eeff38b86c53d22180655ee5aa6fa501a2a5b061` más pendientes previos. No nuevos commits. Los HEAD solos no reproducen el candidato. F0/F1/F2/F3, archivos nuevos y diffs incrementales en [evidencia local](../../../../tmp/cierre-ux-20261019). B0 y los originales no se modifican por este paquete.
+
+- I1: 401 protegido vigente limpia token/usuario y el router vuelve al login con aviso; 401/200 antiguos no afectan otra generación. 503/timeout/desconexión conservan sesión y login incorrecto mantiene su error. Prueba roja:12 fallos/41 aprobadas antes; final I1:53 pruebas nuevas, suite509 aprobadas/2 opt-in omitidas, análisis limpio y Web39,9s.
+- I2: solo 409 con `REPORT_COOLDOWN` muestra «no registró otro reporte ni añadió puntos». Respuesta no verificable/503/timeout/desconexión muestra incertidumbre, sin reenvío automático ni botón Enviar en ese estado, con Mis reportes/Cerrar. El 201 se valida; no se inventa recompensa ausente. Prueba roja de servicio:16 fallos/7 aprobadas antes; final I2:534 aprobadas/2 omitidas, análisis limpio y Web34,6s.
+- I3: búsqueda por nombre visible + Buscar/Enter, filtros con texto y eliminación, semántica AND existente. Lista móvil y catálogo300dp desde1100dp; ficha compacta, Más información y cuatro acciones diferenciadas fuera del desplegable. Selección por ID; consulta nueva limpia ficha, escribir no recentra. Sin tema nuevo, datos decorativos ni otra arquitectura. Final: **analyze sin problemas;543 aprobadas/0 fallidas/2 opt-in omitidas; Web55,1s; diff-check0**. Flutter3.41.9/Dart3.11.5. Backend repetido: **138/138**,0 omitidas/fallidas; diff-check0. Avisos LF/CRLF no son errores de whitespace.
+- Tests de I3: filtros AND/limpieza sin perder filtros, homónimos/centro/ID de detalle e historiales, descarte de selección, desplazamiento del mapa y foco. Mapa/filtros/selector/formulario cubren360/390/1440 y texto1×/2×; inset de teclado300 en widgets. Se mantienen aserciones de información secundaria abriendo Más información y controles alcanzables con scroll, sin silenciar excepciones. Los fallos intermedios de compilación/disposición se corrigieron; logs diagnósticos conservados.
+- PostgreSQL real, solo `crowdradar_consolidacion_fresh_20261017`: HTTP+SELECT, usuario sintético38:0/0/0→1 reporte/1 premio/10puntos tras201;409 REPORT_COOLDOWN conserva1/1/10. **No es simulación de transporte**. Cuenta sintética37 del navegador: antes0; reporte143 MODERADO enQAParque(-701), premio10; segundo intento rechazado; SELECT final sigue1 reporte/1 premio/10. No DDL, migraciones, runner destructivo ni correo real.
+- IAB final en5533 sirve `tmp/consolidacion-20261017/CrowdRadar-FrontEnd/build/web`, API127.0.0.1:3033/B0 con SMTP deshabilitado. Recorrido real: login→Enter/búsqueda→categoría+saturación/vacío/reintento→detalle→reporte→éxito+10→cooldown→Mis reportes. Desconexión provocada antes de enviar: incertidumbre sin reenvío, historial con error recuperable y sesión conservada; reinicio QA (secreto sintético efímero)→Reintentar401→login sin recarga. Escape cierra selector y devuelve foco a Ver lista. No se atribuye al navegador la simulación de commit con respuesta perdida: esa carrera se probó con doble.
+- Capturas F0/F3 comparables: QAParque, catálogo9, mismo estado insuficiente/0 reportes vigentes y tamaños390×844/1440×900 antes del envío manual. Después del reporte se identifican capturas de formulario/éxito/rechazo/incertidumbre/historial y cambian los datos de QA. Las `I3_previa_*` no acreditan el último build. Hash del main.dart.js final y manifiestos en informe local. Se conserva F0-build como referencia inmutable.
+
+**Límites:** no aceptación humana ni integración de Release01/Sprint3; no nuevos resultados Android/Chrome normal/lector de pantalla/manual2×/SMTP real. Las dos opt-in y QA R01 desde cero siguen pendientes. Catálogo demostrativo, Favoritos placeholder y HU7/8 sin implementar. No instalaciones, cambios de locks/Gradle/backend funcional, publicación ni cambios de Project/Issues. Los cortes siguientes son históricos y sus cifras/brechas no deben leerse como el estado actual.
+
+## Auditoría anterior — 19/10/2026, 12:14
+
+`fix/mapa-reportes-ux-20261018`, HEAD `18cec26d0f2da755b9e436f04b715f431f54563d` **más5 modificados y4 nuevos**, no HEAD solo. Par backend `eeff38b86c53d22180655ee5aa6fa501a2a5b061` más tests/documentación sin commit. Archivos/hashes en [manifiesto](../../../../tmp/auditoria-20261019/verificacion.json). Ramas locales; origin/develop sigue `dfdb75371d9c3a8ecdb7bc79cf8346988659f0ba`,26 commits detrás del candidato. No se publica ni acepta por estas pruebas.
+
+- Flutter3.41.9/Dart3.11.5: `flutter analyze --no-pub` **sin problemas**(54,4s); `flutter test --no-pub --reporter expanded` **456 aprobadas/0 fallidas/2 opt-in omitidas**; `flutter build web --no-pub --dart-define=API_BASE_URL=http://127.0.0.1:3033` **correcto46,8s**; diff-check0. Se completó hoy la compilación antes interrumpida sobre el estilo copyWith final. Wasm dry-run no acredita ejecución Wasm.
+- Los8 casos nuevos de mapa cubren CTA/selector, búsqueda/vacío/cancelación, coordenadas iguales, logout pendiente, doble activación y selector360/390/1440 con texto2x+inset de teclado300. Dobles/widgets, no teclado Android ni carrera manual de red. Report_consolidation mantiene doble envío/Atrás bloqueados y respuesta tardía tras logout.
+- IAB real en5533, API3033 y PostgreSQL18.1 exclusivamente QA: login→Agregar reporte→buscarQAParque→Moderado→confirmación+10/total20→nuevo intento rechazado→perfil20→historial2→detalle/estado propio0/0→detalle del lugar/historia. SELECT de QA confirma2 reportes/2 premios/20 puntos. No datos personales ni correo real.
+- Escritorio1440×900: catálogo lateral y botones compactos; móvil390×844: CTA visible y selector.9 lugares comparten coordenadas(-12,-77); grupo9abre selector, búsqueda inexistente muestra vacío y Escape cierra/devuelve foco. No se agregan lugares ni coordenadas libres. Ficha móvil larga necesita scroll interno; proponer jerarquía más compacta, no rediseñada hoy.
+- API detenida deliberadamente: error seguro con Reintentar. **Brecha comprobada:** al reiniciar QA se rota su clave sintética; el JWT anterior produce401. Mapa y perfil dicen volver a iniciar sesión pero solo permiten Reintentar, sin limpiar token/usuario; perfil no muestra Cerrar sesión en error. Validar sí limpia y redirige por RequestCubit. No se probó expiración natural de 2 horas; sí el mismo camino de 401y su causa está trazada en PlaceService/UserService/ProfilePage. Corregir con guardas de generación, sin cerrar una sesión posterior por respuestas antiguas.
+- HU 4.2C3parcial: segundo reporte no premia (SQL), pero mensaje no lo informa explícitamente; cooldown dice “más tarde”, sin tiempo restante. No inventar un contador. No corregido en esta auditoría.
+
+Capturas actuales en [carpeta de auditoría local](../../../../tmp/auditoria-20261019):01éxito,02cooldown,03estado propio,04escritorio,05móvil,06APIapagada,07/08sesión inválida. Las3 capturas sin commit del18/10en mapa_ux son anteriores/intermedias:04/05no acreditan este último build. Se conservan, no se sobrescriben evidencias históricas.
+
+No nuevo recorrido Android/Chrome normal, SMTP real, lector de pantalla ni manual2x; las2 opt-in siguen omitidas. Sin dependencia/Gradle/lock/código modificado hoy. Solo documentación canónica. [Matriz porHU y paquete propuesto](../../../../docs/MATRIZ_ACEPTACION_TRAZABILIDAD.md). Release 01/Sprint 3 no aceptados ni integrados; HU 7/8sin implementar.
+
+## Corte anterior local — R01 + Sprint 3, 18/10/2026
+
+Rama `feature/local-s03-validacion-analitica-20261017`. Par funcional: backend `5f933eac9a0095fb802f5d95a65ea563d15df9b0` / frontend `a5e33ac9078cc882474a6d22961f9502f61c6ac0`. Documentación/capturas se añaden después sin alterar código. Solo local: no develop compartida, aceptación ni despliegue.
+
+- HU5: Validar ya no es placeholder. Lista de 50 reportes, confirmación/rechazo definitivos, conteos/confiabilidad provisional, estado propio y denuncia con motivo opcional/confirmación. Sin autovoto ni moderación automática.
+- HU6: detalle → historial del lugar → bloques Lima, comparación y horarios con suficiente historia. Fechas hasta 31 días; distingue ausencia, empate e insuficiencia; no fabrica aforo ni predicción.
+- Historial personal conserva IDs BIGINT como texto, fechas Lima y enlace al estado propio. Rutas nuevas reconstruyen estado al cambiar ID. Se conserva el tema publicado, no el experimento rechazado.
+- Flutter 3.41.9 / Dart 3.11.5: **analyze limpio; 448 aprobadas, 2 opt-in omitidas; build Web aprobado en 58,7 s**. Son 17 pruebas nuevas de S3 además de R01. Lista/revisión/análisis a 360×640, 390×844 y 1440×900 con texto 2x; carreras, doble escritura, JSON inválido, 401 vigente/antiguo y logout.
+- IAB real con API3033/PostgreSQL18 QA: login, lista, confirmar por teclado (conteos 3→4 y peso 7→9), denuncia persistida sin ocultar, reporte propio sin participación, historial 12–14/10 (72 bloques: 3 tranquilos/3 moderados/66 insuficientes), comparación con período sin datos y horario 10:00–11:00 con 3/3 días. Todas son observaciones SINTÉTICAS.
+- Vista móvil 390×844 sin recortes en horarios; API detenida deliberadamente devuelve error seguro con Reintentar. R01 conserva pares antes/después del mismo mapa a 390×844 y 1440×900.
+- Capturas nuevas: [evidencias S3](evidencias/sprint3_2026_10_18/README.md); R01: [antes/después](evidencias/consolidacion_2026_10_17/README.md). Las capturas no acreditan correo real ni todos los casos automatizados.
+
+Pendientes: Android final/manual, Chrome normal, SMTP real, las dos opt-in, aceptación humana/catálogo y exposición en nube. HU7/8 no implementadas; Favoritos permanece placeholder. No instalación ni cambios de Gradle/pubspec/locks. Capturas históricas inferiores no se reescriben.
+
+## Corte local de consolidación Release 01 — 17/10/2026
+
+Rama `feature/local-r01-consolidacion-20261017`, no publicada; base Bffe9b19/Fdfdb753. Se reutilizaron los diez PR de Nick y las tres ramas independientes de Manu, preservando commits/autores. No se tocaron los árboles originales con borradores/experimento. No implica aceptación humana de17 HU.
+
+- Sin premio ficticio: el formulario solo muestra recompensa enviada por API; bloqueo de doble envío/cierre durante petición, errores públicos y descarte/limpieza tras cambio de sesión. Perfil/historial reutilizados, sin arrastrar Gradle/locks/exclusiones del analizador.
+- Flutter3.41.9/Dart3.11.5: análisis sin problemas;431 aprobadas/2 opt-in omitidas. Incluye8 nuevas de reporte/filtros/errores/sesión y360/390/1440 a texto2x. Build Web correcto66,8s antes del último ajuste puramente de llaves; se repetirá sobre el candidato final.
+- Navegador IAB real + API3033 + PostgreSQL QA: registro/login, selección/saturación, reporte→+10 real, detalle con dirección ausente honesta,perfil con10,historial propio,filtros combinados/categoría/vacío. Móvil390×844 y escritorio1440×900. La primera revisión encontró y corrigió BIGINT textual del perfil.
+- Capturas en docs/evidencias/consolidacion_2026_10_17: referencia origin/develop dfdb753 y después con el mismo catálogo QA,viewport yselección; no son capturas del experimento rechazado.
+- Pendientes: Android/build manual final, SMTP real y las2 opt-in omitidas. IAB no se presenta como Chrome normal ni una auditoría WCAG.
+
+Políticas aprobadas por Rael:10 puntos por reporte válido una sola vez;cooldown3 minutos;3 personas/30min para saturación yempate insuficiente. Código local probado no equivale a integración compartida/aceptación. Las secciones siguientes conservan fechas/resultados históricos; no usarlas como instrucciones vigentes.
+
+
+## HU 3.4 — búsqueda de lugares, 10/10/2026
+
+Rama `feature/hu-3-4-busqueda-lugares`, posterior a HU 3.3, para frontend #5. Lupa del mapa → buscador protegido, nombre completo/parcial, todas las coincidencias, sin resultados, limpiar y reintento con la consulta conservada. Resultado → detalle; regreso mantiene consulta/resultados. Solicitudes antiguas y cambios de sesión no restauran datos.
+
+No modifica tema, sesiones ni dependencias. El PR se compara inicialmente contra la rama de detalles; integrar HU 3.3 antes de cambiar su base a develop. Backend compañero en la rama homónima; resultados reales y par de SHA en los PR. Android, revisión humana y catálogo real pendientes.
+
+## HU 3.3 — información del lugar, 10/10/2026
+
+Rama `feature/hu-3-3-detalles-lugar`, desde develop `dfdb753`, compañera de backend #7. Marcador → Ver detalles abre `/places/:id` con nombre, dirección, categoría y referencia, estados de carga/error/reintento y aviso demostrativo. El cubit y el servicio descartan respuestas de generaciones de sesión anteriores; logout elimina los datos y el router vuelve a login.
+
+Se conserva la navegación y el tema existentes. No incluye búsqueda ni modifica dependencias. Una dirección no registrada no se sustituye por referencia. Requiere backend HU 3.3 y migración 004; par probado y pruebas reales en los PR. Android, aceptación humana y catálogo real pendientes.
+
+Las secciones siguientes conservan la evidencia histórica de otras tareas.
+
+## HU 3.5 — filtro por categoría local, 11/10/2026
+
+Rama `feature/hu-3-5-filtro-categoria`, desde `origin/develop` `dfdb75371d9c3a8ecdb7bc79cf8346988659f0ba`, para frontend #6. Backend compañero en la rama homónima desde `46267e7c273d889a85710e33f32ff7a839f52ec9`. Registro de validación local previo a publicación: entonces sin staging, commits, publicación ni modificaciones de Issues/Project. Consultar Git/PR para la publicación posterior; no implica integración.
+
+El mapa consulta categorías activas mediante `/api/places/categories`; elegir/cambiar usa `/api/places?categoria=...` y quitar restaura el listado. La categoría es literal y de hasta 80 caracteres Unicode. El selector y el mapa muestran carga, vacío, error y reintento; el reintento conserva la categoría. Cubits/servicio descartan solicitudes anteriores, logout, cambio de generación y vistas cerradas. No se añade HTTP en widgets, geolocalización, radio de cercanía, niveles ficticios ni controles de saturación.
+
+- Flutter 3.41.9 / Dart 3.11.5: `flutter analyze --no-pub` sin incidencias; `flutter test --no-pub` **254 aprobadas, 0 fallidas, 2 integraciones de autenticación opt-in omitidas** en este rerun. 28 casos nuevos de categoría además de los 226 existentes.
+- Widgets con mapa/MarkerLayer reales y teselas en memoria: seleccionar/cambiar/quitar, sin coincidencias, reintentos, selector abierto durante logout, categorías largas, 360/390/1440 dp y texto 2×. Los primeros ensayos detectaron un overflow del filtro y una opción larga fuera del viewport; se corrigió la disposición/etiqueta y se repitió la suite sin ocultar excepciones.
+- Backend compañero: 68/68 pruebas Node y 7 bloques PostgreSQL aislados aprobados, incluyendo catálogo/filtro ORM + HTTP sobre `crowdradar_hu31_test`; la consulta de sesión en ese runner usa un doble explícito. Fixtures revertidos y datos previos conservados. No equivale al recorrido completo del frontend con autenticación real.
+- `git diff --check` correcto; sin cambios en dependencias, lockfile, Gradle, router, tema global ni modelos compartidos.
+- Compilación Web final aprobada (99,0 s) con API local en `127.0.0.1:3002`. Recorrido interactivo en navegador integrado (IAB), app Flutter servida en `127.0.0.1:5502`: login con cuenta ficticia local y autenticación real PostgreSQL `crowdradar_dev`, 3 lugares demostrativos, catálogo Cultura/Parque/Plaza, selección Parque → 1 marcador, cambio Cultura → 1 marcador, quitar filtro → 3 marcadores y selección de lugar conservada. No se modificaron los lugares existentes ni se usaron credenciales reales del usuario; se creó una cuenta QA local identificable. Vacío/error y demás bordes se verificaron en pruebas automatizadas, no se atribuyen a este recorrido manual. IAB no equivale a Chrome normal. Android omitido expresamente por decisión del usuario; no declarado aprobado.
+
+Esta rama parte de `develop` y no incluye los incrementos separados HU 3.2/3.3/3.4. Reconciliar mapa/servicio/cubit y las queries de búsqueda/categoría al integrar esos incrementos; no descartar uno en favor del otro. Revisión humana/integración/aceptación pendientes. Se revisó el informe de Software I en la carpeta autorizada del Drive para mantener el alcance de la HU; no se modificó Drive ni se atribuyeron reglas de cálculo de saturación no definidas.
+
+Captura del recorrido IAB: [categoría Cultura aplicada](evidencias/hu_3_5/2026_10_11/cultura.jpg), sin credenciales ni datos personales.
+
+## Corrección — margen Android del selector HU 3.6, 12/10/2026
+
+`SafeArea` mantiene las opciones por encima de la barra de navegación, sin nuevas funciones, reglas, API ni dependencias. Solo cambia el selector y añade dos regresiones: ambas fallaron antes y aprobaron después del arreglo en una copia limpia del PR frontend #20, padre `63bf1ffc6ea15b7145a2f6e27b54c4e8ba6e281c`.
+
+Validación individual: análisis limpio; 352 pruebas aprobadas, 0 fallidas y 2 integraciones auth opt-in omitidas; diff-check correcto. Los dos Dart son idénticos a los probados en Android sobre la copia conjunta. El [registro Android fechado](evidencias/hu_3_6/2026_10_12/VALIDACION_ANDROID.md) distingue aquel recorrido nativo y sus 463 pruebas de esta suite individual. Los antecedentes conservan su fecha: no acreditan revisión humana ni el futuro par integrado.
+
+Los ajustes conjuntos de integración permanecen locales y fuera de esta publicación, por indicación del usuario. No se crean PR adicionales. No se fusionan ramas, no se cierran Issues y no se publica el entorno Android. Coordinación HU 3.2/HU 4.1 y comprobación después de integrar siguen pendientes.
+
+## Corrección — mensaje vacío HU 3.6, 11/10/2026
+
+El filtro sin coincidencias presenta literalmente el criterio del Issue #7: «No existen lugares cercanos que cumplan con ese criterio». Conserva el nivel seleccionado, los controles para cambiar/quitar y el reintento. Es un ajuste de redacción; no incorpora GPS, radio, cálculo de distancias ni cambios del contrato o algoritmo backend.
+
+Validación local de la corrección: análisis sin problemas; suite completa, 350 aprobadas/0 fallidas/2 omitidas opt-in; pruebas del mensaje exacto en ausencia de resultados y layouts 360/390/1440 con texto2×; formato de los dos Dart afectados y diff-check correctos. Android continúa pospuesto y no se repitió el recorrido Web en esta corrección. Los registros anteriores mantienen su alcance y fecha.
+
+## HU 3.6 — filtro de saturación, 11/10/2026
+
+Rama `feature/hu-3-6-filtro-saturacion`, padre HU 3.2 frontend `9c831decf868b856248db96dad8e8db8464207b8`; backend compañero parte de `0605b51fb5aa6933de9b587e9ad9c73f5e46c2d1`. [Issue canónico #7](https://github.com/raelchang03UL/CrowdRadar-FrontEnd-SW2/issues/7). Registro previo a publicación; el PR dependiente apunta al padre HU 3.2, aún no integrado en develop. Consultar los PR para el SHA final del par; no se modifican Issues/Project ni se realiza merge.
+
+Selector Todos/Tranquilo/Moderado/Saturado, contexto del filtro y botón quitar. Usa el enum existente de HU 3.2 y método aditivo `getPlacesBySaturation`, conservando `getPlaces()`. HTTP solo en servicio; algoritmo/ventana/votos solo en backend. Actualizar/reintentar conservan el nivel; cambiar/quitar consulta otra lista. Carga, ausencia de coincidencias y errores públicos (401/400/503/timeout) no inventan niveles ni prometen radio o actualización automática.
+
+Las solicitudes antiguas quedan descartadas por operación/sesión/dispose. Logout limpia filtro; retornar del selector exige contexto montado y misma sesión autenticada. Cada lista nueva retira selección previa y cierra la consulta HU 3.2, incluso con respuesta inmediata sin frame de carga. Seleccionar un resultado sigue mostrando su panel HU 3.2. Semántica/teclado del selector y textos identifican nivel sin depender solo del color.
+
+- Flutter 3.41.9/Dart 3.11.5: `flutter analyze --no-pub`, sin problemas; `flutter test --no-pub`, 350 aprobadas/0 fallidas/2 omitidas (integraciones auth opt-in). 48 pruebas nuevas de servicio/cubit/UI: tres niveles/Todos/cambiar/quitar, vacío/error/reintento, latest/session/logout/dispose, selección anterior, layouts 360/390/1440 y texto2×/teclado/semántica.
+- Revisión detectó riesgo en viewport bajo; el test 360×360/texto2× reprodujo overflow del encabezado. Se corrigió en MapPage con encabezados desplazables/altura limitada, quitar siempre visible y encuadre de cámara adaptado. Test corto, suite completa y análisis pasaron después. Se corrigieron fixtures de animación/tema/Tooltip antes de la suite final, sin ocultar excepciones.
+- Formato de ocho Dart candidatos sin cambios, diff-check limpio; paquetes desde caché, sin modificar pubspec/lockfile, router/tema/SessionService/PlaceModel ni Gradle. Build Web final `flutter build web --no-pub --dart-define=API_BASE_URL=http://127.0.0.1:3006`, aprobado en 57,4 s; build no publicado.
+- Recorrido IAB en loopback:5506, API real HU 3.6 en 3006 y PostgreSQL `crowdradar_auth_test`: login QA → Tranquilo/Moderado/Saturado cada uno con un marcador y nivel individual coincidente/tres personas → cambio retira selección → actualizar conserva filtro → quitar recupera cuatro lugares, uno sin reportes → logout/nuevo login vuelve a Todos. Son fixtures ficticios transaccionales de tres usuarios, no reportes reales ni confirmados. Teselas reales OSM, atribución y aviso demostrativo visibles. El helper solo inyectó transacción en modelos/repositorios reales; no falseó respuestas HTTP. Errores/vacío/races/layouts son automatizados, no se atribuyen al recorrido positivo manual.
+- Backend compañero: 92/92 Node y cinco bloques PostgreSQL/HTTP reales aprobados, rollback y filas/historial completos conservados. Al finalizar Web se cerraron procesos/conexiones; la verificación posterior de solo lectura confirmó ausencia de fixtures QA y cuatro migraciones anteriores. No nueva migración en HU 3.6 ni uso de Sprint 1/Supabase.
+- Revisión independiente final del diff, de lectura, sin bloqueos; no sustituye la revisión humana del equipo. Android no ejecutado: se pospone expresamente; no se instala SDK/emulador ni se usa teléfono.
+
+Captura sin credenciales: [filtro Saturado y consulta HU 3.2](evidencias/hu_3_6/2026_10_11/saturado.png), datos QA ilustrativos. Pendientes: acuerdo/coordinación HU 3.2/HU 4.1, integrar primero padre y luego par HU 3.6, reconciliar MapPage con los otros PR y validar Android. Si «cercanos» exige distancia, el equipo debe precisar radio/geolocalización antes de prometerla. PR abierto no equivale a HU Done.
+
+## Incremento local HU 3.2 — consulta de saturación, 11/10/2026
+
+Rama `feature/hu-3-2-consulta-saturacion`, base develop frontend `dfdb75371d9c3a8ecdb7bc79cf8346988659f0ba`. [Issue canónico backend #6](https://github.com/raelchang03UL/CrowdRadar-Backend-SW2/issues/6). Registro de validación local previo a publicación: entonces sin staging, commit, push, PR, merge ni cambios en el backlog. Consultar Git/PR para la publicación posterior; no implica integración. El backend compañero implementa un contrato aditivo y una migración explícita; este incremento no depende de los PR de detalles/búsqueda todavía en revisión.
+
+Mapa → marcador → identificación + consulta autenticada de saturación. Presenta carga, error/reintento, tres niveles textuales, cero/pocos reportes y empate sin nivel. La actualización manual vuelve a consultar la ventana vigente; fecha de consulta y último reporte considerado se muestran en hora local. Panel desplazable de altura limitada, sin tapar permanentemente acciones; conserva atribución OSM y aviso demostrativo. No hay HTTP ni algoritmo de votos en widgets.
+
+Política provisional confirmada para esta implementación: mínimo 3 personas distintas en 30 minutos, último reporte por usuario y nivel más votado; empate o pocos usuarios producen «Sin información suficiente». No es una regla ya acordada por todo el equipo ni aforo medido. Backend determina votos/ventana; frontend usa cifras/fechas del DTO y rechaza respuestas malformadas, incoherentes o para otro lugar. No incorpora formulario de reportes ni inventa saturación de los demos.
+
+Validación automatizada local final: `flutter analyze --no-pub` sin problemas; `flutter test --no-pub`, 302 aprobadas, 0 fallidas, 2 omitidas (integraciones auth opt-in); `git diff --check` correcto y formato de los 8 Dart candidatos sin cambios. Las 76 pruebas nuevas cubren DTO/fechas/ID negativos, JWT/errores públicos/timeout, respuestas obsoletas por selección o sesión, retiro al cerrar/logout, reintento, niveles/pocos/empate y layouts 360/390/1440 dp con texto 2×, incluidos error y ausencia. Se corrigieron avisos de llaves y el fixture de una respuesta pendiente en tests antes de repetir análisis/suite; no se ocultaron excepciones. Las pruebas HTTP usan dobles y teselas en memoria: no prueban una API/base de datos real.
+
+Build Web final aprobado (87,1 s), con `API_BASE_URL=http://127.0.0.1:3003`. Recorrido interactivo en navegador integrado (IAB), app Flutter en `127.0.0.1:5503` y backend `startServer` con PostgreSQL real `crowdradar_dev`: login con cuenta ficticia local previamente creada para HU 3.5; mapa con tres demos; seleccionar Parque muestra «Sin información suficiente», 0 personas y mínimo 3; desplazar el panel permite leer ventana de 30 minutos/fecha/aviso de estimación y acceder a Actualizar saturación; actualizar vuelve a consultar y cambia la fecha; cerrar retira el panel; seleccionar Plaza muestra la identificación y consulta correctas. Sin reportes ficticios persistidos ni credenciales reales del usuario. La migración compartida se aplicó explícitamente en dev, comprobando conservación de usuarios/lugares/reportes/historial previos. IAB no equivale a Chrome normal; niveles conocidos/empates y errores se prueban automatizadamente, no se atribuyen al recorrido manual sin reportes.
+
+Backend compañero: 78/78 pruebas Node y cinco bloques PostgreSQL reales en `crowdradar_auth_test`, incluyendo HTTP de los tres niveles/insuficiencia/empate y sesiones persistidas. Fixtures completamente revertidos; detalle en su ESTADO_ACTUAL. Android expresamente omitido por decisión del usuario: no se instala SDK/emulador ni se usa teléfono, y no se afirma validación Android. Revisión humana, acuerdo de equipo de la política/dependencia HU 4.1 e integración en develop siguen pendientes. El historial de otras ramas/plataformas que sigue debajo conserva su fecha; no acredita este incremento.
+
+No se cambian pubspec/lockfile, Gradle, router, tema, PlaceModel ni SessionService. Paquetes resueltos desde caché con `flutter pub get --offline`, sin actualizar versiones. Reconciliar los cambios compartidos del mapa con HU 3.3/3.4/3.5 al integrar y repetir las regresiones del par.
+
+Captura del recorrido IAB: [lugar sin reportes suficientes](evidencias/hu_3_2/2026_10_11/sin-informacion.jpg), sin credenciales ni datos personales.
+
+## Corrección — error persistente en cambio de contraseña, 10/10/2026
+
+Rama `fix/hu-2-3-error-cambio-password` desde develop `cffd3d5` (HU 3.1, A, B y C ya integrados por #9, #11, #12 y #13). El recorrido Chrome del 10/10 mostró que, tras «La contraseña actual no es correcta.», el mensaje seguía visible mientras se corregían los campos y junto a errores de validación nuevos. Ahora editar cualquier campo (`Form.onChanged`) retira el error del envío anterior; carga, guardas de sesión y doble envío no cambian. `flutter analyze --no-pub` limpio; `flutter test --no-pub` 226 aprobadas/2 omitidas opt-in (la prueba de error corregible comprueba la retirada). Sin cambios de contrato ni dependencias.
+
+## Corrección — Referer y teselas del mapa, 10/10/2026
+
+Rama `fix/web-referrer-mapa`, padre C `652ea260480a39774b11dcea6bdd4c53b85f5fb0`. El recorrido en Chrome del par C mostró todas las teselas como «Access blocked»: la meta `no-referrer` añadida en C impedía enviar Referer y OpenStreetMap lo exige. Comprobado con las mismas teselas: sin Referer, imagen de bloqueo (HTTP 200, ~7 kB); con Referer de origen, tesela real. La meta pasa a `strict-origin-when-cross-origin`: solo sale el origen; el token de recuperación va tras `#` y nunca forma parte del Referer. La cabecera `no-referrer` de las respuestas de la API backend no cambia.
+
+- `flutter analyze --no-pub` limpio; `flutter test --no-pub` 226 aprobadas/2 omitidas opt-in; `git diff --check` correcto.
+- Chrome normal 10/10 tras reiniciar `flutter run`: el mapa muestra las teselas reales de Lima con los tres marcadores demostrativos. En la misma sesión, con backend `feature/hu-2-1-correo-smtp` y correo real (Brevo), el enlace recibido abrió el formulario, el restablecimiento volvió a login con aviso y el enlace reutilizado no mostró formulario.
+- Pendiente: Android y la integración `local_recovery_api_test.dart`, que presupone el clon hermano `../CrowdRadar-Backend/` (en esta PC los clones se llaman `CR-BackEnd`/`CR-FrontEnd`).
+
+## Hito C — HU 2.1–2.2, avance verificable, 08/10/2026
+
+Rama `feature/hu-2-1-2-recuperacion`, padre B frontend `1e62c754682f3abe2b166b178d44b7e6e7d1fad0`; backend compañero parte de `97e607ed22b48561bed30a4e821099f76360210d`. A/B/C dependen de HU 3.1 todavía sin integrar (PR #9/#26 abiertos en borrador). Publicar estas ramas no cambia develop/main ni completa un Sprint; no se abrieron nuevos PR ni se modificó backlog.
+
+Login → recuperación pública con mensaje uniforme → enlace GoRouter → validación HTTP antes de mostrar campos → nueva contraseña/confirmación → login normal. Enlace inválido/expirado/usado no muestra formulario. Servicio sanea respuestas/timeout; cubits bloquean dobles envíos y descartan respuestas de otra operación/sesión. Éxito limpia la sesión vigente y reemplaza la ruta sensible; no abre sesión automáticamente. Meta Web `no-referrer`, token no mostrado en widgets ni persistido en almacenamiento. La invalidación real de JWT y el consumo atómico pertenecen al backend/migración003.
+
+**Entrega real pendiente:** el equipo confirmó que no hay proveedor elegido. El servidor normal devuelve indisponibilidad uniforme, sin generar enlaces ni simular envío. Correo/aviso capturados en pruebas no demuestran entrega real; HU 2.1/Sprint2 no están terminados. Tampoco se verificó apertura de enlaces en la app nativa Android.
+
+- `flutter analyze --no-pub`: sin problemas.
+- `flutter test --no-pub`: 226 aprobadas, 0 fallidas, 2 omitidas (integraciones locales opt-in). 79 casos nuevos C: contratos/errores/timeout, validación antes de formulario, enlace inválido, doble envío, respuestas antiguas, navegación pública/guardas y layouts360/390/1440, texto2×/teclado. Fallos iniciales de estilo/compilación y un fixture de navegación se corrigieron antes de la ejecución final; no se ocultaron excepciones.
+- Opt-in C: 1/1 aprobada con widgets VM + HTTP real + PostgreSQL18 `crowdradar_auth_test`. Solicitud y correo en RAM → enlace real del servicio → respuesta200 de validación antes de campos → reset → JWT anterior401 → contraseña vieja rechazada/nueva válida/perfil → aviso RAM → enlace usado400 sin formulario. No es navegador/Android ni email real. El helper privado inicia/cierra puerto3031, no expone buzón por HTTP ni imprime enlaces/credenciales. Deja cuenta QA aleatoria identificable en la DB aislada.
+- Opt-in B reejecutado sobre C: 1/1 aprobado contra backend3000 y `crowdradar_dev`.
+- `flutter build web --no-pub --dart-define=API_BASE_URL=http://localhost:3000`: correcto,63,8s. `flutter build apk --debug --no-pub --dart-define=API_BASE_URL=http://10.0.2.2:3000`: correcto,33,9s. Contingencia temporal corta de Gradle documentada; aviso SDKXML4/herramienta3 no bloqueante. Builds/APK ignorados, no publicados.
+- `git diff --check` correcto; pubspec, lockfile, Gradle y dependencias sin modificaciones. No se instaló ni actualizó ningún paquete.
+
+Para repetir C, con ambos clones hermanos en esta rama de revisión, `.env` backend local configurado y PostgreSQL18 activo:
+
+```powershell
+# Primero en CrowdRadar-Backend; crea/reutiliza solo la base auth_test protegida.
+npm run test:db:auth
+npm run test:db:recovery
+# Después en CrowdRadar-FrontEnd (no simultáneo con los runners DB).
+$env:CROWDRADAR_RECOVERY_INTEGRATION = '1'
+flutter test --no-pub test/local_recovery_api_test.dart --dart-define=API_BASE_URL=http://127.0.0.1:3031
+Remove-Item Env:CROWDRADAR_RECOVERY_INTEGRATION
+```
+
+El helper requiere permiso de migración en `crowdradar_auth_test`; no cambia la `.env`, no usa dev/entrega/Supabase y no necesita que el servidor3000 envíe correo. Sus presupuestos de abuso se separan por ejecución sin borrar contadores; el runner backend comprueba los límites reales. Backend500/503 y doble/respuesta antigua se comprueban con dobles controlados, no todos como fallos inyectados en PostgreSQL.
+
+No se repitió recorrido Chrome normal, IAB ni Android para A/B/C; se respetó la detención de seguridad previa sin eludirla con otra herramienta. Capturas disponibles: widgets antes/después de A abajo, no capturas actuales de correo ni prueba manual de B/C. Recepción real, enlaces nativos, revisión/integración y reproducción en otra PC siguen pendientes.
+
+## Hito B — HU 2.3, 08/10/2026
+
+Rama `feature/hu-2-3-cambio-password`, padre A `0361ae13017def4d9c135a78b3b95ab1f07bf635`. Backend compañero misma rama desde HU 3.1 `c2aa7c0`; requiere migración 002 explícita. Bases aún sin integrar: no se abrió PR nuevo ni se modificaron PR HU 3.1, develop/main o backlog.
+
+Perfil → Cambiar contraseña: tres campos ocultos con visibilidad opcional, confirmación, 8 caracteres Unicode/72 bytes UTF-8, rechazo de reutilización, teclado y formulario estable durante carga/error. Servicio sanea códigos/timeout; cubit bloquea doble envío y conserva guardas de generación. Éxito/401 de sesión vigente limpia datos y vuelve a login con aviso fijo; respuesta antigua nunca cierra una sesión nueva. El backend invalida efectivamente todos los JWT anteriores mediante versión persistente.
+
+`flutter analyze --no-pub`: sin problemas. Suite normal: 147 aprobadas, 0 fallidas, 1 omitida (integración local opt-in); 37 casos nuevos de HU 2.3. Un fallo intermedio del fixture de scroll se corrigió bombeando el frame final, sin alterar viewport ni ocultar errores. Layouts 360/390/1440, texto 2× y teclado simulado.
+
+Integración opt-in contra backend real/crowdradar_dev: 1/1 aprobada con widgets VM; registro/login/perfil, actual incorrecta, cambio correcto/cierre/aviso, ruta protegida, JWT viejo401, cambio sinJWT401, login viejo rechazado y nuevo correcto. Cuenta QA aleatoria conservada, sin credencial publicada. No es navegador ni Android.
+
+Para reproducir solo esa prueba, con servidor local migrado en `crowdradar_dev`:
+
+```powershell
+$env:CROWDRADAR_API_INTEGRATION = '1'
+flutter test --no-pub test/local_api_smoke_test.dart --dart-define=API_BASE_URL=http://localhost:3000
+Remove-Item Env:CROWDRADAR_API_INTEGRATION
+```
+
+Build Web aprobado (32,0 s) y APK debug aprobado (32,9 s), con URL localhost/10.0.2.2 respectivamente. Se utilizó la contingencia temporal corta documentada para Gradle; permanece el aviso de XML SDK versión4/herramienta3, sin impedir compilación. APK/builds ignorados, no publicados.
+
+Chrome normal/Android y entrega de correo no probados manualmente en este incremento; no afirmar validación manual ni cierre de Sprint. Recuperación/restablecimiento aún fuera de B. El pulido y sus capturas constan abajo.
+
+## Hito A — pulido aplicado, 08/10/2026
+
+Rama `feature/ui-flujos-ciudadano`, padre `feature/hu-3-1-mapa-lugares` en `f2437a2991293fa275626e4d5e8819a22b1aed2a`. HU 3.1/PR #9 sigue sin integrar; esta rama no modifica ese PR ni `develop`/`main`.
+
+Tema neutro, tarjetas claras, formularios contenidos, logo compacto y espaciado compartido. Perfil/edición 680/560 dp, carga inicial/reintento, errores públicos y timeout 15 s; guardar no elimina formulario y bloquea doble envío. Navegación inferior crece con texto ampliado. Mapa conserva datos demostrativos y atribución, sin funciones nuevas. Contratos, dependencias y sesión no cambiaron.
+
+Validación: `flutter analyze --no-pub` sin problemas; `flutter test --no-pub` 110/110 (69 anteriores +37 perfil/edición +4 layouts); build Web correcto. Widgets 360/390/1440 dp, texto 2× y teclado simulado, no recorrido manual. La primera ejecución focalizada detectó overflow de 2 px en navegación 2× y un fixture lazy; ambos corregidos, suite global aprobada sin ocultar excepciones.
+
+[Capturas antes/después y límites](evidencias/ui_flujos_2026_10_08/README.md). No se repitió Chrome normal, IAB ni Android: revisión manual pendiente. No se eludió la detención de seguridad de Chrome. Sin afirmar certificación de accesibilidad ni cierre de Sprint.
+
+## Registro histórico — cierre local HU 3.1 / Web, 07/10/2026
+
+Fotografía de la validación local del 07/10/2026, anterior a su publicación: rama `feature/hu-3-1-mapa-lugares`, HEAD/base `f214886d7a40aabfc3b10b0af1a266128cc421fe`, entonces sin staging, commit ni publicación. HU 2.4 integrada se conserva, con JWT sin revocación backend. Para conocer la publicación/integración posterior, comprobar Git y los PR relacionados; los resultados siguientes conservan su fecha y alcance.
+
+## Validación final Web y formularios
+
+- `dart format` únicamente sobre los 17 Dart candidatos; el formateo incidental de otros archivos se revirtió y no queda en el diff.
+- `flutter analyze --no-pub`: `No issues found!`, código 0.
+- `flutter test --no-pub`: **69: All tests passed!**, código 0. Incluye los 25 casos anteriores HU 2.4, 23 de lugares/mapa, 7 de layout/navegación Web y 14 de usabilidad/servicio de autenticación. Cubre 1440×900, 390×844 y 360×360, sin ocultar overflows/excepciones.
+- `flutter build web --no-pub --dart-define=API_BASE_URL=http://localhost:3000`: **Built build/web**, `58,7 s`, código 0; dry-run Wasm correcto, avisos informativos de tree-shaking. No se probó un despliegue de ese build release; el recorrido fue sobre el servidor de desarrollo de la misma app.
+- `git diff --check`: código 0. Sin cambios de pubspec, lockfile, Gradle ni dependencias. `web/index.html` solo bootstrap de Flutter.
+
+Los intentos intermedios detectaron getters incorrectos en el test de visibilidad y avisos de estilo; después, 68 pruebas pasaron y 1 falló por una respuesta simulada con texto español sin charset UTF-8. Se corrigió el doble HTTP (el backend real usa JSON UTF-8), sin ocultar el resultado. La ejecución final anterior aprobó los 69 casos.
+
+## Recorrido manual Web verificado
+
+URL **http://localhost:5500/#/login**, API **http://localhost:3000**, PostgreSQL 18 local `crowdradar_dev`. Chrome fue iniciado con `flutter run -d chrome --web-hostname=localhost --web-port=5500 --no-pub --dart-define=API_BASE_URL=http://localhost:3000`; no usa `--disable-web-security`. Oracle sigue en IPv4 `127.0.0.1:5500`; Flutter en IPv6 `::1:5500`. No se cambió a 5000 ni se detuvo Oracle.
+
+**Alcance de la evidencia:** el recorrido interactivo siguiente se ejecutó en el navegador integrado (IAB), sobre esa app Flutter y URL local. El control del Chrome normal no estuvo disponible de forma fiable; queda pendiente repetirlo allí con Rael. No se presenta IAB como Chrome normal. Contraseña aleatoria local de 40 caracteres ASCII, solo en memoria, oculta en capturas; sin credencial predeterminada ni autoalmacenamiento.
+
+| Paso | Resultado observado en IAB |
+| --- | --- |
+| Registro nuevo | Rael / Chang, correo QA único, teléfono 9 dígitos y Miraflores. Volvió a login con «Cuenta creada. Ya puedes iniciar sesión…». SQL confirmó usuario y bcrypt en crowdradar_dev. |
+| Correo repetido | «El correo ya está registrado. Inicia sesión o usa otro correo.», sin perder los campos. |
+| Validación de seis campos | Formulario vacío mostró errores por nombre/apellido/distrito, correo, contraseña y teléfono; requisitos visibles. Malformados/límite UTF-8 cubiertos además por tests. |
+| Login recién registrado | Abrió `/#/map`; consulta autenticada y 3 lugares recibidos. |
+| Contraseña incorrecta | «Correo o contraseña incorrectos.», sin abrir sesión. |
+| Backend apagado | Se detuvo solo nuestro servidor, puerto 3000 sin listener; login mostró mensaje comprensible y formulario conservado. Se reinició backend y GET / respondió 200. |
+| Mapa y marcadores | Teselas OpenStreetMap y 3 marcadores; aviso demostrativo/sin tiempo real. |
+| Selección | Demo · Parque Central / Parque · Demostrativo; no detalles completos. |
+| Cierre | Perfil mostró Rael Chang; Cerrar sesión volvió a login con campos vacíos. |
+| Reingreso protegido | Entradas a `/#/map`, `/#/validar`, `/#/favoritos`, `/#/profile`, `/#/profile/edit` redirigieron a `/#/login`. |
+| Recargas | Recarga completa en `/#/login`: formulario vacío; en `/#/register`: registro público; en `/#/map` sin sesión: URL final `/#/login`. Una espera automatizada de accesibilidad expiró mientras cargaba Flutter; después se inspeccionó y activó la accesibilidad, sin cambiar la app ni desactivar seguridad. La prueba automatizada también cubre éxito de registro sin historial previo. |
+| Diseño y teclado | 390×844 y 1440×900 inspeccionados; Tab desde Distrito alcanzó Registrarme; mostrar/ocultar probado sin revelar la credencial. No es una auditoría completa WCAG/lector de pantalla. |
+
+Capturas nuevas (no reemplazan las Android): [mapa/identificación](evidencias/hu_3_1/web_2026_10_07/01_mapa_identificacion.jpg), [backend apagado](evidencias/hu_3_1/web_2026_10_07/02_login_backend_apagado.jpg), [login móvil](evidencias/hu_3_1/web_2026_10_07/03_login_movil.jpg), [registro móvil](evidencias/hu_3_1/web_2026_10_07/04_registro_movil.jpg), [validaciones escritorio](evidencias/hu_3_1/web_2026_10_07/05_validaciones_escritorio.jpg).
+
+### Problema observado y corrección contenida
+
+Antes no se explicaban todos los requisitos; el formulario desaparecía durante la solicitud y errores de red podían mostrar `ClientException`. Registro directo podía intentar volver sin historial. Se añadieron ayudas, validación coherente 8 caracteres/72 bytes, mostrar/ocultar, estados inline públicos con región accesible, campos/botones deshabilitados durante la solicitud y descarte de respuestas antiguas. Un error de registro no se muestra como error de login. Ancho máximo 480, centrado/scroll; no se rediseñó el resto. No hay prueba que permita atribuir todo el fallo original de Rael a una única causa de infraestructura; las deficiencias de interfaz/código sí están identificadas.
+
+Pendientes reales: Chrome normal, clonación limpia de este incremento aún no publicado, revisión de equipo y fuente canónica; sesión solo en memoria, JWT no revocado, User.sync histórico, OSM requiere Internet. No se repitió Android tras las últimas correcciones de formulario. No se implementaron recuperación/restablecimiento/cambio, saturación ni detalle completo.
+
+## Inventario final para revisión (sin staging)
+
+29 archivos: 9 modificados y 20 nuevos. `M`/`??` reproducen `git status --porcelain=v1 --untracked-files=all` desde la raíz del repositorio frontend. Incluyen el incremento previo conservado, no solo los ajustes de este cierre.
+
+```text
+ M README.md
+ M docs/ESTADO_ACTUAL.md
+ M lib/components/cr_bottom_nav.dart
+ M lib/configs/api_config.dart
+ M lib/cubits/login_cubit.dart
+ M lib/pages/login/login_page.dart
+ M lib/pages/map/map_page.dart
+ M lib/pages/register/register_page.dart
+ M lib/services/auth_service.dart
+?? docs/evidencias/hu_3_1/2026_10_07/01_mapa_lugares.png
+?? docs/evidencias/hu_3_1/2026_10_07/02_identificacion.png
+?? docs/evidencias/hu_3_1/2026_10_07/03_error_backend_apagado.png
+?? docs/evidencias/hu_3_1/2026_10_07/04_reintento_correcto.png
+?? docs/evidencias/hu_3_1/web_2026_10_07/01_mapa_identificacion.jpg
+?? docs/evidencias/hu_3_1/web_2026_10_07/02_login_backend_apagado.jpg
+?? docs/evidencias/hu_3_1/web_2026_10_07/03_login_movil.jpg
+?? docs/evidencias/hu_3_1/web_2026_10_07/04_registro_movil.jpg
+?? docs/evidencias/hu_3_1/web_2026_10_07/05_validaciones_escritorio.jpg
+?? lib/components/auth_fields.dart
+?? lib/components/auth_form_layout.dart
+?? lib/cubits/places/places_cubit.dart
+?? lib/cubits/places/places_state.dart
+?? lib/models/place_model.dart
+?? lib/services/place_service.dart
+?? test/auth_usability_test.dart
+?? test/map_page_test.dart
+?? test/places_test.dart
+?? test/web_layout_navigation_test.dart
+?? web/index.html
+```
+
+Revisión de candidatos: sin archivos mayores de 5 MB, generados ni asignaciones de credenciales locales detectadas; JWT real ausente en los textos revisados, `.env` no rastreado. `.dart_tool`, `build/web`, `local.properties`, SDK/AVD y APK siguen fuera de Git. `HEAD = develop = origin/develop` (referencias locales verificadas), diferencia `0 0`; el trabajo está en archivos, no en commits. `origin/main` conserva `6286e0a9c17b41e1e4c3303e32ca102316bc095d`; no existe rama local main en este checkout y no se creó. Evidencias HU 2.4 sin cambios.
+
+## Registro inicial HU 3.1 — 07/10/2026
+
+Rama local `feature/hu-3-1-mapa-lugares`, desde `develop` / merge HU 2.4 `f214886d7a40aabfc3b10b0af1a266128cc421fe`. Se verificó limpio y sincronizado con `origin/develop` antes de crear la rama. Cambios sin staging, commit ni publicación. Issue [#4](https://github.com/raelchang03UL/CrowdRadar-FrontEnd-SW2/issues/4) leído, sin modificaciones.
+
+## Flujo implementado y comprobado
+
+- `PlaceModel` valida datos y coordenadas finitas/rangos. `PlaceService` consulta `/api/places` con JWT, tiempo máximo de 15 segundos y mensajes públicos; no muestra excepciones técnicas.
+- `PlacesCubit` aplica generación de sesión, última solicitud y guarda de vista cerrada. Logout borra inmediatamente la lista; respuestas antiguas no repueblan el estado. Las guardas globales HU 2.4 permanecen intactas.
+- `MapPage` reutiliza AppTheme/AppColors y navegación inferior. Muestra carga, vacío, error/reintento y marcadores dinámicos; encuadra los puntos y permite desplazar el mapa. Selección breve con nombre/categoría y cierre, sin HU 3.3 completa. No hay búsqueda o controles decorativos.
+- No existía catálogo canónico en el código/Issue revisados. Los tres puntos del fixture backend son ilustrativos, con nombres `Demo · ...`, bandera `demostrativo` y aviso visible **Sin monitoreo en tiempo real**. No se atribuyen a lugares realmente monitoreados.
+
+## Validación real
+
+- `flutter analyze --no-pub`: **No issues found!**, código 0.
+- `flutter test --no-pub`: **48: All tests passed!**, código 0: 25 anteriores, 18 de servicio/modelo/cubit y 5 widget del mapa.
+- Los widgets usan 360 × 800 dp, tema real, FlutterMap/MarkerLayer reales y teselas en memoria solo para evitar red externa en tests. Prueban carga, vacío, marcadores/coordenadas, selección, desplazamiento, error/reintento y retiro de marcadores al cerrar sesión.
+- Primera suite nueva: 43 aprobadas y 5 fallidas por `A RenderFlex overflowed by 1.00 pixels on the bottom.` Se corrigió exclusivamente el ajuste del texto de CrBottomNav a una línea con elipsis; sin ampliar el fixture ni ocultar excepciones. Se corrigieron tres avisos de estilo observados durante el desarrollo; análisis final limpio.
+- `git diff --check`: sin errores. Sin cambios en pubspec, lockfile, Gradle, SDK ni dependencias.
+
+## Android 16 / API 36
+
+Se reutilizó `CrowdRadar_API36`, `emulator-5554`, arranque completo `sys.boot_completed=1`. `flutter run -d emulator-5554 --no-pub --dart-define=API_BASE_URL=http://10.0.2.2:3000` compiló el APK debug (assembleDebug 31,9 s), lo instaló y abrió la app. Se usó una cuenta local existente, sin registrar otro usuario.
+
+1. Login desde interfaz contra backend local/PostgreSQL 18 en `crowdradar_dev`.
+2. [Mapa OpenStreetMap cargado y tres marcadores](evidencias/hu_3_1/2026_10_07/01_mapa_lugares.png).
+3. [Selección: Demo · Parque Central / Parque · Demostrativo](evidencias/hu_3_1/2026_10_07/02_identificacion.png).
+4. Se detuvo únicamente nuestro backend; Actualizar mostró [error público y Reintentar](evidencias/hu_3_1/2026_10_07/03_error_backend_apagado.png), sin ClientException visible.
+5. Backend reiniciado; pulsar Reintentar recuperó [los tres marcadores y el mapa](evidencias/hu_3_1/2026_10_07/04_reintento_correcto.png).
+
+La carga y el vacío se probaron automáticamente, no se capturó una base real vacía en Android. El error manual corresponde al backend apagado, no a una caída de OpenStreetMap. Persistió la advertencia no bloqueante `This version only understands SDK XML versions up to 3 but an SDK XML file of version 4 was encountered.`
+
+## Criterios y límites
+
+Los tres criterios técnicos del Issue #4 están demostrados localmente: consulta autenticada con marcadores, coordenadas recibidas exactas y error informativo con recuperación. Pendientes de revisión del equipo, commit/publicación autorizada y fuente canónica de lugares para un uso real. No se marcó el Issue como completado.
+
+La identificación no incluye descripción completa, aforo ni saturación. No hay HU 3.2, HU 3.3 completa, favoritos, geolocalización, reportes, búsqueda ni filtros. JWT sigue sin revocación backend. La migración de `places` no resuelve todavía `User.sync()` histórico. OpenStreetMap necesita Internet; no se añadió modo offline ni tratamiento específico de errores de teselas.
+
+## Registro histórico — HU 2.4
+
+Última revisión: **06/10/2026**, 25 pruebas aprobadas y recorrido Android completado. El registro del 05/10 se conserva debajo; los hallazgos y correcciones adicionales están al final.
+
+Verificado localmente el 05/10/2026. Rama `feature/hu-2-4-cierre-sesion`, creada desde `develop` (`f41229ed6eca69b9e3ff08d8bce3986962f35636`). Cambios sin commit, pendientes de revisión; no se publicaron ni se tocó `main`.
+
+## Comportamiento comprobado
+
+- `AuthCubit.logout()` borra token y usuario antes de notificar el cambio de sesión.
+- El router escucha la sesión: al cerrarla desde una pantalla protegida, redirige a login y retira la pila protegida.
+- Sin sesión, `/map`, `/validar`, `/favoritos`, `/profile` y `/profile/edit` redirigen a `/login`. Se probaron entrada inicial, `go`, `push` y rutas con parámetros de consulta.
+- `/login` y `/register` siguen públicas. Una nueva sesión permite navegar nuevamente.
+- Una respuesta de actualización de perfil de una sesión anterior no repuebla el usuario local después del cierre.
+
+## Pruebas ejecutadas
+
+Entorno existente: Flutter 3.41.9 / Dart 3.11.5, emulador `CrowdRadar_API36`, dispositivo `emulator-5554`, Android 16 API 36. No se actualizaron SDK ni dependencias.
+
+```powershell
+flutter analyze --no-pub
+flutter test --no-pub
+git diff --check
+flutter run -d emulator-5554 --no-pub --dart-define=API_BASE_URL=http://10.0.2.2:3000
+```
+
+- Análisis: `No issues found!`.
+- Pruebas: `20: All tests passed!` (5 de sesión, 14 de navegación y la prueba de humo existente).
+- Revisión de espacios: sin errores.
+- `flutter run`: compiló `app-debug.apk`, lo instaló y abrió la app. El APK permanece ignorado y no se incluye en Git.
+
+Las dos primeras ejecuciones de pruebas terminaron con 13 aprobadas y 7 fallidas por `A RenderFlex overflowed by 1.00 pixels on the bottom.` La fuente Ahem del entorno de pruebas envolvía una etiqueta del menú. Se ajustó el fixture a 440 × 800 dp y al tema de la app; no se cambió la interfaz ni se ocultaron excepciones. Las dos ejecuciones posteriores aprobaron las 20 pruebas.
+
+## Recorrido manual Android
+
+Backend local iniciado con `npm start`, PostgreSQL 18 activo y `.env` ignorado configurado para `crowdradar_dev`. `GET /` devolvió `{"message":"CrowdRadar API"}`. No se usaron `crowdradar_sprint1` ni Supabase.
+
+1. Se inició sesión desde la interfaz con una cuenta local de prueba existente.
+2. Se abrió Perfil; la información del usuario se cargó desde el backend.
+3. Se pulsó **Cerrar sesión** y apareció login con campos vacíos.
+4. Se pulsó Atrás para intentar recuperar la pantalla protegida: Android salió a su pantalla principal, sin mostrar el perfil.
+5. Al reabrir CrowdRadar apareció login, no el perfil anterior.
+
+La tentativa manual de reingreso fue mediante Atrás; las entradas explícitas a las cinco rutas están comprobadas por las pruebas automatizadas. Las capturas de perfil, cierre y reapertura están en `docs/evidencias/hu_2_4/`.
+
+## Límites
+
+- El cierre es local: un JWT copiado previamente sigue válido en el backend hasta expirar. No se añadió revocación, persistencia de sesión ni funciones de contraseña.
+- La compilación mostró una advertencia no bloqueante: `This version only understands SDK XML versions up to 3 but an SDK XML file of version 4 was encountered.` No se cambiaron herramientas para resolverla en esta HU.
+- No se revalidaron todos los casos del Sprint 1 ni las funciones futuras de mapa, validación o favoritos.
+
+## Revisión y finalización local — 06/10/2026
+
+Issue relacionado: [Frontend #3, HU 2.4](https://github.com/raelchang03UL/CrowdRadar-FrontEnd-SW2/issues/3). No se modificó el Issue ni su estado. Rama y HEAD siguen en `feature/hu-2-4-cierre-sesion` y `f41229ed6eca69b9e3ff08d8bce3986962f35636`; `develop` y `main` no se alteraron.
+
+### Estado inicial y referencias remotas
+
+Se revisó el diff completo y se preservaron los 13 archivos de la tarea anterior: README, seis archivos fuente, dos pruebas, este documento y tres capturas. Había siete archivos rastreados modificados y seis sin rastrear; nada staged. Backend limpio en `develop`, `a6da9a72e736bcb18568533a4ec7bf7aa4daa3f3`.
+
+`git fetch --no-tags origin` terminó con código 0 en ambos repositorios. Ninguna referencia de `origin` cambió. `git rev-list --left-right --count HEAD...origin/develop` devolvió `0 0` en ambos: no aparecieron commits nuevos del equipo. No se hizo pull, checkout, merge, rebase, limpieza, commit ni push.
+
+### Defectos reproducidos y cambios mínimos
+
+Las 20 pruebas existentes pasaron antes de modificar código. Se añadieron cinco casos HTTP simulados: antes de corregir hubo **2 aprobados y 3 fallidos** en `flutter test --no-pub test/session_async_test.dart` (código 1):
+
+1. Un login pendiente restauraba la sesión tras logout: `Expected: null; Actual: 'test-session'`.
+2. Una actualización antigua sobrescribía el usuario al abrir otra sesión con el mismo token: `Expected: same instance as <Instance of 'UserModel'>; Actual: <Instance of 'UserModel'>`.
+3. La consulta de perfil terminaba después de cerrar su cubit: `Bad state: Cannot emit new states after calling close`.
+
+Se añadió una generación de sesión **solo en memoria** para descartar respuestas de sesiones anteriores, incluso con token repetido. El cubit de autenticación ignora el login invalidado por logout; el cubit de perfil no emite sobre una vista cerrada. No hay revocación JWT, almacenamiento persistente ni cambios backend.
+
+Las 14 pruebas de navegación ahora usan **360 × 800 dp**, sin ampliar la pantalla para resolver el desbordamiento de Ahem. La edición de perfil es la pantalla protegida de referencia para probar la pila; todas las cinco rutas siguen cubiertas en entrada inicial y después del cierre con `go`/`push`. No se ocultaron excepciones ni se alteró el diseño real.
+
+### Validación final
+
+| Criterio | Evidencia ejecutada |
+| --- | --- |
+| Borrado de token y usuario, antes de notificar | Prueba de `AuthCubit.logout` y prueba HTTP de login pendiente |
+| `clear()` repetido es seguro | Prueba de sesión ya cerrada |
+| Redirección reactiva y pila protegida eliminada | Prueba con dos pantallas protegidas apiladas, sin `go('/login')` duplicado |
+| Cinco rutas protegidas, incluso tras logout | 5 pruebas de entrada inicial y 5 de reingreso `go`/`push` |
+| Login y registro públicos | 2 pruebas de rutas públicas |
+| Nueva sesión permite acceso | Prueba de reentrada a `/profile/edit` |
+| Respuestas antiguas no restauran usuario | HTTP pendiente tras logout y tras nueva sesión con token repetido |
+| Token vacío rechazado | Prueba de token en blanco en `SessionService.start` |
+
+Comandos obligatorios, todos con código 0 después de las correcciones:
+
+- `flutter analyze --no-pub`: `No issues found!`.
+- `flutter test --no-pub`: `25: All tests passed!` (5 de sesión, 5 HTTP/asíncronas, 14 de navegación, 1 de humo).
+- `git diff --check`: sin errores; Git únicamente avisa de la normalización futura LF/CRLF del README.
+
+Se comprobaron secretos locales contra los archivos de texto candidatos: **0 coincidencias**. No hay SDK, AVD, builds, APK ni archivos mayores de 5 MB entre los candidatos. `.env`, `.dart_tool`, el APK y `local.properties` están ignorados. `pubspec.yaml`, `pubspec.lock` y configuración Gradle siguen sin cambios.
+
+### Android repetido realmente
+
+Se reutilizó `CrowdRadar_API36`; `adb devices -l` mostró `emulator-5554` y `sys.boot_completed` fue `1`. Backend iniciado con `npm start`, sin cambios, sobre `crowdradar_dev`; `GET /` respondió `{"message":"CrowdRadar API"}`.
+
+`flutter run -d emulator-5554 --no-pub --dart-define=API_BASE_URL=http://10.0.2.2:3000` compiló, instaló y abrió el APK. Se completó: login desde la interfaz, apertura de Perfil, cierre, intento de volver con Atrás y reapertura. Atrás salió a Android sin recuperar el perfil; al reabrir apareció Login con campos vacíos.
+
+Capturas nuevas, sin reemplazar las del 05/10:
+
+- [Perfil cargado](evidencias/hu_2_4/revision_2026_10_06/01_perfil.png).
+- [Login después de cerrar](evidencias/hu_2_4/revision_2026_10_06/02_cierre_login.png).
+- [Atrás sale a Android](evidencias/hu_2_4/revision_2026_10_06/03_atras_android.png).
+- [Reapertura en Login](evidencias/hu_2_4/revision_2026_10_06/04_reapertura_login.png).
+
+Persistió la advertencia XML del SDK ya registrada; no impidió compilar ni ejecutar. Las entradas directas a rutas se probaron automáticamente, no con enlaces Android. No se reejecutó `npm test` ni todo el Sprint 1 en esta revisión.
+
+### Archivos para la revisión y futuro commit
+
+Conservar los 13 archivos iniciales. Los ajustes adicionales afectan `session_service.dart`, `auth_service.dart`, `user_service.dart`, `login_cubit.dart`, ambas pruebas anteriores, README y este documento. Añadir `lib/cubits/profile/profile_cubit.dart`, `test/session_async_test.dart` y las cuatro capturas nuevas: **19 archivos frontend candidatos** (8 rastreados modificados y 11 sin rastrear), sin staging.
+
+El contexto maestro se actualiza aparte, fuera del repositorio frontend. Backend continúa limpio. No se publica ningún artefacto generado ni credencial.
+
+Propuesta de commit, todavía no ejecutada: `feat(auth): finalize HU 2.4 secure local logout`, con `Refs #3` en el cuerpo. Después de autorización: revisar y añadir explícitamente esos archivos, crear el commit, comprobar nuevamente `origin/develop`, publicar únicamente `feature/hu-2-4-cierre-sesion` en `origin` y abrir un PR hacia `develop`. No cerrar automáticamente el Issue ni fusionar a `main`.
